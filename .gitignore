@@ -44,3 +44,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# --- vercel link'in ekledigi satirlar ---
+# `vercel link` bu ikisini dosyanin SONUNA ekliyor. Ikisi de yukarida zaten
+# var; asil sorun `.env*` kaliminin en sona gelmesi: gitignore'da son eslesme
+# kazandigi icin yukaridaki `!.env.example` istisnasini eziyordu ve sablon
+# dosya depodan dusuyordu. Istisna bu yuzden burada tekrarlaniyor.
+.vercel
+.env*
+!.env.example
