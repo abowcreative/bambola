@@ -1,0 +1,538 @@
+/**
+ * Veri butunlugu ve yas mantigi testleri.
+ * Calistirma: npm run test:veri
+ *
+ * Bagimlilik yok, node --experimental-strip-types ile dogrudan kosar.
+ * Amac: lib/data icindeki referanslarin tutarli oldugunu ve yas
+ * fonksiyonlarinin dogru davrandigini yayindan once garanti etmek.
+ */
+
+import { existsSync } from "node:fs";
+import { SLOTLAR, slotBul, tekSeferlikSlotlar } from "../src/lib/data/program";
+import {
+  EKIP,
+  aileOgretmenleri,
+  atolyeOgretmenleri,
+} from "../src/lib/data/ekip";
+import { AILELER } from "../src/lib/data/gruplar";
+import { ATOLYELER, atolyeBul } from "../src/lib/data/atolyeler";
+import {
+  PAKETLER,
+  indirimVarMi,
+  kampanyaAcikMi,
+  kampanyaKalanGun,
+  gecerliFiyat,
+  erkenKayitGosterilirMi,
+} from "../src/lib/data/ucretler";
+import { SORULAR } from "../src/lib/data/sss";
+import {
+  ILETISIM,
+  MARKA,
+  SITE_URL,
+  napAdi,
+  googleKartBaglantisi,
+} from "../src/lib/site";
+import {
+  ayHesapla,
+  yasMetni,
+  uygunAileler,
+  uygunTekSeferlikSlotlar,
+  dogumTarihiGecerliMi,
+  YAS_SAYFALARI,
+  yasBandiAileleri,
+} from "../src/lib/yas";
+
+let gecen = 0;
+const hatalar: string[] = [];
+
+function dogru(kosul: boolean, ad: string) {
+  if (kosul) gecen++;
+  else hatalar.push(ad);
+}
+
+function esit<T>(a: T, b: T, ad: string) {
+  if (Object.is(a, b)) gecen++;
+  else hatalar.push(`${ad}  (beklenen ${String(b)}, gelen ${String(a)})`);
+}
+
+// ------------------------------------------------------------ veri butunlugu
+
+dogru(SLOTLAR.length === 30, `slot sayisi 30 olmali, ${SLOTLAR.length} bulundu`);
+
+const idler = new Set<string>();
+for (const s of SLOTLAR) {
+  dogru(!idler.has(s.id), `slot id tekrar ediyor: ${s.id}`);
+  idler.add(s.id);
+  dogru(Boolean(atolyeBul(s.atolyeSlug)), `tanimsiz atolye: ${s.atolyeSlug}`);
+  dogru(
+    /^\d{2}\.\d{2}$/.test(s.bas) && /^\d{2}\.\d{2}$/.test(s.bit),
+    `saat formati bozuk: ${s.id}`,
+  );
+  dogru(s.yas.minAy < s.yas.maxAy, `yas araligi ters: ${s.id}`);
+}
+
+// Kombinasyonlardaki her slot id gercekten var mi.
+for (const aile of AILELER) {
+  for (const k of aile.sabitKombinasyonlar) {
+    for (const id of k.slotIdler) {
+      dogru(Boolean(slotBul(id)), `${aile.slug}: olmayan slot id "${id}"`);
+    }
+  }
+  dogru(aile.paketler.length > 0, `${aile.slug}: paket yok`);
+}
+
+// Atolyelerin bagli oldugu aile gercekten var mi.
+for (const a of ATOLYELER) {
+  if (a.ailesi) {
+    dogru(
+      AILELER.some((x) => x.slug === a.ailesi),
+      `${a.slug}: olmayan aile "${a.ailesi}"`,
+    );
+  }
+}
+
+// -------------------------------------------------------------------- fiyat
+
+esit(PAKETLER["okula-hazirlik"].length, 3, "okula hazirlik paket sayisi");
+dogru(
+  !PAKETLER["okula-hazirlik"].some((p) => p.kod === "tek-sefer"),
+  "okula hazirlikta tek sefer secenegi OLMAMALI",
+);
+
+// Tek sefer satirlarina indirim uygulanmaz (PLAN.md Bolum 6.3).
+for (const [aile, paketler] of Object.entries(PAKETLER)) {
+  const tek = paketler.find((p) => p.kod === "tek-sefer");
+  if (tek) {
+    dogru(!indirimVarMi(tek), `${aile}: tek sefer indirimli gorunuyor`);
+  }
+  for (const p of paketler.filter((x) => x.kod !== "tek-sefer")) {
+    esit(
+      p.erkenKayit,
+      Math.round(p.normal * 0.8),
+      `${aile}/${p.kod} erken kayit yuzde 20 olmali`,
+    );
+  }
+}
+
+// Excel'den birebir dogrulanmis rakamlar.
+esit(PAKETLER["okula-hazirlik"][2].normal, 15000, "okula hazirlik ayda 12");
+esit(PAKETLER["okula-hazirlik"][2].erkenKayit, 12000, "okula hazirlik ayda 12 indirimli");
+esit(PAKETLER.ingilizce[0].normal, 2500, "ingilizce tek sefer");
+esit(PAKETLER.bebek[1].erkenKayit, 5600, "bebek ayda 4 indirimli");
+
+// ----------------------------------------------------- tek seferlik atolyeler
+
+// PLAN.md Bolum 6.2 tablo C: 7 kalem, hepsi hafta ici veya Cumartesi,
+// ama Cumartesi 14.00-16.00 ve 16.00-18.00 tek seferlik DEGIL (duzeltme).
+const tekSefer = tekSeferlikSlotlar();
+esit(tekSefer.length, 9, "tek seferlik slot sayisi");
+dogru(
+  !tekSefer.some((s) => s.id === "cmt-1400-gelisim"),
+  "Cumartesi 14.00 tek seferlik olmamali, sabit grubun hafta sonu secenegi",
+);
+dogru(
+  !tekSefer.some((s) => s.id === "cmt-1600-bebek"),
+  "Cumartesi 16.00 tek seferlik olmamali, sabit grubun hafta sonu secenegi",
+);
+
+// Hafta sonu secenekleri kombinasyonlarda var mi (10 Agustos duzeltmesi).
+const gelisim = AILELER.find((a) => a.slug === "gelisim-odakli-oyun")!;
+dogru(
+  gelisim.sabitKombinasyonlar.some(
+    (k) => k.haftaSonu && k.slotIdler.includes("cmt-1400-gelisim"),
+  ),
+  "24-36 ay Cumartesi 14.00 hafta sonu secenegi eksik",
+);
+const bebek = AILELER.find((a) => a.slug === "bebek")!;
+dogru(
+  bebek.sabitKombinasyonlar.some(
+    (k) => k.haftaSonu && k.slotIdler.includes("cmt-1600-bebek"),
+  ),
+  "6-12 ay Cumartesi 16.00 hafta sonu secenegi eksik",
+);
+
+// ------------------------------------------------------------- yas hesabi
+
+const bugun = new Date("2026-08-10T12:00:00");
+esit(ayHesapla("2025-01-10", bugun), 19, "19 aylik");
+esit(ayHesapla("2025-01-11", bugun), 18, "gun gelmediyse ay sayilmaz");
+esit(ayHesapla("2026-08-10", bugun), 0, "bugun dogan 0 aylik");
+esit(ayHesapla("2023-08-10", bugun), 36, "3 yasinda 36 ay");
+
+esit(yasMetni(19), "19 aylık", "yas metni ay");
+esit(yasMetni(24), "2 yaşında", "yas metni tam yil");
+esit(yasMetni(38), "3 yaş 2 aylık", "yas metni yil ve ay");
+
+// ------------------------------------------------------------- uygunluk
+
+// 19 aylik cocuk: gelisim odakli (16-36) + bebek (6-24) = 2 aile.
+esit(uygunAileler(19).length, 2, "19 aylik icin aile sayisi");
+// 8 aylik: yalniz bebek.
+esit(uygunAileler(8).length, 1, "8 aylik icin aile sayisi");
+esit(uygunAileler(8)[0].slug, "bebek", "8 aylik icin bebek grubu");
+// 40 aylik (3 yas 4 ay): yalniz okula hazirlik.
+esit(uygunAileler(40).length, 1, "40 aylik icin aile sayisi");
+esit(uygunAileler(40)[0].slug, "okula-hazirlik", "40 aylik icin okula hazirlik");
+
+// PLAN.md Bolum 6.6 sonuc 1: 3-5 yasa yalniz uc kapi acik.
+const bes = YAS_SAYFALARI.find((y) => y.slug === "3-5-yas")!;
+const besAileler = yasBandiAileleri(bes);
+esit(besAileler.length, 1, "3-5 yas bandinda yalniz okula hazirlik ailesi");
+dogru(
+  !besAileler.some((a) => a.slug === "gelisim-odakli-oyun"),
+  "3-5 yas sayfasinda gelisim odakli oyun grubu GOSTERILMEMELI",
+);
+
+// Diger uc yas sayfasi bandi da dogru aileleri getirmeli.
+const bant = (s: string) => YAS_SAYFALARI.find((y) => y.slug === s)!;
+esit(
+  yasBandiAileleri(bant("6-12-ay"))
+    .map((a) => a.slug)
+    .join(","),
+  "bebek",
+  "6-12 ay bandi",
+);
+esit(
+  yasBandiAileleri(bant("12-24-ay"))
+    .map((a) => a.slug)
+    .sort()
+    .join(","),
+  "bebek,gelisim-odakli-oyun",
+  "12-24 ay bandi",
+);
+esit(
+  yasBandiAileleri(bant("24-36-ay"))
+    .map((a) => a.slug)
+    .sort()
+    .join(","),
+  "gelisim-odakli-oyun,ingilizce,okula-hazirlik",
+  "24-36 ay bandi",
+);
+// Bebek grubu 24 ayda bitiyor, 24-36 sayfasinda gorunmemeli.
+dogru(
+  !yasBandiAileleri(bant("24-36-ay")).some((a) => a.slug === "bebek"),
+  "24-36 ay sayfasinda bebek grubu GORUNMEMELI",
+);
+
+// 40 aylik cocuk icin tek seferlik: matematik (Sali, Cmt) + minik beyinler.
+const besTek = uygunTekSeferlikSlotlar(40);
+esit(besTek.length, 3, "3 yas ustu tek seferlik slot sayisi");
+dogru(
+  besTek.every((s) =>
+    ["oyunlarla-matematik-atolyesi", "minik-beyinler-laboratuvari"].includes(
+      s.atolyeSlug,
+    ),
+  ),
+  "3 yas ustu tek seferlikler yalniz matematik ve minik beyinler olmali",
+);
+
+// ----------------------------------------------------------- dogrulama
+
+dogru(!dogumTarihiGecerliMi("2027-01-01", bugun).gecerli, "gelecek tarih reddedilmeli");
+dogru(!dogumTarihiGecerliMi("2015-01-01", bugun).gecerli, "8 yildan eski reddedilmeli");
+dogru(dogumTarihiGecerliMi("2025-01-10", bugun).gecerli, "gecerli tarih kabul edilmeli");
+dogru(!dogumTarihiGecerliMi("abc", bugun).gecerli, "bozuk tarih reddedilmeli");
+
+// --------------------------------------------------- icerik kurallari
+
+// PLAN.md Bolum 3 madde 1: gorunen metinde uzun tire yok.
+const tumMetin = [
+  ...SORULAR.flatMap((s) => [s.soru, s.cevap]),
+  ...AILELER.flatMap((a) => [a.ad, a.ozet, ...a.ozellikler, ...a.notlar]),
+  ...ATOLYELER.flatMap((a) => [a.ad, ...a.olgular]),
+  // Ogretmen metinleri de ev uslubuna tabi. Metinler onlarin kaleminden
+  // ama uzun tire ve emoji yayin kurali (PLAN.md Bolum 3).
+  ...EKIP.flatMap((o) => [
+    o.ozet ?? "",
+    ...(o.ozgecmis ?? []),
+    ...(o.yaklasimlar ?? []),
+  ]),
+].join(" ");
+dogru(!tumMetin.includes("—"), "veri metninde uzun tire (—) var");
+// PLAN.md Bolum 3 madde 2: emoji yok.
+dogru(
+  !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(tumMetin),
+  "veri metninde emoji var",
+);
+
+// ------------------------------------------------------------------- ekip
+
+/*
+  Ekip sayfasi E-E-A-T icin en degerli sayfa. Eksik alanla yayina cikmasin:
+  ad/soyad/unvan/egitim/fotograf ve ozgecmis dolu olmali. Ayrica `ad` alani
+  Excel'deki adla birebir ayni olmali, yoksa haftalik programdaki
+  `slot.ogretmenler[]` eslesmesi sessizce kopar ve ogretmen hicbir seans
+  yurutmuyor gibi gorunur.
+*/
+const slotOgretmenleri = new Set(SLOTLAR.flatMap((s) => s.ogretmenler));
+
+for (const o of EKIP) {
+  dogru(Boolean(o.soyad), `${o.ad}: soyad eksik`);
+  dogru(Boolean(o.unvan), `${o.ad}: unvan eksik`);
+  dogru(Boolean(o.egitim), `${o.ad}: egitim eksik`);
+  dogru(Boolean(o.fotograf), `${o.ad}: fotograf eksik`);
+  dogru(
+    Boolean(o.ozgecmis && o.ozgecmis.length > 0),
+    `${o.ad}: ozgecmis eksik`,
+  );
+  dogru(
+    Boolean(o.yaklasimlar && o.yaklasimlar.length > 0),
+    `${o.ad}: yaklasimlar eksik`,
+  );
+  dogru(
+    slotOgretmenleri.has(o.ad),
+    `${o.ad}: bu adla hic slot yok, program eslesmesi kopmus`,
+  );
+  dogru(
+    existsSync(`public/ekip/${o.fotograf}.jpg`),
+    `${o.ad}: public/ekip/${o.fotograf}.jpg yok, "npm run foto" calistirilmali`,
+  );
+}
+
+// Ters yon: programda gecen her ogretmenin ekipte karsiligi olmali.
+for (const ad of slotOgretmenleri) {
+  dogru(
+    EKIP.some((o) => o.ad === ad),
+    `programda gecen "${ad}" ekip listesinde yok`,
+  );
+}
+
+// ------------------------------------------------------- kampanya penceresi
+
+/*
+  Kampanya takvimi parayla ilgili: pencere kapandiginda site indirimli fiyati
+  gostermeyi BIRAKMALI. Sinirlar Turkiye saatiyle (UTC+3) sinaniyor, cunku
+  sunucu UTC'de kosuyor ve gun donumu uc saat kayik olsaydi kampanya yanlis
+  gunde acilip kapanirdi.
+*/
+const an = (iso: string) => new Date(iso);
+
+dogru(
+  !kampanyaAcikMi(an("2026-08-09T23:59:00+03:00")),
+  "kampanya baslangictan once acik gorunuyor",
+);
+dogru(
+  kampanyaAcikMi(an("2026-08-10T00:00:00+03:00")),
+  "kampanya baslangic gunu kapali gorunuyor",
+);
+dogru(
+  kampanyaAcikMi(an("2026-09-01T23:59:00+03:00")),
+  "son gun (1 Eylul) dahil olmali",
+);
+dogru(
+  !kampanyaAcikMi(an("2026-09-02T00:00:00+03:00")),
+  "kampanya 2 Eylul 00:00'da kapanmali",
+);
+// Yayindaki asil risk: tarih gecince fiyatin indirimli kalmasi.
+dogru(
+  !kampanyaAcikMi(an("2027-01-01T12:00:00+03:00")),
+  "kampanya ertesi yil hala acik gorunuyor",
+);
+
+/*
+  Kalan gun sayisi WhatsApp balonunda "N gün kaldı" olarak yaziliyor. Son gun
+  DAHIL: 1 Eylul gunu 1 donmeli, 2 Eylul'de kampanya kapali ve 0.
+*/
+esit(
+  kampanyaKalanGun(an("2026-09-01T09:00:00+03:00")),
+  1,
+  "son gun 1 donmeli",
+);
+esit(
+  kampanyaKalanGun(an("2026-08-31T23:00:00+03:00")),
+  2,
+  "son gunden bir onceki gun 2 donmeli",
+);
+esit(
+  kampanyaKalanGun(an("2026-08-17T12:00:00+03:00")),
+  16,
+  "17 Agustos'ta 16 gun kalmali",
+);
+esit(
+  kampanyaKalanGun(an("2026-09-02T00:00:00+03:00")),
+  0,
+  "kampanya kapaliyken 0 donmeli",
+);
+esit(
+  kampanyaKalanGun(an("2026-08-09T23:59:00+03:00")),
+  0,
+  "kampanya baslamadan 0 donmeli",
+);
+
+for (const paketler of Object.values(PAKETLER)) {
+  for (const p of paketler) {
+    dogru(
+      gecerliFiyat(p, false) === p.normal,
+      `kampanya kapaliyken ${p.kod} normal fiyat donmeli`,
+    );
+    dogru(
+      gecerliFiyat(p, true) === (indirimVarMi(p) ? p.erkenKayit : p.normal),
+      `kampanya acikken ${p.kod} yanlis fiyat donuyor`,
+    );
+    dogru(
+      !erkenKayitGosterilirMi(p, false),
+      `kampanya kapaliyken ${p.kod} icin indirim rozeti gosteriliyor`,
+    );
+  }
+}
+
+/*
+  Kurum icindeki gorev. Kurum semasindaki `employee` alani EKIP icinde gorevi
+  dolu OLAN ILK kisiyi aliyor; birden fazla olursa sema sessizce yalniz
+  birini gosterir ve digeri hicbir yerde gorunmez.
+*/
+const gorevliler = EKIP.filter((o) => o.gorev);
+dogru(
+  gorevliler.length <= 1,
+  `birden fazla kurum gorevi tanimli: ${gorevliler.map((o) => o.ad).join(", ")}`,
+);
+for (const o of gorevliler) {
+  dogru(Boolean(o.unvan), `${o.ad}: gorevi var ama mesleki unvani yok`);
+  dogru(Boolean(o.soyad), `${o.ad}: gorevi var ama soyadi yok`);
+}
+
+// ------------------------------------------------- program -> ogretmen bagi
+
+/*
+  Kartlardaki ogretmen rozetleri ve program sayfasindaki "kim veriyor"
+  bolumu bu iki fonksiyondan besleniyor. Bos donerlerse ekranda hata cikmaz,
+  bolum sessizce KAYBOLUR -- gozle fark edilmeyen tam olarak bu.
+*/
+for (const aile of AILELER) {
+  const kadro = aileOgretmenleri(aile.slug);
+  dogru(kadro.length > 0, `${aile.slug}: program ailesinin ogretmeni yok`);
+  for (const o of kadro) {
+    dogru(
+      Boolean(o.fotograf),
+      `${aile.slug}: ${o.ad} rozette gosterilecek ama fotografi yok`,
+    );
+  }
+}
+
+/*
+  Seansi olup ogretmeni olmayan TEK atolye serbest oyun olmali. Serbest oyun
+  atanmis ogretmeni olmayan bir zaman dilimi (her grup gununun ilk saati),
+  Excel'de de ogretmen yazmiyor. Baska bir programin ogretmensiz kalmasi ise
+  hata: sayfasindaki "kim veriyor" bolumu sessizce kaybolur.
+
+  Guvenli Ayrilma Programi bu listede yok cunku kendi seansi hic yok; Okula
+  Hazirlik Gruplarinin icinde yuruyor ve sayfasi ailenin kadrosunu gosteriyor.
+*/
+const ogretmensiz = ATOLYELER.filter(
+  (a) =>
+    SLOTLAR.some((s) => s.atolyeSlug === a.slug) &&
+    atolyeOgretmenleri(a.slug).length === 0,
+).map((a) => a.slug);
+
+esit(
+  ogretmensiz.join(", "),
+  "serbest-oyun",
+  "ogretmensiz seansi olan atolyeler beklenenden farkli",
+);
+
+// Ailenin kadrosu, o aileye bagli atolyelerin kadrosunu kapsamali.
+for (const aile of AILELER) {
+  const aileKadro = new Set(aileOgretmenleri(aile.slug).map((o) => o.ad));
+  for (const atolye of ATOLYELER.filter((a) => a.ailesi === aile.slug)) {
+    for (const o of atolyeOgretmenleri(atolye.slug)) {
+      dogru(
+        aileKadro.has(o.ad),
+        `${aile.slug} kadrosunda ${o.ad} yok ama ${atolye.slug} atolyesinde var`,
+      );
+    }
+  }
+}
+
+// ------------------------------------------------------------------ NAP
+
+/*
+  NAP (isim, adres, telefon) yerel SEO'nun temeli: footer, /iletisim, KVKK
+  metni ve schema.org hepsi ayni adresi basmali. Asil risk, sokak satirinin
+  degisip tek satirlik gosterim halinin eski kalmasi -- bu yuzden `adres`
+  parcalardan uretiliyor ve burada gercekten oyle uretildigi sinaniyor.
+*/
+const { adres, adresSokak, postaKodu } = ILETISIM;
+
+/*
+  Yayin adresi: sonunda bolu isareti OLMAMALI. Olsaydi butun kanonik URL'ler
+  ve sitemap girdileri cift bolu tasirdi ("https://alanadi.com//iletisim").
+  Adres ortam degiskeninden geliyor, yani bu hata yalniz yayinda ortaya cikar.
+*/
+dogru(!SITE_URL.endsWith("/"), `SITE_URL sonunda bolu var: ${SITE_URL}`);
+dogru(
+  /^https?:\/\/[^/]+$/.test(SITE_URL),
+  `SITE_URL "protokol://alanadi" bicminde olmali: ${SITE_URL}`,
+);
+
+/*
+  WhatsApp numarasi wa.me bicimini tutmali: 905XXXXXXXXX, basinda arti yok,
+  bosluk yok. Yanlis yazilirsa baglanti sessizce bos bir sohbet aciyor --
+  sag alttaki yuzen buton da, footer'daki de bu numaradan uretiliyor.
+*/
+if (ILETISIM.whatsapp) {
+  dogru(
+    /^905\d{9}$/.test(ILETISIM.whatsapp),
+    `WhatsApp numarasi 905XXXXXXXXX olmali: ${ILETISIM.whatsapp}`,
+  );
+}
+
+/*
+  Isim tarafi: musteri karari (c). Footer NAP'i ve schema `name` alani Google
+  kaydindaki adi tasimali, tuzel ad da parantez icinde gorunmeli. Ikisinden
+  biri dusudugunde yerel SEO sessizce bolunur, ekranda hicbir sey bozulmaz --
+  bu yuzden test var.
+*/
+const nap = napAdi();
+dogru(
+  nap.includes(ILETISIM.googleAdi ?? ""),
+  `NAP adi Google kaydindaki adi tasimiyor: ${nap}`,
+);
+dogru(
+  nap.includes(MARKA.tuzelAdOyunEvi),
+  `NAP adi tuzel adi tasimiyor: ${nap}`,
+);
+
+// Google kart baglantisi: CID'in ikinci parcasi ondaliga cevrilebilmeli.
+const kart = googleKartBaglantisi();
+dogru(Boolean(kart), "Google kart baglantisi uretilemedi");
+dogru(
+  /^https:\/\/www\.google\.com\/maps\?cid=\d+$/.test(kart ?? ""),
+  `Google kart baglantisi bozuk: ${kart}`,
+);
+
+dogru(Boolean(adresSokak), "adres sokak satiri bos");
+dogru(Boolean(adres), "tek satirlik adres bos");
+dogru(
+  /^\d{5}$/.test(postaKodu ?? ""),
+  `posta kodu bes haneli olmali: ${postaKodu}`,
+);
+dogru(
+  (postaKodu ?? "").startsWith("06"),
+  `Ankara posta kodu 06 ile baslar: ${postaKodu}`,
+);
+
+if (adres && adresSokak && postaKodu) {
+  dogru(adres.includes(adresSokak), "gosterim adresi sokak satirini icermiyor");
+  dogru(adres.includes(postaKodu), "gosterim adresi posta kodunu icermiyor");
+  dogru(adres.includes(MARKA.ilce), "gosterim adresinde ilce yok");
+  dogru(adres.includes(MARKA.sehir), "gosterim adresinde il yok");
+
+  // Sokak satiri schema.org streetAddress'e giriyor; ilce/il/posta kodu
+  // orada kendi alanlarinda duruyor, burada tekrar etmemeli.
+  for (const parca of [MARKA.ilce, MARKA.sehir, postaKodu]) {
+    dogru(
+      !adresSokak.includes(parca),
+      `sokak satirinda tekrar eden alan: "${parca}"`,
+    );
+  }
+}
+
+// ------------------------------------------------------------------ sonuc
+
+if (hatalar.length) {
+  console.error(`\n${hatalar.length} test BASARISIZ:\n`);
+  for (const h of hatalar) console.error("  x " + h);
+  console.error(`\n${gecen} gecti, ${hatalar.length} kaldi.\n`);
+  process.exit(1);
+}
+console.log(`\nTum testler gecti: ${gecen} kontrol.\n`);

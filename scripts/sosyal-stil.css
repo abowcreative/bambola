@@ -1,0 +1,369 @@
+/* Sosyal medya postlari. Tasarim dili kurumun mevcut afislerinden birebir:
+   krem zemin, sol ustte yesil organik bicim, kesikli beyaz konturlar,
+   yuvarlak agir iki tonlu baslik, soluk yesil kartlar, altta yesil serit.
+
+   Olcu birimi cqw: 1080 piksel genislikte 1cqw = 10.8 piksel.
+   Ornek: 8cqw = 86 piksel. */
+
+:root {
+  --krem: #f7f2e4;
+  --krem-acik: #fffdf7;
+  --kart: #eef4de;
+  --yesil-koyu: #2f5e1c;
+  --yesil: #6aa63a;
+  --yesil-orta: #8cbf52;
+  --yesil-acik: #c3dfa0;
+  --kehribar: #f5b335;
+  --murekkep: #26241f;
+  --soluk: #6d675d;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Bambola Govde", sans-serif;
+  color: var(--murekkep);
+  background: #ffffff;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.kare {
+  container-type: inline-size;
+  width: 1080px;
+  height: 1350px;
+  position: relative;
+  overflow: hidden;
+  background: var(--krem);
+}
+
+/* --- organik bicimler, afislerdeki gibi --- */
+.bicim { position: absolute; pointer-events: none; }
+.bicim-ust {
+  top: -13cqw;
+  left: -11cqw;
+  width: 46cqw;
+  height: 30cqw;
+  background: var(--yesil-acik);
+  border-radius: 58% 42% 62% 38% / 52% 60% 40% 48%;
+}
+.bicim-ust2 {
+  top: -6cqw;
+  left: 8cqw;
+  width: 26cqw;
+  height: 17cqw;
+  background: var(--yesil-orta);
+  opacity: 0.55;
+  border-radius: 50% 50% 55% 45% / 60% 40% 60% 40%;
+}
+.bicim-alt {
+  bottom: 8cqw;
+  right: -12cqw;
+  width: 42cqw;
+  height: 30cqw;
+  background: var(--yesil-acik);
+  opacity: 0.5;
+  border-radius: 45% 55% 40% 60% / 55% 45% 60% 40%;
+}
+.bicim-nokta {
+  border-radius: 999px;
+  border: 0.9cqw solid var(--yesil-orta);
+  opacity: 0.5;
+}
+
+/* --- icerik --- */
+.ic {
+  position: absolute;
+  inset: 0;
+  padding: 6cqw 6cqw 19.5cqw;
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+}
+
+.ust-etiket {
+  align-self: flex-start;
+  background: var(--yesil-koyu);
+  color: #fff;
+  border-radius: 999px;
+  padding: 1.4cqw 3.4cqw;
+  font-size: 2.7cqw;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-family: "Bambola Baslik", sans-serif;
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.01em;
+  margin-top: 3cqw;
+}
+h1 .koyu { color: var(--yesil-koyu); display: block; }
+h1 .acik { color: var(--yesil); display: block; }
+.baslik-buyuk { font-size: 11.5cqw; }
+.baslik-orta { font-size: 9.5cqw; }
+
+/* Baslik altindaki el cizimi alti cizgi */
+.alti-cizgi {
+  width: 26cqw;
+  height: 1.6cqw;
+  margin-top: 1.6cqw;
+  border-radius: 999px;
+  background: var(--yesil-orta);
+}
+
+.spot {
+  font-size: 3.5cqw;
+  line-height: 1.4;
+  color: var(--soluk);
+  margin-top: 2.6cqw;
+  max-width: 66cqw;
+  font-weight: 500;
+}
+
+/* --- kart listesi --- */
+.kartlar {
+  margin-top: auto;
+  margin-bottom: 1.5cqw;
+  display: flex;
+  flex-direction: column;
+  gap: 2cqw;
+}
+.kartlar.izgara {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.4cqw;
+}
+
+.k {
+  background: var(--krem-acik);
+  border: 0.4cqw dashed var(--yesil-acik);
+  border-radius: 4cqw;
+  padding: 2.8cqw 3.2cqw;
+  display: flex;
+  align-items: center;
+  gap: 3cqw;
+}
+.k.dolu {
+  background: var(--yesil-koyu);
+  border-color: var(--yesil-koyu);
+  color: #fff;
+}
+.k.dolu .k-alt { color: var(--yesil-acik); }
+
+.k-ikon {
+  flex: none;
+  width: 11cqw;
+  height: 11cqw;
+  border-radius: 999px;
+  background: var(--kart);
+  display: grid;
+  place-items: center;
+}
+.k.dolu .k-ikon { background: rgba(255, 255, 255, 0.16); }
+.k-ikon img { width: 6cqw; height: 6cqw; }
+
+.k-govde { min-width: 0; }
+.k-ust {
+  font-family: "Bambola Baslik", sans-serif;
+  font-size: 4cqw;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.k-alt {
+  font-size: 2.8cqw;
+  line-height: 1.35;
+  color: var(--soluk);
+  margin-top: 0.8cqw;
+}
+
+/* Rakam vurgusu olan kart */
+.k-rakam {
+  font-family: "Bambola Baslik", sans-serif;
+  font-size: 9cqw;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--yesil-koyu);
+}
+.k.dolu .k-rakam { color: var(--kehribar); }
+
+/* --- zaman cizelgesi --- */
+.akis { margin-top: auto; margin-bottom: 1cqw; }
+.akis li {
+  list-style: none;
+  display: flex;
+  gap: 3cqw;
+  padding-bottom: 3cqw;
+  position: relative;
+}
+.akis li:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 4.6cqw;
+  top: 9cqw;
+  bottom: 0;
+  width: 0.5cqw;
+  background: var(--yesil-acik);
+  border-radius: 999px;
+}
+.akis-nokta {
+  flex: none;
+  width: 9.5cqw;
+  height: 9.5cqw;
+  border-radius: 999px;
+  background: var(--yesil);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-family: "Bambola Baslik", sans-serif;
+  font-size: 3.4cqw;
+  font-weight: 800;
+  z-index: 1;
+}
+.akis-govde { padding-top: 0.6cqw; }
+.akis-ust {
+  font-family: "Bambola Baslik", sans-serif;
+  font-size: 4cqw;
+  font-weight: 700;
+  color: var(--yesil-koyu);
+}
+.akis-alt { font-size: 2.8cqw; color: var(--soluk); margin-top: 0.5cqw; }
+
+/* --- alt iletisim seridi, afislerdeki gibi --- */
+.serit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 14.5cqw;
+  background: linear-gradient(180deg, var(--yesil-orta), var(--yesil));
+  display: flex;
+  align-items: center;
+  padding: 0 4.5cqw 0 21cqw;
+  gap: 3cqw;
+  color: #fff;
+  z-index: 3;
+}
+.serit-logo {
+  position: absolute;
+  z-index: 4;
+  left: 3.5cqw;
+  bottom: 2.2cqw;
+  width: 15cqw;
+  height: 15cqw;
+  border-radius: 999px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  padding: 0.7cqw;
+  box-shadow: 0 0.5cqw 1.5cqw rgba(0, 0, 0, 0.12);
+}
+.serit-logo img { width: 100%; height: 100%; }
+.serit-sol p {
+  display: flex;
+  align-items: center;
+  gap: 1.4cqw;
+  font-size: 2.6cqw;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.serit-ikon {
+  width: 3.6cqw;
+  height: 3.6cqw;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  display: grid;
+  place-items: center;
+}
+.serit-ikon img { width: 2.2cqw; height: 2.2cqw; }
+.serit-sag {
+  margin-left: auto;
+  text-align: right;
+  font-size: 2.4cqw;
+  max-width: 33cqw;
+  font-weight: 600;
+  line-height: 1.4;
+  padding-left: 3cqw;
+  border-left: 0.3cqw solid rgba(255, 255, 255, 0.4);
+}
+
+/* --- kehribar rozet, p1 ve p7'deki gibi --- */
+.rozet {
+  position: absolute;
+  top: 6cqw;
+  right: 6cqw;
+  width: 27cqw;
+  height: 27cqw;
+  background: var(--kehribar);
+  border-radius: 46% 54% 50% 50% / 52% 46% 54% 48%;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: #fff;
+  z-index: 3;
+  box-shadow: inset 0 0 0 0.6cqw rgba(255, 255, 255, 0.7);
+}
+.rozet span { display: block; }
+.rozet .r-ust { font-size: 2.9cqw; font-weight: 700; letter-spacing: 0.06em; }
+.rozet .r-buyuk {
+  font-family: "Bambola Baslik", sans-serif;
+  font-size: 9.5cqw;
+  font-weight: 800;
+  line-height: 1;
+}
+.rozet .r-alt { font-size: 2.5cqw; font-weight: 600; }
+
+/* Kucuk cizim susleri */
+.susleme { position: absolute; opacity: 0.55; z-index: 1; }
+
+/* Daha sikisik kart ve akis. Olcum, son blogun seridin altina girdigini
+   gosterdi; asagidakiler o farki kapatiyor. */
+.k { padding: 2.4cqw 3cqw; gap: 2.6cqw; }
+.k-ikon { width: 10cqw; height: 10cqw; }
+.k-ikon img { width: 5.4cqw; height: 5.4cqw; }
+.akis li { padding-bottom: 2.4cqw; }
+.akis li:not(:last-child)::before { top: 8cqw; }
+
+/* Izgara kartlarda ikon yer kaplıyor, metne alan birakmak icin kaldirildi. */
+.kartlar.izgara .k { flex-direction: column; align-items: flex-start; gap: 1.4cqw; }
+.kartlar.izgara .k-ikon { width: 8cqw; height: 8cqw; }
+.kartlar.izgara .k-ikon img { width: 4.4cqw; height: 4.4cqw; }
+.kartlar.izgara .k-ust { font-size: 3.5cqw; }
+.kartlar.izgara .k-alt { font-size: 2.6cqw; margin-top: 0.5cqw; }
+
+/* .ic bir sutun flex kutusu. Flex ogeleri ana eksende varsayilan olarak
+   kuculur; olcum, .alti-cizgi'nin cogu postta 0 piksele indigini gosterdi.
+   Bu yuzden hicbir icerik blogu kuculmuyor, tasma varsa gorunur oluyor. */
+.ic > * { flex: none; }
+
+/* Rozetteki ust satir kehribar dairenin disina tasiyordu. */
+.rozet .r-ust { font-size: 2.4cqw; }
+.rozet > div { padding: 0 2cqw; }
+
+/* Kart icindeki dil rozeti */
+.k-rozet {
+  display: inline-block;
+  margin-top: 1cqw;
+  padding: 0.5cqw 1.8cqw;
+  border-radius: 999px;
+  background: var(--yesil-koyu);
+  color: #fff;
+  font-size: 2.2cqw;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.k.dolu .k-rozet { background: rgba(255, 255, 255, 0.22); }
+
+/* Son blok ile serit arasinda nefes payi */
+.ic { padding-bottom: 21cqw; }
+
+/* Son 5-7 piksellik tasmayi kapatan ince ayar (olcumle bulundu). */
+.kartlar { gap: 1.6cqw; }
+.k { padding: 2.2cqw 3cqw; }
+.akis li { padding-bottom: 2.1cqw; }
+
+/* Adres 33cqw'ye sigmayip uc satira bolunuyordu. */
+.serit-sag { max-width: 39cqw; font-size: 2.2cqw; }
+.serit-sol p { font-size: 2.5cqw; }

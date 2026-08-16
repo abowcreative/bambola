@@ -1,0 +1,343 @@
+@import "tailwindcss";
+
+/*
+  Bambola tasarim sistemi.
+  Renkler logolardan birebir cikarildi, bkz. PLAN.md Bolum 11.
+  Kontrast oranlari bagclayicidir, yorum satirlarinda yazili.
+*/
+
+@theme {
+  /* --- Ana palet: oyun evi, parti, ana sayfa, kayit formu --- */
+  --color-lime-rozet: #bdf270; /* logonun dis halkasi. uzerine yalniz siyah metin (16.10:1) */
+  --color-yesil: #588f27; /* logonun ic diski. buton zemini, 24px ustu baslik */
+  --color-yesil-koyu: #42701c; /* beyaz uzerinde 5.89:1, govde metni icin guvenli */
+  --color-yesil-derin: #365c16; /* beyaz uzerinde 7.78:1, uzun metin */
+
+  /* --- Ikincil palet: anaokulu, kurumsal, KVKK, admin --- */
+  --color-mor: #33025a; /* beyaz uzerinde 16.19:1 */
+  --color-mor-acik: #4a1080;
+  --color-kum: #d8c09a; /* mor uzerinde 9.19:1. beyaz zeminde metin DEGIL (1.76:1) */
+
+  /* --- Notr --- */
+  --color-krem: #fdfcf7;
+  --color-krem-koyu: #f5f1e6;
+  --color-murekkep: #1c1a17; /* govde metni */
+  --color-murekkep-soluk: #5a554d; /* ikincil metin, beyaz uzerinde 7.2:1 */
+  --color-cizgi: #e7e2d5;
+
+  /* --- Tipografi --- */
+  --font-baslik: var(--font-baslik-ailesi), ui-rounded, system-ui, sans-serif;
+  --font-govde: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+
+  /* --- Yuvarlaklik: logo tamamen dairesel, arayuz de yuvarlak --- */
+  --radius-yumusak: 1rem;
+  --radius-kart: 1.5rem;
+  --radius-blok: 2rem;
+
+  /* --- Golge: renkli, notr gri degil --- */
+  --shadow-kart: 0 2px 0 0 #e7e2d5, 0 8px 24px -12px rgb(88 143 39 / 0.35);
+  --shadow-kart-hover: 0 4px 0 0 #d9d3c2, 0 18px 40px -16px rgb(88 143 39 / 0.45);
+  --shadow-mor: 0 2px 0 0 #e0d6ec, 0 8px 24px -12px rgb(51 2 90 / 0.35);
+
+  /* --- Hareket --- */
+  --ease-yayli: linear(
+    0,
+    0.006,
+    0.025 2.8%,
+    0.101 6.1%,
+    0.539 18.9%,
+    0.721 25.3%,
+    0.849 31.5%,
+    0.937 38.1%,
+    0.968 41.8%,
+    0.991 45.7%,
+    1.007 50.1%,
+    1.019 57.7%,
+    1.001 78.2%,
+    1
+  );
+}
+
+/* Anaokulu ve kurumsal sayfalarda paleti kola gore cevir.
+   Kullanim: <body data-kol="anaokulu"> veya bolum sarmalayicisinda. */
+@layer base {
+  :root {
+    --kol-ana: var(--color-yesil);
+    --kol-koyu: var(--color-yesil-koyu);
+    --kol-vurgu: var(--color-lime-rozet);
+    --kol-vurgu-metin: #000000;
+  }
+
+  [data-kol="anaokulu"] {
+    --kol-ana: var(--color-mor);
+    --kol-koyu: var(--color-mor);
+    --kol-vurgu: var(--color-kum);
+    --kol-vurgu-metin: var(--color-mor);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-krem);
+    color: var(--color-murekkep);
+    font-family: var(--font-govde);
+    font-size: 1rem; /* PLAN Bolum 11: govde en az 16px */
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-baslik);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Odak halkasi her yerde gorunur ve marka renginde.
+     PLAN Bolum 11: klavye ile form bastan sona doldurulabilmeli. */
+  :focus-visible {
+    outline: 3px solid var(--kol-ana);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: var(--color-lime-rozet);
+    color: #000;
+  }
+}
+
+@layer utilities {
+  /* Sonsuz donguli hareketler. PLAN Bolum 11: sayfa basina en fazla iki adet. */
+  @keyframes bambola-sallan {
+    0%,
+    100% {
+      transform: rotate(-2.5deg);
+    }
+    50% {
+      transform: rotate(2.5deg);
+    }
+  }
+
+  @keyframes bambola-zipla {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-22%);
+    }
+  }
+
+  .sallan {
+    animation: bambola-sallan 3.2s ease-in-out infinite;
+    transform-origin: 50% 15%;
+  }
+
+  .zipla {
+    animation: bambola-zipla 0.6s ease-in-out infinite;
+  }
+
+  /* --- Karakter hareketleri --------------------------------------------
+     Hepsi yalniz transform ve opacity kullanir, layout tetiklemez.
+     SVG icinde transform-box: fill-box sart, yoksa donusum merkezi
+     tuvalin sol ust kosesine kacar. */
+
+  @keyframes bambola-sus {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-1.5deg);
+    }
+    50% {
+      transform: translateY(-6%) rotate(1.5deg);
+    }
+  }
+
+  @keyframes bambola-hopla {
+    0%,
+    100% {
+      transform: translateY(0) scaleY(1);
+    }
+    30% {
+      transform: translateY(-7%) scaleY(1.03);
+    }
+    55% {
+      transform: translateY(0) scaleY(0.97);
+    }
+  }
+
+  @keyframes bambola-kulak-sol {
+    0%,
+    88%,
+    100% {
+      transform: rotate(0deg);
+    }
+    92% {
+      transform: rotate(-11deg);
+    }
+  }
+
+  @keyframes bambola-kulak-sag {
+    0%,
+    88%,
+    100% {
+      transform: rotate(0deg);
+    }
+    92% {
+      transform: rotate(11deg);
+    }
+  }
+
+  @keyframes bambola-goz-kirp {
+    0%,
+    92%,
+    100% {
+      transform: scaleY(1);
+    }
+    95% {
+      transform: scaleY(0.1);
+    }
+  }
+
+  @keyframes bambola-kuyruk {
+    0%,
+    100% {
+      transform: rotate(-9deg);
+    }
+    50% {
+      transform: rotate(9deg);
+    }
+  }
+
+  @keyframes bambola-don {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes bambola-blok {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8%);
+    }
+  }
+
+  @keyframes bambola-titre {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-8deg);
+    }
+    75% {
+      transform: rotate(8deg);
+    }
+  }
+
+  .karakter-sus,
+  .karakter-zipla,
+  .karakter-goz,
+  .karakter-kulak-sol,
+  .karakter-kulak-sag,
+  .karakter-kuyruk,
+  .karakter-donen,
+  .karakter-blok {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .karakter-sus {
+    animation: bambola-sus 4.5s ease-in-out infinite;
+  }
+
+  .karakter-zipla {
+    animation: bambola-hopla 2.6s ease-in-out infinite;
+  }
+
+  .karakter-goz {
+    animation: bambola-goz-kirp 5s ease-in-out infinite;
+  }
+
+  .karakter-kulak-sol {
+    animation: bambola-kulak-sol 6s ease-in-out infinite;
+    transform-origin: bottom center;
+  }
+
+  .karakter-kulak-sag {
+    animation: bambola-kulak-sag 6s ease-in-out infinite;
+    transform-origin: bottom center;
+  }
+
+  .karakter-kuyruk {
+    animation: bambola-kuyruk 2.8s ease-in-out infinite;
+    transform-origin: left center;
+  }
+
+  .karakter-donen {
+    animation: bambola-don 22s linear infinite;
+  }
+
+  .karakter-blok {
+    animation: bambola-blok 2.4s ease-in-out infinite;
+  }
+
+  .karakter-blok-2 {
+    animation-delay: 0.15s;
+  }
+
+  .karakter-blok-3 {
+    animation-delay: 0.3s;
+  }
+
+  /* Kart uzerine gelince ikon oynasin. */
+  .group:hover .oyna {
+    animation: bambola-titre 0.5s ease-in-out;
+  }
+
+  /* Cikartma gibi duran, uzerine gelince duzelen rozet. */
+  .cikartma {
+    transform: rotate(-3deg);
+    transition: transform 0.25s var(--ease-yayli);
+  }
+
+  .cikartma:hover {
+    transform: rotate(0deg) scale(1.04);
+  }
+}
+
+/*
+  PLAN Bolum 11, baglayici kural:
+  prefers-reduced-motion aciksa suslu hareketin tamami kapanir,
+  yalniz opaklik gecisi kalir.
+*/
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

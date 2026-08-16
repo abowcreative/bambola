@@ -1,0 +1,43 @@
+{
+  "name": "bambola",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3939",
+    "build": "next build",
+    "start": "next start -p 3939",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test:veri": "tsx scripts/veri-testi.ts",
+    "test:font": "node scripts/font-testi.mjs",
+    "test:supabase": "tsx scripts/supabase-kontrol.ts",
+    "test": "npm run test:veri && npm run build && npm run test:font",
+    "belge:pdf": "tsx scripts/fiyat-pdf.ts && tsx scripts/uyelik-formu.ts",
+    "belge:sosyal": "tsx scripts/sosyal-post.ts",
+    "foto": "tsx scripts/foto-hazirla.ts",
+    "bas": "tsx scripts/bas.ts",
+    "belge": "npm run belge:pdf && npm run belge:sosyal && npm run bas"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.4",
+    "@supabase/supabase-js": "^2.112.2",
+    "motion": "^13.0.0",
+    "next": "16.3.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "resend": "^6.18.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.0",
+    "puppeteer-core": "^25.5.0",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.11",
+    "typescript": "^5"
+  }
+}

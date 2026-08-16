@@ -1,0 +1,168 @@
+/* Uyelik formu. pdf-stil.css uzerine biner, ayni palet ve tipografi.
+   Fark: burasi elle doldurulacak bir belge, o yuzden yazma cizgileri,
+   onay kutulari ve imza alanlari var. */
+
+.surum-form .sayfa { padding: 10mm 11mm 0; }
+
+/* Elle doldurulacak cizgiler icin ayri, daha koyu ton.
+   Onceki --cizgi-koyu krem zeminde neredeyse gorunmuyordu; formu eline alan
+   veli nereye yazacagini secemiyordu. */
+.surum-form { --yazma: #a79d89; }
+
+/* Sag ustte form numarasi alani */
+.form-no {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5mm;
+  min-width: 34mm;
+}
+.form-no-etiket {
+  font-size: 7pt;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--soluk);
+}
+.form-no-cizgi {
+  display: block;
+  height: 7mm;
+  border: 0.45mm solid var(--yazma);
+  border-radius: 2mm;
+  background: #fff;
+}
+
+/* --- bolumler --- */
+.form-bolum { margin-bottom: 2mm; }
+.form-bolum h2 {
+  font-family: "Bambola Baslik", sans-serif;
+  font-size: 9.5pt;
+  font-weight: 700;
+  color: var(--yesil-koyu);
+  padding-bottom: 1mm;
+  margin-bottom: 2mm;
+  border-bottom: 0.5mm solid var(--yesil-acik);
+}
+
+/* Doldurulacak alanlar: dort sutunlu izgara */
+.alanlar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.8mm 4mm;
+}
+.alan { display: flex; flex-direction: column; gap: 1mm; }
+.alan-etiket {
+  font-size: 7.5pt;
+  font-weight: 600;
+  color: var(--soluk);
+}
+/* Uzerine yazilacak cizgi. Nokta nokta degil duz, kalemle doldurmasi kolay. */
+.alan-cizgi {
+  display: block;
+  height: 5.6mm;
+  border-bottom: 0.45mm solid var(--yazma);
+}
+
+/* --- katilim hakki paragrafi --- */
+.onay-metni {
+  background: var(--krem-acik);
+  border: 0.5mm solid var(--cizgi);
+  border-radius: 4mm;
+  padding: 2.6mm 3.2mm;
+}
+.onay-metni h2 { border: 0; margin-bottom: 1.5mm; padding-bottom: 0; }
+.onay-metni p { font-size: 8.5pt; line-height: 1.62; max-width: none; }
+
+/* --- kurallar --- */
+/* Iki sutun: tek sutunda 51mm tutuyordu, sayfa tasiyordu. */
+.kural-liste {
+  padding-left: 5mm;
+  font-size: 7.5pt;
+  line-height: 1.34;
+  color: var(--murekkep);
+}
+.kural-liste li { padding: 0.4mm 0; break-inside: avoid; }
+.kural-liste li::marker { color: var(--yesil); font-weight: 700; }
+
+/* --- onay kutulari ---
+   Gorsel kullanim izni eskiden kurallarin icindeydi ve veli formu
+   imzalayinca otomatik kabul etmis sayiliyordu. KVKK acisindan acik riza
+   ayri, belirli ve ozgur iradeyle verilmeli; bu yuzden kendi kutusuna
+   tasindi ve istege bagli olarak isaretlendi. */
+.onaylar { margin-bottom: 3mm; }
+.onaylar ul { list-style: none; display: flex; flex-direction: column; gap: 1.4mm; }
+.onaylar li {
+  display: flex;
+  gap: 3mm;
+  background: var(--krem-acik);
+  border: 0.4mm solid var(--cizgi);
+  border-radius: 3mm;
+  padding: 1.6mm 2.4mm;
+  align-items: flex-start;
+  break-inside: avoid;
+}
+.kutu {
+  flex: none;
+  width: 5.5mm;
+  height: 5.5mm;
+  border: 0.5mm solid var(--yesil-koyu);
+  border-radius: 1.4mm;
+  background: #fff;
+  margin-top: 0.4mm;
+}
+.onay-govde { flex: 1; min-width: 0; }
+.onay-baslik {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.6mm;
+  margin-right: 2mm;
+  font-family: "Bambola Baslik", sans-serif;
+  font-size: 9pt;
+  font-weight: 700;
+  color: var(--yesil-koyu);
+}
+.zorunlu, .istege-bagli {
+  font-style: normal;
+  font-family: "Bambola Govde", sans-serif;
+  font-size: 6.5pt;
+  font-weight: 600;
+  padding: 0.3mm 1.8mm;
+  border-radius: 99px;
+}
+.zorunlu { background: var(--yesil-koyu); color: #fff; }
+.istege-bagli { background: var(--cizgi); color: var(--soluk); }
+.onay-metin {
+  display: inline;
+  font-size: 7pt;
+  line-height: 1.42;
+  color: var(--murekkep);
+  margin-top: 0.7mm;
+}
+
+/* --- imzalar --- */
+.imzalar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12mm;
+  margin-top: auto;
+  padding: 3mm 0 2.5mm;
+}
+.imza { display: flex; flex-direction: column; gap: 1.5mm; }
+.imza-cizgi {
+  display: block;
+  height: 9mm;
+  border-bottom: 0.45mm solid var(--yazma);
+}
+.imza-ad {
+  font-size: 7.5pt;
+  font-weight: 600;
+  color: var(--soluk);
+  text-align: center;
+}
+
+/* Form basliginda MEB rozeti biraz kucuk, yer kazanmak icin. */
+.surum-form .meb { font-size: 8.5pt; padding: 1.4mm 4mm 1.4mm 1.6mm; margin-top: 2mm; }
+.surum-form .meb-ikon { width: 5.2mm; height: 5.2mm; }
+.surum-form .ust { padding-bottom: 2.5mm; margin-bottom: 3mm; }
+.surum-form .ust h1 { font-size: 21pt; }
+.surum-form .amblem { width: 19mm; height: 19mm; }
