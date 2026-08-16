@@ -1624,3 +1624,47 @@ Otuz beş sayfanın tamamı 200, olmayan adres 404. Erişilebilirlik taraması s
 ### Açık kalan çelişki
 
 Bölüm 3 madde 4 hâlâ *"Geri sayım, 'son gün', 'üç gün kaldı' gibi ifadeler kullanılmaz"* diyor. Tarih yazma kararı Bölüm 14 madde 1'de değişti (kurum zaten kendi afişinde "Son gün: 1 Eylül" yazıyor) ama **geri sayım** ayrı bir şey ve o kural yerinde duruyor. WhatsApp balonu ise "N gün kaldı" yazıyor (Bölüm 24). İkisinden biri değişmeli; karar müşterinin.
+
+---
+
+## 27. Yayın: Supabase, Vercel ve ilk canlı kayıt
+
+*(17 Ağustos 2026.)*
+
+Site canlıda: **https://bambola.vercel.app** — geçici adres, alan adı bekleniyor.
+
+### Supabase
+
+Proje `rxdyyonlreibgavzkgym`, bölge **West EU (Ireland)**. Frankfurt önerilmişti; Ankara'ya ~25 ms daha uzak, form gönderiminde fark etmez, değiştirilmedi.
+
+`0001_basvurular.sql` SQL Editor'den çalıştırıldı. Supabase "yıkıcı işlem" uyarısı verdi: betikteki `drop policy if exists` / `drop constraint if exists` satırları yüzünden. Veritabanı boştu, o satırlar da betiğin tekrar çalıştırılabilir olması için var; silinecek bir şey yoktu.
+
+> **Anahtar biçimi değişmiş.** Supabase artık `sb_publishable_…` ve `sb_secret_…` veriyor; eski `anon` / `service_role` JWT'leri "Legacy" sekmesinde. Yenileri aynı yerlere düşüyor (publishable → anon, secret → service role) ve `@supabase/supabase-js` v2.112 ile sorunsuz çalışıyor. Ortam değişkeni adları değişmedi.
+
+`npm run test:supabase` on bir kontrolün tamamını geçti: tablo, kodun yazdığı yirmi dört alan, `durum` varsayılanı, `updated_at` tetikleyicisi ve **RLS gerçekten kapalı** (anon anahtarla başvurular ne okunabiliyor ne yazılabiliyor).
+
+### Vercel
+
+Anahtarlar `npm run env:vercel` ile taşındı. Service role yalnız production ve preview ortamına gitti, development'a gitmedi: yerelde zaten `.env.local`'den okunuyor.
+
+`NEXT_PUBLIC_SITE_URL` bilerek **tanımlanmadı**. Alan adı belli değil ve Bölüm 26'daki yedek devrede: site kendi Vercel adresini kullanıyor, kanonik URL'ler doğru çıkıyor. Alan adı gelince tek komutla tanımlanır.
+
+### İlk canlı kayıt
+
+Canlı `/api/kayit` uçtan uca denendi. Dönen kayıt sunucu tarafının çalıştığını tek tek gösteriyor:
+
+| Alan | Değer | Ne kanıtlıyor |
+|---|---|---|
+| `yas_ay` | 31 | Yaş doğum tarihinden **sunucuda** hesaplanıyor, istemciden gelmiyor |
+| `telefon` | `5000000000` | `0500 000 00 00` normalize edildi |
+| `fiyat_normal` / `fiyat_erken_kayit` | 9000 / 7200 | Fiyat **sunucudaki tablodan**, istemci ne gönderirse göndersin |
+| `erken_kayit_uygulandi` | `true` | Kampanya penceresi takvimden okunuyor |
+| `secilen_slotlar` | gün, saat, atölye adı, öğretmenler | Slot verisi kayda gömülüyor; program sonradan değişse de kayıt bozulmuyor |
+| `ip_hash` | özet | Ham IP saklanmıyor |
+| `durum` | `yeni` | Varsayılan yerinde |
+
+Test kaydı silindi, tablo boş.
+
+### Hâlâ eksik
+
+**Resend anahtarları yok.** Kayıt veritabanına düşüyor ama **kimseye e-posta gitmiyor**. Şu an bir veli form doldurursa talep kaybolmaz, ama kimse haberdar olmaz; başvurular Supabase Table Editor'den elle takip edilmeli. Admin paneli de henüz yok (Bölüm 10).
