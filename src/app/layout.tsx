@@ -40,6 +40,16 @@ export const metadata: Metadata = {
   },
   description: `${MARKA.ilce}, ${MARKA.sehir}'da oyun evi, oyun gruplari ve anaokulu. 6 aydan 6 yasa kadar, en fazla 12 kisilik gruplar.`,
   applicationName: MARKA.ad,
+  /*
+    Ana sayfanin kanonik adresi. Diger sayfalar bunu `sayfaMetadata`'dan
+    aliyor, ana sayfanin metadata'si ise dogrudan burada duruyor ve kanonik
+    etiketi eksik kalmisti.
+    Onemi: kampanya trafigi Instagram ve WhatsApp'tan geliyor, yani ana
+    sayfaya `?utm_source=...` ve `?fbclid=...` ekli adreslerle giriliyor.
+    Kanonik olmadan bunlarin her biri ayri bir sayfa olarak indekslenebilir
+    ve ana sayfanin sinyali bolunur.
+  */
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "tr_TR",

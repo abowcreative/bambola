@@ -1581,3 +1581,46 @@ RLS kontrolü burada süs değil: `anon` anahtarı tarayıcıya gidiyor ve başv
 
 - **Resend anahtarları hâlâ boş.** Kayıt veritabanına düşer ama kimseye haber gitmez.
 - **Admin paneli yok** (Bölüm 10, yayın sırasında 7. madde). O gelene kadar başvurular Supabase Table Editor'den okunur.
+
+---
+
+## 26. Depo ve genel gözden geçirme
+
+*(17 Ağustos 2026.)*
+
+Proje o güne kadar sürüm denetimi olmadan yürüyordu. `git init`, `.gitignore`, README ve ilk commit yapıldı: **162 dosya, 20,7 MB**.
+
+### Depoya ne girdi, ne girmedi
+
+| Girdi | Neden |
+|---|---|
+| `public/foto`, `public/ekip` | Üretilen dosyalar ama Vercel git'ten derliyor; girmezse site fotoğrafsız yayınlanır |
+| `kaynak/` | Excel kaynakları ve ham portreler. `npm run foto` bunlara ihtiyaç duyuyor |
+| `docs/` | Müşteriye giden PDF ve sosyal medya görselleri; üretmek için Chrome gerekiyor |
+| `.env.example` | Hangi değişkenlerin gerektiğini yalnız o anlatıyor |
+
+`.gitignore` içindeki `.env*` kalıbı `.env.example` dosyasını da eliyordu; `!.env.example` istisnası eklendi. `.env.local` takip edilmiyor, doğrulandı.
+
+Mekân fotoğraflarının kaynak paketi (yüzlerce MB) depo dışında kalmaya devam ediyor, bkz. Bölüm 17.
+
+### Gözden geçirmede çıkan üç kusur
+
+**1. Yayın adresi sessizce localhost kalıyordu.** `SITE_URL` yalnız `NEXT_PUBLIC_SITE_URL` değişkenine bakıyordu. Tanımlanmadan yayına çıkılsa kanonik URL'ler, sitemap, robots, OG kartları ve schema.org kimliklerinin tamamı `localhost:3939` gösterirdi. Hiçbir yerde hata vermez, site normal görünür, arama motoru siteyi erişilemez adreslerle indeksler.
+
+Artık Vercel'in kendi production adresine düşüyor (`NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL`, platform otomatik tanımlıyor ve `NEXT_PUBLIC_` önekli olduğu için tarayıcıda da aynı değeri veriyor; sunucu ile istemci farklı görseydi hydration bozulurdu). Sondaki bölü işareti de kırpılıyor: adres `https://alanadi.com/` girilirse kanonik URL `https://alanadi.com//iletisim` oluyordu. İkisi de teste bağlandı.
+
+**2. Ana sayfada kanonik etiket yoktu.** Diğer otuz dört sayfa `sayfaMetadata()`'dan alıyor, ana sayfanın metadata'sı ise doğrudan `layout.tsx` içinde ve `alternates` alanı eksikti. Önemi: kampanya trafiği Instagram ve WhatsApp'tan geliyor, yani ana sayfaya `?utm_source=...` ve `?fbclid=...` ekli adreslerle giriliyor. Kanonik olmadan bunların her biri ayrı sayfa olarak indekslenebilir ve en değerli sayfanın sinyali bölünür.
+
+**3. `supabaseHazirMi()` ölü koddu** ve yanlış anahtarlara bakıyordu. Açıklaması "env eksikse erken haber ver" diyordu ama hiçbir yerden çağrılmıyordu; ayrıca yazma yolunun kullandığı `SUPABASE_SERVICE_ROLE_KEY` kontrol edilmiyordu. `eksikSupabaseAnahtarlari()` olarak yeniden yazıldı ve `/api/kayit` başına bağlandı: kurulum eksikken sunucu kaydında hangi değişkenin tanımsız olduğu ve `supabase/KURULUM.md` yolu yazıyor. Veliye giden mesaj değişmedi.
+
+### Temiz çıkanlar
+
+Otuz beş sayfanın tamamı 200, olmayan adres 404. Erişilebilirlik taraması sekiz sayfada temiz: alt metinsiz görsel yok, her sayfada tam bir `h1`, boş bağlantı yok, etiketsiz ikon butonu yok. Kodda `TODO`, `FIXME`, `@ts-ignore` veya unutulmuş `console.log` yok. Takip edilen dosyalarda anahtar izi yok.
+
+### README
+
+Önceki hâli `create-next-app` şablonuydu: yanlış port (3000, doğrusu 3939), Geist fontu ve Vercel tanıtımı. Yerine kurulum, komut listesi, veri mimarisi, fotoğraf boru hattı, ortam değişkenleri ve yayın adımları yazıldı.
+
+### Açık kalan çelişki
+
+Bölüm 3 madde 4 hâlâ *"Geri sayım, 'son gün', 'üç gün kaldı' gibi ifadeler kullanılmaz"* diyor. Tarih yazma kararı Bölüm 14 madde 1'de değişti (kurum zaten kendi afişinde "Son gün: 1 Eylül" yazıyor) ama **geri sayım** ayrı bir şey ve o kural yerinde duruyor. WhatsApp balonu ise "N gün kaldı" yazıyor (Bölüm 24). İkisinden biri değişmeli; karar müşterinin.
