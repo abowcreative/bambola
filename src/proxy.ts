@@ -22,6 +22,16 @@ import { NextResponse, type NextRequest } from "next/server";
 /** Kampus alt alan adi. Yerelde `?kampus=1` ile de denenebilir. */
 const KAMPUS_ONEKI = "kampus.";
 
+/**
+ * Kok layout'a "bu istek kampus tarafindan geldi" demenin yolu.
+ * Okuyan taraf: `src/lib/kampus/istek.ts`.
+ *
+ * Ad orada da tanimli ve buradan import EDILMIYOR: proxy ayri bir calisma
+ * ortaminda kosuyor, oradan modul cekmek gereksiz bag kuruyor. Iki sabit
+ * ayni degeri tasiyor, testte karsilastiriliyor.
+ */
+const KAMPUS_BASLIGI = "x-bambola-kampus";
+
 function kampusMu(istek: NextRequest): boolean {
   const host = istek.headers.get("host") ?? "";
   if (host.startsWith(KAMPUS_ONEKI)) return true;
@@ -54,7 +64,21 @@ export function proxy(istek: NextRequest) {
       ? pathname
       : `/kampus${pathname === "/" ? "" : pathname}`;
 
-    const cevap = NextResponse.rewrite(hedef);
+    /*
+      Kok layout site header/footer'ini ve WhatsApp balonunu basiyor; bunlar
+      panelde gorunmemeli. Layout'un hangi alan adindan gelindigini bilmesi
+      icin istek basligina isaret koyuluyor.
+
+      Neden boyle: rota gruplariyla (app/(site)/...) ayirmak da mumkundu ama
+      butun site sayfalarini tasimak gerekirdi. Proxy zaten bu karari
+      veriyor, bir kez daha vermesin.
+    */
+    const basliklar = new Headers(istek.headers);
+    basliklar.set(KAMPUS_BASLIGI, "1");
+
+    const cevap = NextResponse.rewrite(hedef, {
+      request: { headers: basliklar },
+    });
     if (
       process.env.NODE_ENV === "development" &&
       istek.nextUrl.searchParams.get("kampus") === "1"

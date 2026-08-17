@@ -135,6 +135,13 @@ async function main() {
     await db.auth.admin.generateLink({
       type: "recovery",
       email: eposta,
+      /*
+        Yol `/kampus` oneki OLMADAN veriliyor: kampus alan adinda proxy
+        oneki kendisi ekliyor (bkz. src/proxy.ts). Onek elle eklenirse
+        `/kampus/kampus/...` olur.
+        Yerelde denemek icin: KAMPUS_URL="http://localhost:3939" ve
+        acilan adrese `?kampus=1` eklenir.
+      */
       options: { redirectTo: `${site}/sifre-belirle` },
     });
 

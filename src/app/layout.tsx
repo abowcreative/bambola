@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { WhatsappButonu } from "@/components/site/whatsapp-butonu";
 import { kampanyaAcikMi, kampanyaKalanGun } from "@/lib/data/ucretler";
+import { kampusIstegiMi } from "@/lib/kampus/istek";
 
 /**
  * PLAN.md Bolum 11, Tipografi.
@@ -64,9 +65,16 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  /*
+    Kampus alan adinda sitenin kabugu (header, footer, WhatsApp balonu)
+    basilmiyor: panel ayri bir uygulama gibi davranmali. Bilgi proxy'nin
+    koydugu baslikla geliyor, bkz. src/lib/kampus/istek.ts.
+  */
+  const kampus = await kampusIstegiMi();
+
   return (
     <html lang="tr" className={`${baslik.variable} ${poppins.variable}`}>
       <head>
@@ -87,21 +95,31 @@ export default function RootLayout({
         >
           İçeriğe geç
         </a>
-        <SiteHeader />
-        <main id="icerik" className="flex-1">
-          {children}
-        </main>
-        <SiteFooter />
-        {/*
-          Kampanya durumu SUNUCUDA hesaplanip prop olarak geciriliyor.
-          Istemcide hesaplansaydi, sayfa onbellekten gelirken sunucu "acik"
-          istemci "kapali" diyebilir ve hydration uyusmazligi cikardi
-          (bkz. ucretler.ts, kampanyaAcikMi).
-        */}
-        <WhatsappButonu
-          kampanyaAcik={kampanyaAcikMi()}
-          kalanGun={kampanyaKalanGun()}
-        />
+
+        {kampus ? (
+          // Panel kendi kabugunu kuruyor (bkz. components/kampus/kabuk.tsx).
+          <div id="icerik" className="flex-1">
+            {children}
+          </div>
+        ) : (
+          <>
+            <SiteHeader />
+            <main id="icerik" className="flex-1">
+              {children}
+            </main>
+            <SiteFooter />
+            {/*
+              Kampanya durumu SUNUCUDA hesaplanip prop olarak geciriliyor.
+              Istemcide hesaplansaydi, sayfa onbellekten gelirken sunucu
+              "acik" istemci "kapali" diyebilir ve hydration uyusmazligi
+              cikardi (bkz. ucretler.ts, kampanyaAcikMi).
+            */}
+            <WhatsappButonu
+              kampanyaAcik={kampanyaAcikMi()}
+              kalanGun={kampanyaKalanGun()}
+            />
+          </>
+        )}
       </body>
     </html>
   );
