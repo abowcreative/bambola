@@ -29,8 +29,14 @@ next-env.d.ts
 
 # --- gecici dosyalar ---
 # Tek seferlik inceleme betikleri depo kokunde birikiyordu.
+#
+# DIKKAT: kalip hem `_gecici-*` hem `.gecici-*` olmali. Ilk hali yalniz
+# alt cizgiliyi kapsiyordu ve `.gecici-sifre` (gecici test hesabi sifresi)
+# bu yuzden bir commit'e girdi. Yeni gecici dosya adlari bu iki kaliba
+# uymali.
 *.tmp.*
 _gecici-*
+.gecici-*
 /ekran/
 /ekran-*/
 
