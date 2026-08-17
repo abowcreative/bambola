@@ -1,5 +1,7 @@
 import Image from "next/image";
+import Link from "next/link";
 import { adminZorunlu } from "@/lib/kampus/oturum";
+import { siniflariGetir } from "@/lib/kampus/ogrenciler";
 import { Kabuk, SayfaBasi, Kutu, Sayac } from "@/components/kampus/kabuk";
 import { EKIP, ogretmenAdi, atolyeOgretmenleri } from "@/lib/data/ekip";
 import { SLOTLAR } from "@/lib/data/program";
@@ -19,14 +21,31 @@ export const dynamic = "force-dynamic";
 export default async function OgretmenlerSayfasi() {
   const oturum = await adminZorunlu();
 
+  /*
+    Program verisi (kim neyi verir) STATIK, sinif atamalari VERITABANINDA.
+    Ikisi ayri: program yil boyu ayni, atama degisebilir. Burada yan yana
+    gosteriliyor ki "Excel'de var ama sinifi atanmamis" durumu gorunsun.
+  */
+  const siniflar = await siniflariGetir("2026-2027");
+
   const kadro = EKIP.map((o) => {
     const slotlar = SLOTLAR.filter((s) => s.ogretmenler.includes(o.ad));
     const atolyeler = ATOLYELER.filter((a) =>
       atolyeOgretmenleri(a.slug).some((x) => x.ad === o.ad),
     );
     const gunler = [...new Set(slotlar.map((s) => s.gun))];
-    return { ogretmen: o, slotlar, atolyeler, gunler };
+    const atanan = siniflar.filter((s) => s.ogretmen_ad === o.ad && s.aktif);
+    /*
+      Bir seansta iki ogretmen olabiliyor ama sinifin SORUMLUSU bir kisi:
+      `siniflar.ogretmen_ad` tek deger. Seans sayisi ile atanmis sinif
+      sayisi bu yuzden ayrisiyor; fark aciklanmadan birakilirsa hata gibi
+      okunur.
+    */
+    const ikinciligi = slotlar.filter((s) => s.ogretmenler[0] !== o.ad).length;
+    return { ogretmen: o, slotlar, atolyeler, gunler, atanan, ikinciligi };
   });
+
+  const atanmamis = siniflar.filter((s) => s.aktif && !s.ogretmen_ad).length;
 
   return (
     <Kabuk oturum={oturum} aktifYol="/kampus/ogretmenler">
@@ -48,7 +67,14 @@ export default async function OgretmenlerSayfasi() {
       </div>
 
       <div className="mt-6 space-y-4">
-        {kadro.map(({ ogretmen, slotlar, atolyeler, gunler }) => (
+        {kadro.map(({
+          ogretmen,
+          slotlar,
+          atolyeler,
+          gunler,
+          atanan,
+          ikinciligi,
+        }) => (
           <Kutu key={ogretmen.ad}>
             <div className="flex flex-wrap gap-5">
               {ogretmen.fotograf && (
@@ -102,13 +128,48 @@ export default async function OgretmenlerSayfasi() {
                   </div>
                   <div>
                     <dt className="text-xs uppercase tracking-wide text-murekkep-soluk">
-                      Program
+                      Atanmış sınıf
                     </dt>
                     <dd className="mt-0.5 font-medium text-murekkep">
-                      {atolyeler.length}
+                      {atanan.length}
+                      <span className="ml-1.5 text-murekkep-soluk">
+                        · {atanan.reduce((t, s) => t + s.ogrenciSayisi, 0)} çocuk
+                      </span>
                     </dd>
                   </div>
                 </dl>
+
+                {/* Atanan siniflar: buradan sinifa, sinifta ogrencilere. */}
+                {atanan.length > 0 && (
+                  <>
+                    <p className="mt-4 text-xs uppercase tracking-wide text-murekkep-soluk">
+                      Atanmış sınıflar
+                    </p>
+                    <ul className="mt-1.5 flex flex-wrap gap-1.5">
+                      {atanan.map((s) => (
+                        <li key={s.id}>
+                          <Link
+                            href={`/kampus/siniflar/${s.id}`}
+                            className="inline-block rounded-full border-2 border-cizgi px-2.5 py-1 text-xs font-medium text-murekkep transition-colors hover:border-yesil"
+                          >
+                            {s.ad}
+                            <span className="ml-1.5 text-murekkep-soluk">
+                              {s.ogrenciSayisi}/{s.kontenjan}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+
+                {ikinciligi > 0 && (
+                  <p className="mt-2 text-xs leading-relaxed text-murekkep-soluk">
+                    {ikinciligi} seansta ikinci öğretmen olarak programda:
+                    sınıfın sorumlusu tek kişi olduğu için o sınıflar burada
+                    listelenmiyor.
+                  </p>
+                )}
 
                 {atolyeler.length > 0 && (
                   <ul className="mt-3 flex flex-wrap gap-1.5">
@@ -154,9 +215,24 @@ export default async function OgretmenlerSayfasi() {
         ))}
       </div>
 
+      {atanmamis > 0 && (
+        <p className="mt-5 rounded-blok border-2 border-dashed border-cizgi bg-white px-4 py-3 text-sm text-murekkep">
+          <strong>{atanmamis} aktif sınıfın öğretmeni atanmamış.</strong>{" "}
+          <Link
+            href="/kampus/siniflar"
+            className="font-semibold text-yesil-koyu hover:underline"
+          >
+            Sınıflar
+          </Link>{" "}
+          sayfasından atayabilirsiniz. Yoklama, öğretmenin kendi sınıfını
+          görmesi bu atamaya bağlı.
+        </p>
+      )}
+
       <p className="mt-4 text-xs leading-relaxed text-murekkep-soluk">
         Kimin hangi programı verdiği haftalık programdan çıkarılıyor, ayrı bir
-        listede tutulmuyor. Öğretmen hesabı açmak için Kullanıcılar bölümüne
+        listede tutulmuyor. Sınıf ataması ise veritabanında: program aynı kalsa
+        da atama değişebilir. Öğretmen hesabı açmak için Kullanıcılar bölümüne
         bakın.
       </p>
     </Kabuk>

@@ -1966,3 +1966,13 @@ Uçtan uca **14 kontrol**: ders açma, aynı sınıfa aynı gün ikinci ders aç
 Geçici bir yönetici hesabıyla, gerçek arayüzden, uçtan uca **18 kontrol**: form düğmesinin varlığı, veli bilgisi boşken formun geçerli sayılmaması, sınıf seçimi, kayıt sonrası öğrenci kartına yönlenme, kartta velinin görünmesi, ilk borcun cariye işlenmesi, veli sayfasının çocuğu ve aile bakiyesini göstermesi, sınıf detayındaki dersler kutusu, sınıf süzgeçli ders listesi, lead satırındaki dönüştür bağlantısı, formun lead'den dolu gelmesi, lead'in "kayıt oldu" işaretlenip öğrenciye bağlanması ve **aynı telefon için tek veli kaydı** kalması. Üretilen her satır ve geçici hesap sonda silindi.
 
 > Şifre tarayıcı formuna **girilmedi**: oturum çerezi doğrudan yazıldı. Panel doğrulaması bir parolayı ekrana taşımayı gerektirmiyor.
+
+### Öğretmen → sınıf → öğrenci
+
+Öğretmenler sayfası şimdiye kadar yalnız **statik program** verisinden besleniyordu (kim hangi atölyeyi verir). Yanına veritabanındaki **sınıf atamaları** eklendi: her öğretmenin atanmış sınıfları, doluluğu ve sınıfa giden bağlantı.
+
+İki kaynak bilerek ayrı duruyor: program yıl boyu aynı, atama değişebilir. Yan yana gösterilince "Excel'de var ama sınıfı atanmamış" durumu görünür oluyor. Atanmamış sınıf varsa sayfanın altında uyarı çıkıyor — yoklamada öğretmenin kendi sınıfını görmesi bu atamaya bağlı.
+
+**Sayı farkı açıklandı.** Bir seansta iki öğretmen olabiliyor ama sınıfın sorumlusu tek kişi (`siniflar.ogretmen_ad` tek değer). Bu yüzden Burcu 13 seansta görünüp 1 sınıfa atanmış olabiliyor; kart bunu "12 seansta ikinci öğretmen olarak programda" diye yazıyor. Açıklanmayan bir sayı farkı hata gibi okunur.
+
+Not: 30 seans var, 29 sınıf açılıyor. Eksik olan `cumartesi 18.00 serbest oyun` ve bu **kasıtlı** — serbest oyun atanmış öğretmeni ve kontenjanı olan bir grup değil, grup gününün ilk saati.
