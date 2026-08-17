@@ -70,7 +70,11 @@ export const FOOTER_MENU: { baslik: string; ogeler: NavOge[] }[] = [
       { ad: "Sık sorulan sorular", href: "/sss" },
       { ad: "İletişim", href: "/iletisim" },
       { ad: "Doğum günü ve parti", href: "/parti" },
-      { ad: "KVKK aydınlatma metni", href: "/kvkk" },
+      /*
+        Yasal metinler bu sutunda DEGIL, footer'in en altindaki kendi
+        seridinde duruyor (bkz. lib/yasal.ts). Dordu birden bu listeye
+        girseydi "Yardim" sutunu yasal metin listesine donusurdu.
+      */
     ],
   },
 ];

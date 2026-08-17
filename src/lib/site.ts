@@ -6,11 +6,12 @@
  * ve schema legalName alaninda gecer.
  *
  * TEYIT BEKLEYENLER (PLAN.md Bolum 14, madde 9 ve 13):
- * Adres, telefon, WhatsApp ve Instagram GELDI. Eksik kalanlar: e-posta,
- * calisma saatleri ve vergi bilgileri (KVKK metni icin).
+ * Adres, telefon, WhatsApp, Instagram ve calisma saatleri GELDI. Eksik
+ * kalanlar: e-posta ve vergi bilgileri (KVKK metni icin).
  * Eksikler null birakiliyor. null olan bir iletisim kanali icin site hicbir
  * yerde cagri yapmaz (Bolum 3, madde 5: "kap olmadan cagri yapilmaz").
  */
+import type { Gun } from "./data/types";
 
 export const MARKA = {
   /** Ticari marka. Basliklarda, metinde, domainde bu gecer. */
@@ -124,6 +125,75 @@ export const ILETISIM = {
       | string
       | null,
 } as const;
+
+export type SaatAraligi = { acilis: string; kapanis: string };
+
+const HAFTA_ICI: SaatAraligi = { acilis: "09.00", kapanis: "19.00" };
+
+/**
+ * Calisma saatleri. Musteri 17 Agustos 2026'da verdi (PLAN.md Bolum 14
+ * madde 9): hafta ici 09.00-19.00, cumartesi 10.00-18.00, pazar kapali.
+ *
+ * PROGRAM SAATLERI ILE AYNI SEY DEGIL. Program ilk seansi 09.30'da
+ * basliyor; kurum 09.00'da acik. Once schema.org acilis saatleri haftalik
+ * programdan uretiliyordu ve bu yuzden yanlisti: veliye "09.30'da aciliyor"
+ * diyordu. Artik burasi tek kaynak, program yalniz seans saatlerini anlatiyor.
+ *
+ * null = o gun kapali. Kapali gun schema'ya hic yazilmaz; "kapali" diye
+ * yazmak Google yerel kartinda tek satirlik bir gun olarak gorunur.
+ */
+export const SAATLER: Record<Gun, SaatAraligi | null> = {
+  pazartesi: HAFTA_ICI,
+  sali: HAFTA_ICI,
+  carsamba: HAFTA_ICI,
+  persembe: HAFTA_ICI,
+  cuma: HAFTA_ICI,
+  cumartesi: { acilis: "10.00", kapanis: "18.00" },
+  pazar: null,
+};
+
+/**
+ * Saatleri ekranda gosterilecek satirlara cevirir. Ayni saate sahip ardisik
+ * gunler BIRLESTIRILIYOR: yedi satir yerine "Hafta ici" ve "Cumartesi".
+ * Yedi satirin altisi aynı yaziyi tasiyorsa okuyan kisi hicbirini okumuyor.
+ */
+export function saatSatirlari(): { gunler: string; saat: string }[] {
+  const SIRA = [
+    ["pazartesi", "Pazartesi"],
+    ["sali", "Salı"],
+    ["carsamba", "Çarşamba"],
+    ["persembe", "Perşembe"],
+    ["cuma", "Cuma"],
+    ["cumartesi", "Cumartesi"],
+    ["pazar", "Pazar"],
+  ] as const;
+
+  const satirlar: { gunler: string; saat: string }[] = [];
+  let bas: string | null = null;
+  let son: string | null = null;
+  let suAn: string | null = null;
+
+  const bitir = () => {
+    if (!bas || !suAn) return;
+    satirlar.push({ gunler: son && son !== bas ? `${bas} - ${son}` : bas, saat: suAn });
+  };
+
+  for (const [anahtar, ad] of SIRA) {
+    const aralik = SAATLER[anahtar];
+    const metin = aralik ? `${aralik.acilis} - ${aralik.kapanis}` : "Kapalı";
+    if (metin === suAn) {
+      son = ad;
+      continue;
+    }
+    bitir();
+    bas = ad;
+    son = null;
+    suAn = metin;
+  }
+  bitir();
+
+  return satirlar;
+}
 
 /**
  * Footer NAP'inda ve schema `name` alaninda gecen isletme adi.

@@ -7,8 +7,13 @@
  * fonksiyonlarinin dogru davrandigini yayindan once garanti etmek.
  */
 
-import { existsSync } from "node:fs";
-import { SLOTLAR, slotBul, tekSeferlikSlotlar } from "../src/lib/data/program";
+import { existsSync, readFileSync } from "node:fs";
+import {
+  SLOTLAR,
+  slotBul,
+  tekSeferlikSlotlar,
+  saatiDakikaya,
+} from "../src/lib/data/program";
 import {
   EKIP,
   aileOgretmenleri,
@@ -28,6 +33,7 @@ import { SORULAR } from "../src/lib/data/sss";
 import {
   ILETISIM,
   MARKA,
+  SAATLER,
   SITE_URL,
   napAdi,
   googleKartBaglantisi,
@@ -46,6 +52,8 @@ import {
   YAS_SAYFALARI,
   yasBandiAileleri,
 } from "../src/lib/yas";
+import { YASAL_SAYFALAR } from "../src/lib/yasal";
+import { acilisSaatleri } from "../src/lib/seo";
 
 let gecen = 0;
 const hatalar: string[] = [];
@@ -607,6 +615,120 @@ if (adres && adresSokak && postaKodu) {
       `sokak satirinda tekrar eden alan: "${parca}"`,
     );
   }
+}
+
+// -------------------------------------------------- calisma saatleri
+
+/*
+  Saat bicimi "SS.DD" olmali ve acilis kapanistan once gelmeli. Bicim
+  bozulursa schema.org acilis saatleri sessizce gecersiz olur: Google
+  yerel kartta saati hic gostermez, sayfada hicbir sey bozulmaz.
+*/
+for (const [gun, aralik] of Object.entries(SAATLER)) {
+  if (!aralik) continue;
+  for (const [ad, deger] of [
+    ["acilis", aralik.acilis],
+    ["kapanis", aralik.kapanis],
+  ] as const) {
+    dogru(
+      /^([01]\d|2[0-3])\.[0-5]\d$/.test(deger),
+      `${gun} ${ad} saati "SS.DD" olmali: ${deger}`,
+    );
+  }
+  dogru(
+    saatiDakikaya(aralik.acilis) < saatiDakikaya(aralik.kapanis),
+    `${gun}: acilis kapanistan sonra (${aralik.acilis} - ${aralik.kapanis})`,
+  );
+}
+
+/*
+  schema.org acilis saatleri SAATLER'den uretilmeli, programdan degil.
+  Kapali gun schema'ya girmemeli.
+*/
+const semaSaatleri = acilisSaatleri();
+const acikGunSayisi = Object.values(SAATLER).filter(Boolean).length;
+dogru(
+  semaSaatleri.length === acikGunSayisi,
+  `schema acilis saati sayisi acik gun sayisiyla ayni olmali: ${semaSaatleri.length} ≠ ${acikGunSayisi}`,
+);
+dogru(
+  semaSaatleri.some(
+    (s) => s.dayOfWeek === "https://schema.org/Monday" && s.opens === "09:00",
+  ),
+  "schema pazartesi acilisi 09:00 olmali",
+);
+dogru(
+  !semaSaatleri.some((s) => s.dayOfWeek === "https://schema.org/Sunday"),
+  "pazar kapali, schema'da gorunmemeli",
+);
+
+/*
+  Program seanslari calisma saatlerinin ICINDE olmali. Disina tasan bir
+  seans, veliye "kapaliyken ders var" diyen bir celiski demek.
+
+  BILINEN TEK ISTISNA, teyit bekliyor (PLAN.md Bolum 14 madde 9):
+  cumartesi 18.00-19.00 serbest oyun, cumartesi kapanisi 18.00. Ya saat
+  19.00'a kadar aciktir ya da o seans yanlis saatte duruyor. Cevap
+  gelince bu liste bosalir; simdilik celiski GORUNUR halde tutuluyor,
+  sessizce yok sayilmiyor.
+*/
+const SAAT_ISTISNALARI = new Set(["cmt-1800-serbest-oyun"]);
+for (const slot of SLOTLAR) {
+  if (SAAT_ISTISNALARI.has(slot.id)) continue;
+  const aralik = SAATLER[slot.gun];
+  dogru(
+    Boolean(aralik),
+    `${slot.id}: ${slot.gun} kapali ama programda seans var`,
+  );
+  if (!aralik) continue;
+  dogru(
+    saatiDakikaya(slot.bas) >= saatiDakikaya(aralik.acilis),
+    `${slot.id} acilistan once basliyor: ${slot.bas} < ${aralik.acilis}`,
+  );
+  dogru(
+    saatiDakikaya(slot.bit) <= saatiDakikaya(aralik.kapanis),
+    `${slot.id} kapanistan sonra bitiyor: ${slot.bit} > ${aralik.kapanis}`,
+  );
+}
+
+// Istisna listesi bosalinca kaldirilsin diye: listedeki id gercekten var mi.
+for (const id of SAAT_ISTISNALARI) {
+  dogru(
+    SLOTLAR.some((s) => s.id === id),
+    `saat istisnasi artik var olmayan bir slot: ${id}`,
+  );
+}
+
+// ------------------------------------------------------- yasal metinler
+
+/*
+  Yasal metinlerin dosyasi gercekten var mi. Footer bu listeden baglanti
+  basiyor; bir yol yanlis yazilirsa 404 veren bir yasal metin baglantisi
+  cikar ve bunu kimse fark etmez.
+*/
+for (const sayfa of YASAL_SAYFALAR) {
+  dogru(
+    existsSync(`src/app${sayfa.yol}/page.tsx`),
+    `yasal sayfa dosyasi yok: src/app${sayfa.yol}/page.tsx`,
+  );
+  dogru(sayfa.ad.length > 0 && sayfa.ozet.length > 0, `yasal sayfa eksik: ${sayfa.yol}`);
+}
+
+dogru(
+  YASAL_SAYFALAR.some((s) => s.yol === "/kvkk"),
+  "KVKK aydinlatma metni yasal sayfa listesinde olmali",
+);
+
+/*
+  Yasal sayfalar sitemap'e GIRMEMELI: hepsi indeks disi. Biri sitemap'e
+  girerse Google'a "indeksle" derken sayfa "indeksleme" diyor olur.
+*/
+const sitemapMetni = readFileSync("src/app/sitemap.ts", "utf8");
+for (const sayfa of YASAL_SAYFALAR) {
+  dogru(
+    !sitemapMetni.includes(`"${sayfa.yol}"`),
+    `yasal sayfa sitemap'te: ${sayfa.yol}`,
+  );
 }
 
 // ------------------------------------------------------------------ sonuc

@@ -2,9 +2,11 @@
   ILETISIM,
   MARKA,
   napAdi,
+  saatSatirlari,
   whatsappBaglantisi,
   yolTarifiBaglantisi,
 } from "@/lib/site";
+import Link from "next/link";
 import {
   sayfaMetadata,
   ekmekKirintisiSemasi,
@@ -19,6 +21,7 @@ import { GUNLER, GUN_ADI } from "@/lib/data/types";
 import { gunSlotlari, PAZAR_NOTU } from "@/lib/data/program";
 import { Foto } from "@/components/site/foto";
 import { foto } from "@/lib/data/fotograflar";
+import { HaritaKutusu } from "@/components/site/harita-kutusu";
 
 export const metadata = sayfaMetadata({
   baslik: "İletişim ve Ulaşım",
@@ -165,6 +168,41 @@ export default function IletisimSayfasi() {
                   </span>
                 </a>
               )}
+
+              {/*
+                Calisma saatleri: telefonun hemen altinda. Yerel aramada en
+                cok sorulan bilgi ve "acik mi" sorusunun cevabi.
+              */}
+              <div className="rounded-kart border-2 border-cizgi bg-white p-5">
+                <div className="flex gap-4">
+                  <span className="grid size-11 shrink-0 place-items-center rounded-full bg-lime-rozet text-black">
+                    <Ikon.Saat boyut={22} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-baslik font-bold text-murekkep">
+                      Çalışma saatleri
+                    </p>
+                    <dl className="mt-2 space-y-1 text-murekkep-soluk">
+                      {saatSatirlari().map((s) => (
+                        <div key={s.gunler} className="flex justify-between gap-4">
+                          <dt>{s.gunler}</dt>
+                          <dd className="tabular-nums">{s.saat}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                    <p className="mt-3 text-sm text-murekkep-soluk">
+                      Grup ve atölye saatleri bundan farklı;{" "}
+                      <Link
+                        href="/oyun-evi/haftalik-program"
+                        className="font-medium text-yesil-koyu underline underline-offset-2"
+                      >
+                        haftalık programa
+                      </Link>{" "}
+                      bakabilirsiniz.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </address>
 
             {/*
@@ -231,11 +269,9 @@ export default function IletisimSayfasi() {
         <Belir gecikme={0.15}>
           <div className="mt-10 overflow-hidden rounded-kart border-2 border-cizgi bg-white lg:mt-12 lg:grid lg:grid-cols-5">
             {ILETISIM.haritaEmbed && (
-              <iframe
-                src={ILETISIM.haritaEmbed}
-                title={`${MARKA.ad} konumu, ${ILETISIM.adres}`}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
+              <HaritaKutusu
+                embedUrl={ILETISIM.haritaEmbed}
+                baslik={`${MARKA.ad} konumu, ${ILETISIM.adres}`}
                 /*
                   Mobilde 4:3 kutu, genis ekranda satirin yuksekligini
                   doldurur: yanindaki sutun neyse harita da o boyda olur,

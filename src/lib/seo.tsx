@@ -3,6 +3,7 @@ import {
   MARKA,
   SITE_URL,
   ILETISIM,
+  SAATLER,
   MEB_IFADESI,
   haritadaAcBaglantisi,
   googleKartBaglantisi,
@@ -163,10 +164,31 @@ export function kurumSemasi(): Sema {
 }
 
 /**
- * openingHoursSpecification haftalik programdan otomatik uretilir,
- * elle yazilmaz. PLAN.md Bolum 5.
+ * openingHoursSpecification KURUMUN CALISMA SAATLERINDEN uretilir
+ * (lib/site.ts SAATLER), programdan degil.
+ *
+ * Onceden haftalik programdan uretiliyordu: ilk seansin basi acilis, son
+ * seansin sonu kapanis sayiliyordu. Sonuc yanlisti -- program 09.30'da
+ * basladigi icin Google'a "09.30'da aciliyor" diyordu, kurum ise 09.00'da
+ * acik. Program seans saatini anlatir, acilis saatini anlatmaz.
+ *
+ * Saatler henuz gelmediyse programa dusuyor: hic saat yazmamak, yaklasik
+ * bir saat yazmaktan kotu (Google yerel kartta bos birakiyor).
  */
 export function acilisSaatleri(): Sema[] {
+  const saatli = Object.entries(SAATLER).filter(
+    (g): g is [Gun, { acilis: string; kapanis: string }] => g[1] !== null,
+  );
+
+  if (saatli.length > 0) {
+    return saatli.map(([gun, { acilis, kapanis }]) => ({
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: `https://schema.org/${GUN_SCHEMA[gun]}`,
+      opens: saatIso(acilis),
+      closes: saatIso(kapanis),
+    }));
+  }
+
   const gunler = new Map<Gun, { ilk: string; son: string }>();
 
   for (const s of SLOTLAR) {

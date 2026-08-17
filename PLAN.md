@@ -1016,7 +1016,9 @@ Bunlar müşteriden gelmeden ilgili bölüm yayına çıkmaz.
    - ✅ Adres: Osmantemiz Mah. 1022. Cad, Dikmen Cd. No: 2/A, 06450 Çankaya/Ankara *(16 Ağustos 2026'da müşterinin verdiği tam hâl. Posta kodu ilk kez burada geldi.)*
    - ✅ ~~**Dikmen mi Çankaya mı?**~~ **ÇÖZÜLDÜ, 16 Ağustos 2026.** İkisi aynı türden bilgi değilmiş: **Dikmen bir cadde adı** (Dikmen Caddesi), **ilçe Çankaya**. Afişlerdeki "Dikmen, Ankara" kısaltması bu ikisini birbirine karıştırıyordu, eski adres satırı da ("No: 2/A Dikmen, Çankaya, Ankara") aynı karışıklığı taşıyordu. Site ilçe olarak Çankaya kullanmaya devam ediyor; "Dikmen" artık cadde satırının içinde geçiyor.
    - ✅ ~~**WhatsApp hattının ayrı numarası var mı?**~~ **ÇÖZÜLDÜ, 17 Ağustos 2026.** Müşteri numarayı verdi: **+90 542 641 66 08** — telefonla **aynı hat**, ayrı bir WhatsApp numarası yok. Sitede zaten bu numara duruyordu (afişten okunmuştu); artık sahibinden teyitli. İkisinin ayrı alanlarda tutulup birbirinden sapmaması veri testiyle korunuyor.
-   - ⏳ Hâlâ eksik: e-posta, vergi bilgileri (KVKK metni için), çalışma saatleri.
+   - ✅ **Çalışma saatleri geldi, 17 Ağustos 2026.** Hafta içi 09.00-19.00, cumartesi 10.00-18.00, pazar kapalı. `lib/site.ts` içindeki `SAATLER` sabitine işlendi; footer, iletişim sayfası ve schema.org `openingHoursSpecification` bunu okuyor.
+     - ⚠️ **Cumartesi kapanışı ile program çelişiyor, karar gerekiyor.** Programda `cumartesi 18.00-19.00 serbest oyun` var ama cumartesi kapanışı 18.00 yazıyor. Ya kurum cumartesi 19.00'a kadar açık, ya o seans yanlış saatte. Çelişki **görünür** tutuldu: veri testinde adı yazılı tek istisna olarak duruyor (`cmt-1800-serbest-oyun`), cevap gelince istisna listesi boşalır. İletişim sayfasında iki tablo yan yana duruyor ve fark oradan da okunuyor.
+   - ⏳ Hâlâ eksik: e-posta, vergi bilgileri (KVKK metni için).
    - ✅ **Google Business Profile kaydı geldi, 16 Ağustos 2026.** Bkz. Bölüm 22.
      - Google'daki işletme adı: **BAMBOLA OYUN VE PARTİ EVİ**
      - Koordinat: `39.8739282, 32.8394536`
@@ -1977,3 +1979,55 @@ Geçici bir yönetici hesabıyla, gerçek arayüzden, uçtan uca **18 kontrol**:
 **Sayı farkı açıklandı.** Bir seansta iki öğretmen olabiliyor ama sınıfın sorumlusu tek kişi (`siniflar.ogretmen_ad` tek değer). Bu yüzden Burcu 13 seansta görünüp 1 sınıfa atanmış olabiliyor; kart bunu "12 seansta ikinci öğretmen olarak programda" diye yazıyor. Açıklanmayan bir sayı farkı hata gibi okunur.
 
 Not: 30 seans var, 29 sınıf açılıyor. Eksik olan `cumartesi 18.00 serbest oyun` ve bu **kasıtlı** — serbest oyun atanmış öğretmeni ve kontenjanı olan bir grup değil, grup gününün ilk saati.
+
+## 33. Çalışma saatleri ve yasal metinler
+
+*(17 Ağustos 2026. Müşteri saatleri verdi ve "KVKK, gizlilik politikası, ne varsa sitede olsun" dedi.)*
+
+### Çalışma saatleri: program saati değil, açılış saati
+
+Saatler `lib/site.ts` içindeki `SAATLER` sabitinde: hafta içi 09.00-19.00, cumartesi 10.00-18.00, pazar `null` (kapalı). Tek kaynak; footer, iletişim sayfası ve schema.org aynı yerden besleniyor.
+
+**Bulunan hata:** schema.org `openingHoursSpecification` şimdiye kadar **haftalık programdan** üretiliyordu — ilk seansın başı açılış, son seansın sonu kapanış sayılıyordu. Sonuç yanlıştı: Google'a "pazartesi 09.30'da açılıyor" diyordu, kurum 09.00'da açık. Program seans saatini anlatır, açılış saatini anlatmaz. Artık `SAATLER` kaynak; saatler bir gün boşaltılırsa eski davranışa düşüyor (hiç saat yazmamak, yaklaşık saat yazmaktan kötü).
+
+**Kapalı gün schema'ya yazılmıyor.** "Pazar kapalı" satırı Google yerel kartında tek satırlık bir gün gibi görünüyor; hiç yazmamak doğrusu.
+
+Ekranda ardışık aynı saatler **birleştiriliyor**: yedi satır yerine "Pazartesi - Cuma", "Cumartesi", "Pazar". Altı satırı aynı olan bir listeyi kimse okumuyor.
+
+### Yasal metinler: dört sayfa, ortak kabuk
+
+| Sayfa | Ne anlatıyor |
+|---|---|
+| `/kvkk` | Aydınlatma metni. **Yalnız kayıt formunu** kapsıyor |
+| `/gizlilik` | Site + **panel**: hangi veri, nerede duruyor, kim erişiyor, ne kadar |
+| `/cerez` | Çerez ve tarayıcı deposu; izleme yok |
+| `/kosullar` | Kullanım koşulları, içerik hakları, sorumluluk |
+
+Dördü `components/site/yasal-sayfa.tsx` kabuğunu paylaşıyor ve altta birbirine bağlanıyor. Liste `lib/yasal.ts`'de tek kaynak: footer da, sayfaların birbirine verdiği bağlantı da, veri testi de oradan okuyor.
+
+**Gizlilik politikası neden ayrı bir metin:** KVKK aydınlatma metni yalnız kayıt formunu anlatıyordu. Artık panelde çocuk ve veli kayıtları, yoklama ve ödeme hareketleri duruyor. Çocuk verisi tutan bir sistemin bunu yazmaması kabul edilemezdi.
+
+**Metinler uydurulmadı**, sistemin gerçek davranışından yazıldı: toplanan alanlar `lib/schema.ts` ve `/api/kayit` ile, tablolar migration dosyalarıyla, çerez listesi koddaki gerçek `sessionStorage` kullanımıyla birebir örtüşüyor. Eksik künye bilgisi (başvuru adresi) gelene kadar sayfalar bunu açıkça yazıyor. **Hukuk danışmanı okumadan yayına çıkmamalı.**
+
+### Harita artık onay bekliyor
+
+İletişim sayfasındaki Google haritası sayfa açılınca yükleniyordu; Google'a istek gidiyor ve üçüncü taraf çerez yazılıyordu — veli daha hiçbir şey seçmemişken. Artık yerinde bir **"Haritayı göster"** düğmesi var, iframe ancak tıklanınca yükleniyor.
+
+Ölçüldü: tıklamadan önce Google'a **0 istek**, tıkladıktan sonra 17 istek. Site böylece "zorunlu olmayan hiçbir çerez yok" diyebiliyor ve çerez onay bandına gerek kalmıyor. Onay verilmezse kullanıcı bir şey kaybetmiyor: adres yazılı, "Yol tarifi al" bağlantısı haritayı kendi uygulamasında açıyor.
+
+Yazı tipleri de kontrol edildi: `next/font/google` derleme sırasında indirip kendi sunucumuzdan sunuyor, canlı HTML'de tek bir `gstatic`/`googleapis` adresi yok.
+
+### Yasal metin animasyonsuz
+
+Sayfa gövdesi `Belir` (kaydırmayla açılan animasyon) sarmalayıcısından **çıkarıldı**. Metin ilk boyamada opaklık 0 ile duruyordu; 3000 piksellik bir metnin görünmesi için kaydırmak gerekiyordu. Ölçüldü: kaydırmadan önce `opacity: 0`, kaydırdıktan sonra `1`. Yasal bir metnin "kaydırınca görünmesi" kabul edilemez.
+
+### Doğrulama
+
+Veri testi 338'den **460 kontrole** çıktı:
+- Saat biçimi "SS.DD" ve açılış < kapanış
+- schema açılış saati sayısı = açık gün sayısı, pazartesi 09:00, pazar schema'da yok
+- **Her program seansı çalışma saatlerinin içinde** — tek istisna adıyla yazılı (`cmt-1800-serbest-oyun`), o da teyit bekliyor
+- İstisna listesindeki id gerçekten var mı (cevap gelip seans değişirse liste ölü kalmasın)
+- Dört yasal sayfanın dosyası var mı, hepsi sitemap dışında mı
+
+Tarayıcıda: dört sayfa 200 dönüyor, metin ilk boyamada görünür, harita onay öncesi hiçbir istek atmıyor.

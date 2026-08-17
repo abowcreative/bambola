@@ -5,8 +5,10 @@ import {
   MARKA,
   MEB_IFADESI,
   napAdi,
+  saatSatirlari,
   whatsappBaglantisi,
 } from "@/lib/site";
+import { YASAL_SAYFALAR } from "@/lib/yasal";
 import { Ikon } from "@/components/ui/ikon";
 import { MarkaLogosu } from "./marka-logosu";
 
@@ -82,6 +84,20 @@ export function SiteFooter() {
               )}
             </address>
 
+            {/* Calisma saatleri: yerel aramada en cok sorulan bilgi. */}
+            <dl className="mt-5 space-y-1 text-sm text-murekkep-soluk">
+              <dt className="flex items-center gap-2 font-medium text-murekkep">
+                <Ikon.Saat boyut={17} className="shrink-0" />
+                Çalışma saatleri
+              </dt>
+              {saatSatirlari().map((s) => (
+                <dd key={s.gunler} className="flex justify-between gap-4 pl-6">
+                  <span>{s.gunler}</span>
+                  <span className="tabular-nums">{s.saat}</span>
+                </dd>
+              ))}
+            </dl>
+
             {(wa || ILETISIM.instagram) && (
               <div className="mt-5 flex gap-2">
                 {wa && (
@@ -131,14 +147,23 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className="mt-12 flex flex-col gap-3 border-t border-cizgi pt-6 text-xs text-murekkep-soluk sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 flex flex-col gap-4 border-t border-cizgi pt-6 text-xs text-murekkep-soluk lg:flex-row lg:items-center lg:justify-between">
           <p>
             {yil} {MARKA.ad}. {MARKA.tuzelAdOyunEvi} ve {MARKA.tuzelAdAnaokulu}{" "}
             markasıdır.
           </p>
-          <Link href="/kvkk" className="hover:text-yesil-koyu">
-            KVKK aydınlatma metni
-          </Link>
+          {/* Yasal metinlerin tamami tek kaynaktan, bkz. lib/yasal.ts */}
+          <nav aria-label="Yasal metinler">
+            <ul className="flex flex-wrap gap-x-5 gap-y-2">
+              {YASAL_SAYFALAR.map((s) => (
+                <li key={s.yol}>
+                  <Link href={s.yol} className="hover:text-yesil-koyu">
+                    {s.ad}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
       </div>
     </footer>
