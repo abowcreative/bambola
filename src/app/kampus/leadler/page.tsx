@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { adminZorunlu } from "@/lib/kampus/oturum";
 import { leadleriGetir } from "@/lib/kampus/yoklama";
 import {
@@ -146,6 +147,29 @@ export default async function LeadlerSayfasi({
                       >
                         {telefonYaz(l.telefon)}
                       </a>
+                    )}
+
+                    {/*
+                      Lead ile ogrenci arasindaki kopru: donusmus lead
+                      ogrenci kartina gider, donusmemis olan formu dolu
+                      olarak acar.
+                    */}
+                    {l.ogrenci_id ? (
+                      <Link
+                        href={`/kampus/ogrenciler/${l.ogrenci_id}`}
+                        className="shrink-0 text-sm font-semibold text-yesil-koyu hover:underline"
+                      >
+                        Öğrenci kartı
+                      </Link>
+                    ) : (
+                      l.durum !== "kayip" && (
+                        <Link
+                          href={`/kampus/ogrenciler?lead=${l.id}`}
+                          className="shrink-0 rounded-full border-2 border-cizgi bg-white px-3.5 py-1 font-baslik text-sm font-semibold text-murekkep transition-colors hover:border-yesil"
+                        >
+                          Öğrenciye dönüştür
+                        </Link>
+                      )
                     )}
 
                     <LeadDurumSecici id={l.id} durum={l.durum} />

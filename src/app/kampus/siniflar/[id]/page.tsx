@@ -17,6 +17,9 @@ import { atolyeBul } from "@/lib/data/atolyeler";
 import { GUN_ADI } from "@/lib/data/types";
 import type { Gun } from "@/lib/data/types";
 import { yasMetni, ayHesapla } from "@/lib/yas";
+import { dersleriGetir, DERS_DURUM_ETIKET } from "@/lib/kampus/yoklama";
+import { bugununTarihi } from "@/lib/tarih";
+import { DersAcButonu } from "@/components/kampus/ders-ac-butonu";
 import { Ikon } from "@/components/ui/ikon";
 
 export const metadata = { title: "Sınıf", robots: { index: false } };
@@ -33,7 +36,10 @@ export default async function SinifDetaySayfasi({
   const sinif = await sinifGetir(id);
   if (!sinif) notFound();
 
-  const kayitlar = await sinifinOgrencileri(id);
+  const [kayitlar, dersler] = await Promise.all([
+    sinifinOgrencileri(id),
+    dersleriGetir({ sinifId: id }),
+  ]);
   const aktif = kayitlar.filter((k) => k.durum === "aktif");
 
   /*
@@ -177,8 +183,15 @@ export default async function SinifDetaySayfasi({
             <Kutu baslik="Öğrenci ekle">
               {eklenebilir.length === 0 ? (
                 <p className="text-sm leading-relaxed text-murekkep-soluk">
-                  Eklenebilecek öğrenci yok. Başvurulardan öğrenci
-                  oluşturabilirsiniz.
+                  Eklenebilecek öğrenci yok.{" "}
+                  <Link
+                    href="/kampus/ogrenciler"
+                    className="font-semibold text-yesil-koyu hover:underline"
+                  >
+                    Öğrenciler
+                  </Link>{" "}
+                  sayfasından yeni çocuk ekleyebilir ya da bir başvuruyu
+                  öğrenciye dönüştürebilirsiniz.
                 </p>
               ) : (
                 <SinifaEkle
@@ -194,6 +207,67 @@ export default async function SinifDetaySayfasi({
           )}
         </div>
       </div>
+
+      {/*
+        Dersler: sinif sayfasindan yoklamaya gecis. Ogretmen sinifi acinca
+        "bu hafta ne oldu" sorusunun cevabini burada goruyor, ayri bir
+        yoklama sayfasina gidip sinifi tekrar aramasi gerekmiyor.
+      */}
+      <Kutu
+        baslik="Dersler"
+        className="mt-5"
+        yanCocuk={
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-murekkep-soluk">
+              {dersler.filter((d) => d.durum === "islendi").length} işlendi /{" "}
+              {dersler.length}
+            </span>
+            <DersAcButonu sinifId={sinif.id} tarih={bugununTarihi()} />
+          </div>
+        }
+      >
+        {dersler.length === 0 ? (
+          <p className="py-6 text-center text-murekkep-soluk">
+            Bu sınıfta henüz ders açılmadı. &quot;Dersi aç&quot; bugünün
+            yoklamasını başlatır.
+          </p>
+        ) : (
+          <ul className="space-y-1.5">
+            {dersler.slice(0, 20).map((d) => (
+              <li
+                key={d.id}
+                className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-cizgi py-2 last:border-b-0"
+              >
+                <Link
+                  href={`/kampus/yoklama/${d.id}`}
+                  className="w-24 shrink-0 font-medium tabular-nums text-yesil-koyu hover:underline"
+                >
+                  {new Date(d.tarih).toLocaleDateString("tr-TR")}
+                </Link>
+                <span className="min-w-0 flex-1 truncate text-sm text-murekkep">
+                  {d.konu ?? "—"}
+                </span>
+                <span className="shrink-0 text-xs text-murekkep-soluk">
+                  {d.yoklamaSayisi > 0
+                    ? `${d.gelenSayisi}/${d.yoklamaSayisi} geldi`
+                    : "yoklama yok"}
+                </span>
+                <span className="shrink-0 rounded-full bg-krem-koyu px-2.5 py-0.5 text-xs font-bold text-murekkep">
+                  {DERS_DURUM_ETIKET[d.durum]}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {dersler.length > 20 && (
+          <Link
+            href={`/kampus/dersler?sinif=${sinif.id}`}
+            className="mt-3 inline-block text-sm font-semibold text-yesil-koyu hover:underline"
+          >
+            Tüm dersler ({dersler.length})
+          </Link>
+        )}
+      </Kutu>
 
       {/* Gecmis kayitlar: ayrilanlar ve donduranlar. */}
       {kayitlar.length > aktif.length && (

@@ -137,6 +137,78 @@ export async function velileriGetir(ara?: string): Promise<
   });
 }
 
+export async function veliGetir(id: string): Promise<Veli | null> {
+  await adminZorunlu();
+  const db = await sunucuIstemcisi();
+  const { data, error } = await db
+    .from("veliler")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(`Veli okunamadı: ${error.message}`);
+  return (data as Veli | null) ?? null;
+}
+
+/**
+ * Velinin cocuklari; her cocugun aktif sinif kayitlari ve cari bakiyesi de
+ * geliyor. Veli sayfasi "bu aileyle ne durumdayiz" sorusunun tek ekranda
+ * cevabi olsun diye: kardesler, hangi gunler gelecekleri ve borc birlikte.
+ */
+export async function velininCocuklari(veliId: string): Promise<
+  {
+    ogrenci: Ogrenci;
+    yakinlik: string;
+    birincil: boolean;
+    siniflar: Sinif[];
+    bakiye: number;
+  }[]
+> {
+  await adminZorunlu();
+  const db = await sunucuIstemcisi();
+
+  const { data, error } = await db
+    .from("ogrenci_veli")
+    .select(
+      "yakinlik, birincil, ogrenciler(*, kayitlar(durum, siniflar(*)), odemeler(tur, tutar))",
+    )
+    .eq("veli_id", veliId);
+
+  if (error) throw new Error(`Veli çocukları okunamadı: ${error.message}`);
+
+  return (data ?? []).flatMap((s) => {
+    const satir = s as unknown as {
+      yakinlik: string;
+      birincil: boolean;
+      ogrenciler:
+        | (Ogrenci & {
+            kayitlar: { durum: string; siniflar: Sinif | null }[];
+            odemeler: { tur: "borc" | "tahsilat"; tutar: number }[];
+          })
+        | null;
+    };
+    if (!satir.ogrenciler) return [];
+
+    const { kayitlar, odemeler, ...ogrenci } = satir.ogrenciler;
+    const siniflar = (kayitlar ?? [])
+      .filter((k) => k.durum === "aktif" && k.siniflar)
+      .map((k) => k.siniflar as Sinif);
+    const bakiye = (odemeler ?? []).reduce(
+      (t, h) => t + (h.tur === "borc" ? h.tutar : -h.tutar),
+      0,
+    );
+
+    return [
+      {
+        ogrenci,
+        yakinlik: satir.yakinlik,
+        birincil: satir.birincil,
+        siniflar,
+        bakiye,
+      },
+    ];
+  });
+}
+
 // ----------------------------------------------------------------- siniflar
 
 export type SinifOzet = Sinif & {

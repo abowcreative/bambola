@@ -2,10 +2,14 @@ import Link from "next/link";
 import { oturumZorunlu } from "@/lib/kampus/oturum";
 import {
   ogrencileriGetir,
+  siniflariGetir,
   ogrenciAdi,
   OGRENCI_DURUM_ETIKET,
   type OgrenciDurumu,
 } from "@/lib/kampus/ogrenciler";
+import { OgrenciFormu } from "@/components/kampus/ogrenci-formu";
+import { leadGetir } from "@/lib/kampus/yoklama";
+import { z } from "zod";
 import { Kabuk, SayfaBasi, Kutu, Sayac, BosDurum } from "@/components/kampus/kabuk";
 import { OgrenciSuzgeci } from "@/components/kampus/ogrenci-suzgeci";
 import { yasMetni, ayHesapla } from "@/lib/yas";
@@ -36,10 +40,28 @@ export default async function OgrencilerSayfasi({
   const durum = (tek(p.durum) as OgrenciDurumu | "hepsi") ?? "aktif";
   const ara = tek(p.ara) ?? "";
 
-  const [liste, hepsi] = await Promise.all([
+  /*
+    `lead` lead'ler sayfasindaki "Ogrenciye donustur" baglantisindan gelir:
+    form dolu ve acik baslar, kayit tamamlandiginda lead'e baglanir.
+  */
+  const leadId = oturum.rol === "admin" ? z.uuid().safeParse(tek(p.lead)).data : undefined;
+
+  const [liste, hepsi, siniflar, lead] = await Promise.all([
     ogrencileriGetir({ durum, ara }),
     ogrencileriGetir({ durum: "hepsi" }),
+    // Form icin: sinif listesi ve bos yer sayilari. Ogretmen ekleme yapamaz.
+    oturum.rol === "admin" ? siniflariGetir("2026-2027") : Promise.resolve([]),
+    leadId ? leadGetir(leadId) : Promise.resolve(null),
   ]);
+
+  // siniflar.ad zaten "Sali 10:00 · Okula Hazirlik" bicimde uretiliyor.
+  const sinifSecenekleri = siniflar
+    .filter((s) => s.aktif)
+    .map((s) => ({
+      id: s.id,
+      ad: s.ad,
+      bosYer: Math.max(0, s.kontenjan - s.ogrenciSayisi),
+    }));
 
   const say = (d: OgrenciDurumu) => hepsi.filter((o) => o.durum === d).length;
 
@@ -54,10 +76,36 @@ export default async function OgrencilerSayfasi({
         }
       />
 
+      {oturum.rol === "admin" && (
+        <div className="mb-5">
+          <OgrenciFormu
+            siniflar={sinifSecenekleri}
+            // Zaten donusturulmus lead ikinci kez form acmasin.
+            leadId={lead && !lead.ogrenci_id ? lead.id : undefined}
+            acikBaslasin={Boolean(lead && !lead.ogrenci_id)}
+            baslangic={
+              lead
+                ? {
+                    ad: lead.cocuk_adi ?? "",
+                    dogumTarihi: lead.cocuk_dogum ?? "",
+                    veliAdSoyad: lead.ad_soyad,
+                    veliTelefon: lead.telefon ?? "",
+                    notlar: lead.notlar ?? "",
+                  }
+                : undefined
+            }
+          />
+        </div>
+      )}
+
       {hepsi.length === 0 ? (
         <BosDurum
           baslik="Henüz öğrenci yok"
-          aciklama="Başvurular bölümünden bir talebi öğrenciye dönüştürerek başlayabilirsiniz."
+          aciklama={
+            oturum.rol === "admin"
+              ? "Yukarıdan öğrenci ekleyebilir ya da Başvurular bölümünden bir talebi öğrenciye dönüştürebilirsiniz."
+              : "Sınıflarınıza çocuk atandığında burada görünecek."
+          }
         />
       ) : (
         <>

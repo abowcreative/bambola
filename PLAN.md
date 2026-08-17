@@ -1913,3 +1913,56 @@ Bütün modüller çalıştığı için `app/kampus/[modul]` dinamik rotası ve 
 Uçtan uca **14 kontrol**: ders açma, aynı sınıfa aynı gün ikinci ders açılamaması, yoklama işaretleme, aynı öğrencinin aynı derste iki kez işaretlenememesi, bakiye hesabı (9000 − 5000 = 4000), negatif tutar reddi, tanımsız hareket türü reddi, tanımsız lead kaynağı reddi, menünün üzerine yazılması ve duyurunun taslak açılması. Test verisi silindi.
 
 > **Migration çalıştırmada tuzak:** SQL Editor'de "Run" tıklanınca yıkıcı işlem onayı çıkıyor. İlk denemede onaya, modal henüz açılmadan tıklandı; sorgu çalışmadı ama hata da vermedi. Belirti PostgREST'in "Could not find the table in the schema cache" hatasıydı ve tablo yok sanıldı. Onay tıklandıktan sonra **sonucun okunması** şart.
+
+## 32. Panelden öğrenci ekleme ve modüller arası bağlar
+
+*(17 Ağustos 2026. Yeni tablo yok; var olan beş tablo birbirine bağlandı.)*
+
+İstek şuydu: "panele öğrenci ekleyebilmeliyim, eklerken veli bilgisi de istemeli, modüller kendi aralarında bağlantılı olmalı."
+
+### Tek işlem, beş kayıt
+
+`ogrenciEkle` bir formdan gelen veriyle **bağlı kayıtların tamamını** kuruyor:
+
+| Ne | Zorunlu mu | Not |
+|---|---|---|
+| `ogrenciler` satırı | evet | ad, doğum tarihi, kurum |
+| `veliler` satırı | **evet** | ad soyad, telefon |
+| `ogrenci_veli` bağlantısı | evet | yakınlık + `birincil` |
+| `kayitlar` (sınıf kaydı) | hayır | seçilirse |
+| `odemeler` (ilk borç) | hayır | ücret girilirse |
+
+**Veli neden zorunlu:** velisi olmayan bir çocuk kaydı, kime ulaşılacağı bilinmeyen bir kayıttır. Alerjisi olan bir çocuk için bu kabul edilemez.
+
+**Aynı telefonlu veli yeniden oluşturulmuyor**, mevcut veliye bağlanıyor. Kardeş kaydında ikinci bir veli kartı çıkmasın; aile bakiyesi de bölünmesin.
+
+**Geri alma kuralı asimetrik.** Veli oluşmazsa öğrenci satırı **siliniyor**: yarım kalan bir öğrenci hiç olmamasından kötüdür. Ama sınıf kaydı veya borç yazılamazsa öğrenci **duruyor**: çocuk ve velisi doğru kaydedildi, eksik olan kendi ekranından tamamlanabilir.
+
+**Sınıf kontrolü en başta.** Kontenjan dolu ya da sınıf kapalıysa hiçbir satır yazılmadan hata dönüyor. Önce yazıp sonra "sınıf dolu" demek, geri alınacak bir kayıt bırakır.
+
+### Modüller arası bağlar
+
+| Nereden | Nereye | Ne için |
+|---|---|---|
+| Lead | Öğrenci formu (dolu) | Instagram'dan gelen talep tek tıkla kayda dönüyor |
+| Lead | Öğrenci kartı | Dönüşmüş lead'in çocuğuna gitmek |
+| Öğrenci | Veli sayfası | "Bu çocuğun velisi kim, başka çocuğu var mı" |
+| Veli | Çocukları → sınıfları | Ailenin tamamı tek ekranda |
+| Sınıf | Dersler + yoklama | Sınıfı açan öğretmen "bu hafta ne oldu"yu görüyor |
+| Sınıf | Ders kayıtları (süzgeçli) | O sınıfın tüm geçmişi |
+
+**Lead dönüşümünde lead silinmiyor.** `durum` "kayıt oldu" olup `ogrenci_id` yazılıyor. Hangi kanalın (Instagram, tavsiye, tabela) öğrenciye dönüştüğü raporlarda ancak bu bağla görülüyor. Aynı lead iki kez dönüştürülemiyor: ikinci çağrı var olan öğrenciyi döndürüyor.
+
+**Veli sayfası neden ayrı bir düğüm:** "Ayşe Hanım aradı" dendiğinde tek yere bakılıyor — çocukları, sınıfları, gün ve saatleri, **aile bakiyesi** ve iletişim. Bakiye çocuk başına değil aile toplamı olarak da gösteriliyor: tahsilat konuşması aileyle yapılıyor, çocukla değil.
+
+**Form notu görünür.** Lead'in notu forma taşınıyor ama gizli bir alanda değil, yazılabilir bir alanda: görünmeden kaydedilen metin, sonra kimin yazdığı anlaşılmayan bir nota dönüşür.
+
+### Tarih yardımcısı
+
+`bugununTarihi()` `src/lib/tarih.ts`'e taşındı, iki yerde kopyaydı. Panelde "bugün" **her zaman İstanbul saatiyle**: Vercel fonksiyonu UTC koşuyor, gece 00.00–03.00 arası `new Date()` bir önceki günü verir ve o saatte açılan yoklama yanlış derse yazılırdı.
+
+### Doğrulama
+
+Geçici bir yönetici hesabıyla, gerçek arayüzden, uçtan uca **18 kontrol**: form düğmesinin varlığı, veli bilgisi boşken formun geçerli sayılmaması, sınıf seçimi, kayıt sonrası öğrenci kartına yönlenme, kartta velinin görünmesi, ilk borcun cariye işlenmesi, veli sayfasının çocuğu ve aile bakiyesini göstermesi, sınıf detayındaki dersler kutusu, sınıf süzgeçli ders listesi, lead satırındaki dönüştür bağlantısı, formun lead'den dolu gelmesi, lead'in "kayıt oldu" işaretlenip öğrenciye bağlanması ve **aynı telefon için tek veli kaydı** kalması. Üretilen her satır ve geçici hesap sonda silindi.
+
+> Şifre tarayıcı formuna **girilmedi**: oturum çerezi doğrudan yazıldı. Panel doğrulaması bir parolayı ekrana taşımayı gerektirmiyor.

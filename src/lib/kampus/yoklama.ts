@@ -225,6 +225,18 @@ export async function leadleriGetir(suzgec?: {
   return (data ?? []) as Lead[];
 }
 
+export async function leadGetir(id: string): Promise<Lead | null> {
+  await adminZorunlu();
+  const db = await sunucuIstemcisi();
+  const { data, error } = await db
+    .from("leadler")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(`Lead okunamadı: ${error.message}`);
+  return (data as Lead | null) ?? null;
+}
+
 // ------------------------------------------------------------------- menuler
 
 export async function menuleriGetir(

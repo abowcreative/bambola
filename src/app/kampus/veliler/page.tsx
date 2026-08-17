@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { adminZorunlu } from "@/lib/kampus/oturum";
 import { velileriGetir } from "@/lib/kampus/ogrenciler";
 import {
@@ -88,9 +89,12 @@ export default async function VelilerSayfasi({
                     className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block font-baslik text-sm font-bold text-murekkep">
+                      <Link
+                        href={`/kampus/veliler/${v.id}`}
+                        className="block font-baslik text-sm font-bold text-murekkep hover:underline"
+                      >
                         {v.ad_soyad}
-                      </span>
+                      </Link>
                       <span className="mt-0.5 block text-xs text-murekkep-soluk">
                         {v.cocukSayisi} çocuk
                         {v.eposta && ` · ${v.eposta}`}

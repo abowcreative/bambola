@@ -169,7 +169,17 @@ export default async function OgrenciDetaySayfasi({
                   >
                     <span className="min-w-0 flex-1">
                       <span className="block font-baslik text-sm font-bold text-murekkep">
-                        {v.ad_soyad}
+                        {/* Veli sayfasi yalniz yoneticide var. */}
+                        {oturum.rol === "admin" ? (
+                          <Link
+                            href={`/kampus/veliler/${v.id}`}
+                            className="hover:underline"
+                          >
+                            {v.ad_soyad}
+                          </Link>
+                        ) : (
+                          v.ad_soyad
+                        )}
                         {v.birincil && (
                           <span className="ml-2 rounded-full bg-krem-koyu px-2 py-0.5 text-xs font-semibold text-murekkep">
                             Birincil

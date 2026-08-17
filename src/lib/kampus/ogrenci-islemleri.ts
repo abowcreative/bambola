@@ -147,6 +147,239 @@ export async function kontenjanDegistir(
   return { ok: true };
 }
 
+// ------------------------------------------------- elle ogrenci ekleme
+
+const yeniOgrenciSemasi = z.object({
+  ad: z.string().trim().min(2, "Çocuğun adı gerekli.").max(60),
+  soyad: z.string().trim().max(60).optional(),
+  dogumTarihi: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Doğum tarihi gerekli."),
+  kurum: z.enum(["oyun-evi", "anaokulu", "parti"]),
+  alerji: z.string().trim().max(300).optional(),
+  saglikNotu: z.string().trim().max(500).optional(),
+  notlar: z.string().trim().max(1000).optional(),
+
+  /*
+    VELI BILGISI ZORUNLU. Velisi olmayan bir cocuk kaydi kime
+    ulasilacagini bilmediginiz bir kayit demek; ilk gun aranacak biri
+    olmadan ogrenci acmak ise yaramiyor.
+  */
+  veliAdSoyad: z.string().trim().min(2, "Veli adı gerekli.").max(80),
+  veliTelefon: z
+    .string()
+    .trim()
+    .min(10, "Veli telefonu gerekli.")
+    .max(20),
+  veliEposta: z
+    .string()
+    .trim()
+    .email("Geçersiz e-posta.")
+    .optional()
+    .or(z.literal("")),
+  yakinlik: z.enum(["anne", "baba", "vasi", "veli"]),
+
+  // Istege bagli: hemen bir sinifa kaydet.
+  sinifId: z.uuid().optional().or(z.literal("")),
+  // Istege bagli: ilk borc kaydi.
+  ucret: z.coerce.number().int().min(0).max(1_000_000).optional(),
+  paketKod: z.string().trim().max(20).optional(),
+});
+
+export type YeniOgrenciGirdisi = z.input<typeof yeniOgrenciSemasi>;
+
+/**
+ * Elle ogrenci ekler ve BAGLI KAYITLARI birlikte kurar:
+ * ogrenci, veli, ogrenci-veli baglantisi, istege bagli sinif kaydi ve
+ * istege bagli ilk borc.
+ *
+ * Neden tek islem: bunlari ayri ekranlarda yapmak, yarim kalmis kayitlar
+ * uretiyor. Velisi girilmemis ogrenci, sinifi olmayan ogrenci, borcu
+ * islenmemis kayit... Panelde en sik yapilan is "yeni cocuk geldi" ve
+ * o isin tamami burada bitiyor.
+ *
+ * Ayni telefonlu veli varsa YENIDEN OLUSTURULMUYOR, mevcut veliye
+ * baglaniyor: kardes kaydinda ikinci bir veli karti cikmasin.
+ */
+export async function ogrenciEkle(
+  girdi: YeniOgrenciGirdisi,
+): Promise<IslemSonucu> {
+  const oturum = await adminZorunlu();
+
+  const g = yeniOgrenciSemasi.safeParse(girdi);
+  if (!g.success) return { ok: false, hata: g.error.issues[0].message };
+  const v = g.data;
+
+  const telefon = telefonNormalle(v.veliTelefon);
+  if (telefon.length !== 10) {
+    return { ok: false, hata: "Veli telefonu 10 haneli olmalı." };
+  }
+
+  const db = await sunucuIstemcisi();
+
+  /*
+    Sinif kontrolu EN BASTA: cocugu kaydettikten sonra "sinif dolu" demek,
+    geri alinacak yarim bir kayit birakir. Once bakiyoruz, sonra yaziyoruz.
+  */
+  if (v.sinifId) {
+    const { data: sinif } = await db
+      .from("siniflar")
+      .select("kontenjan, aktif, kayitlar(durum)")
+      .eq("id", v.sinifId)
+      .maybeSingle();
+
+    if (!sinif) return { ok: false, hata: "Sınıf bulunamadı." };
+
+    const s = sinif as unknown as {
+      kontenjan: number;
+      aktif: boolean;
+      kayitlar: { durum: string }[];
+    };
+    if (!s.aktif) return { ok: false, hata: "Sınıf kapalı." };
+
+    const dolu = (s.kayitlar ?? []).filter((k) => k.durum === "aktif").length;
+    if (dolu >= s.kontenjan) {
+      return { ok: false, hata: `Sınıf dolu (${dolu}/${s.kontenjan}).` };
+    }
+  }
+
+  const { data: ogrenci, error: ogrenciHatasi } = await db
+    .from("ogrenciler")
+    .insert({
+      ad: v.ad,
+      soyad: v.soyad || null,
+      dogum_tarihi: v.dogumTarihi,
+      kurum: v.kurum,
+      durum: "aktif",
+      alerji: v.alerji || null,
+      saglik_notu: v.saglikNotu || null,
+      notlar: v.notlar || null,
+    })
+    .select("id")
+    .single();
+
+  if (ogrenciHatasi || !ogrenci) {
+    return { ok: false, hata: "Öğrenci kaydı oluşturulamadı." };
+  }
+  const ogrenciId = (ogrenci as { id: string }).id;
+
+  // Veli: telefonla ara, varsa bagla.
+  const { data: mevcutVeli } = await db
+    .from("veliler")
+    .select("id")
+    .eq("telefon", telefon)
+    .maybeSingle();
+
+  let veliId = (mevcutVeli as { id: string } | null)?.id;
+  if (!veliId) {
+    const { data: yeniVeli, error: veliHatasi } = await db
+      .from("veliler")
+      .insert({
+        ad_soyad: v.veliAdSoyad,
+        telefon,
+        eposta: v.veliEposta || null,
+      })
+      .select("id")
+      .single();
+    if (veliHatasi || !yeniVeli) {
+      /*
+        Veli olusmadiysa ogrenci kaydi da geri aliniyor. Yarim kalan bir
+        ogrenci -- velisi olmayan, kime ulasilacagi bilinmeyen bir kayit --
+        hic olmamasindan kotudur.
+      */
+      await db.from("ogrenciler").delete().eq("id", ogrenciId);
+      return { ok: false, hata: "Veli kaydı oluşturulamadı." };
+    }
+    veliId = (yeniVeli as { id: string }).id;
+  }
+
+  await db.from("ogrenci_veli").insert({
+    ogrenci_id: ogrenciId,
+    veli_id: veliId,
+    yakinlik: v.yakinlik,
+    birincil: true,
+  });
+
+  /*
+    Sinif kaydi ve borc ISTEGE BAGLI. Basarisiz olurlarsa ogrenci kaydi
+    geri ALINMIYOR: cocuk ve velisi dogru kaydedildi, eksik olan sonradan
+    ekranından tamamlanabilir.
+  */
+  if (v.sinifId) {
+    await db.from("kayitlar").insert({
+      ogrenci_id: ogrenciId,
+      sinif_id: v.sinifId,
+      paket_kod: v.paketKod || null,
+      ucret: v.ucret ?? null,
+      durum: "aktif",
+    });
+  }
+
+  if (v.ucret && v.ucret > 0) {
+    await db.from("odemeler").insert({
+      ogrenci_id: ogrenciId,
+      tur: "borc",
+      tutar: v.ucret,
+      tarih: new Date().toISOString().slice(0, 10),
+      aciklama: v.paketKod ? `Kayıt · ${v.paketKod}` : "Kayıt",
+      olusturan: oturum.adSoyad,
+    });
+  }
+
+  revalidatePath("/kampus/ogrenciler");
+  revalidatePath("/kampus/veliler");
+  revalidatePath("/kampus/siniflar");
+  revalidatePath("/kampus/cari");
+  return { ok: true, id: ogrenciId };
+}
+
+// ------------------------------------------------ lead'den ogrenci olustur
+
+/**
+ * Lead'i ogrenciye cevirir: `ogrenciEkle` ile kayitlari kurar, sonra lead'i
+ * "kayit_oldu" isaretleyip olusan ogrenciye baglar.
+ *
+ * Lead SILINMIYOR: talebin nereden geldigi (Instagram, tavsiye, tabela)
+ * donusum oraniyla birlikte kayitli kalsin. Raporlarda "hangi kanal
+ * ogrenciye donusuyor" sorusunun cevabi bu baglanti.
+ *
+ * Ayni lead iki kez donusturulemez: ikinci cagri var olan ogrenciyi doner.
+ */
+export async function leaddenOgrenciOlustur(
+  leadId: string,
+  girdi: YeniOgrenciGirdisi,
+): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const l = z.uuid().safeParse(leadId);
+  if (!l.success) return { ok: false, hata: "Geçersiz lead." };
+
+  const db = await sunucuIstemcisi();
+
+  const { data: lead } = await db
+    .from("leadler")
+    .select("id, ogrenci_id")
+    .eq("id", l.data)
+    .maybeSingle();
+
+  if (!lead) return { ok: false, hata: "Lead bulunamadı." };
+
+  const mevcut = (lead as { ogrenci_id: string | null }).ogrenci_id;
+  if (mevcut) return { ok: true, id: mevcut };
+
+  const sonuc = await ogrenciEkle(girdi);
+  if (!sonuc.ok) return sonuc;
+
+  await db
+    .from("leadler")
+    .update({ durum: "kayit_oldu", ogrenci_id: sonuc.id })
+    .eq("id", l.data);
+
+  revalidatePath("/kampus/leadler");
+  revalidatePath("/kampus/raporlar");
+  return sonuc;
+}
+
 // ------------------------------------------- basvurudan ogrenci olustur
 
 const donusturSemasi = z.object({

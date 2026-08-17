@@ -10,17 +10,12 @@ import {
   BosDurum,
 } from "@/components/kampus/kabuk";
 import { DersAcButonu } from "@/components/kampus/ders-ac-butonu";
+import { bugununTarihi } from "@/lib/tarih";
 import { atolyeBul } from "@/lib/data/atolyeler";
 import { GUN_ADI, GUNLER } from "@/lib/data/types";
 
 export const metadata = { title: "Yoklama", robots: { index: false } };
 export const dynamic = "force-dynamic";
-
-function bugununTarihi(): string {
-  return new Date().toLocaleDateString("en-CA", {
-    timeZone: "Europe/Istanbul",
-  });
-}
 
 export default async function YoklamaSayfasi({
   searchParams,

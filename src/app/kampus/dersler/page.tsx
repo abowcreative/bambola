@@ -10,6 +10,8 @@ import {
   BosDurum,
 } from "@/components/kampus/kabuk";
 import { atolyeBul } from "@/lib/data/atolyeler";
+import { sinifGetir } from "@/lib/kampus/ogrenciler";
+import { z } from "zod";
 
 export const metadata = { title: "Ders kayıtları", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -37,9 +39,17 @@ export default async function DerslerSayfasi({
     Array.isArray(a) ? a[0] : a;
 
   const durum = (tek(p.durum) as DersDurumu | "hepsi") ?? "hepsi";
-  const [liste, hepsi] = await Promise.all([
-    dersleriGetir({ durum }),
-    dersleriGetir(),
+  /*
+    `sinif` sinif sayfasindan gelen baglantidan geliyor: "Tum dersler".
+    Gecerli bir uuid degilse suzgeci hic uygulamiyoruz -- adres cubugundan
+    gelen serbest metnin sorguya gitmesine gerek yok.
+  */
+  const sinifId = z.uuid().safeParse(tek(p.sinif)).data;
+
+  const [liste, hepsi, sinif] = await Promise.all([
+    dersleriGetir({ durum, sinifId }),
+    dersleriGetir({ sinifId }),
+    sinifId ? sinifGetir(sinifId) : Promise.resolve(null),
   ]);
 
   const say = (d: DersDurumu) => hepsi.filter((x) => x.durum === d).length;
@@ -51,9 +61,32 @@ export default async function DerslerSayfasi({
         aciklama="İşlenen dersler, konuları ve işleyen öğretmen."
       />
 
+      {sinif && (
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-blok border-2 border-yesil bg-lime-rozet/25 px-4 py-3">
+          <span className="text-sm text-murekkep">
+            <strong className="font-baslik">{sinif.ad}</strong> sınıfının
+            dersleri
+          </span>
+          <span className="flex gap-3 text-sm font-semibold">
+            <Link
+              href={`/kampus/siniflar/${sinif.id}`}
+              className="text-yesil-koyu hover:underline"
+            >
+              Sınıfa git
+            </Link>
+            <Link
+              href="/kampus/dersler"
+              className="text-murekkep-soluk hover:underline"
+            >
+              Süzgeci kaldır
+            </Link>
+          </span>
+        </div>
+      )}
+
       {hepsi.length === 0 ? (
         <BosDurum
-          baslik="Henüz ders kaydı yok"
+          baslik={sinif ? "Bu sınıfta ders kaydı yok" : "Henüz ders kaydı yok"}
           aciklama="Yoklama bölümünden bir gün seçip dersi açtığınızda burada görünür."
         />
       ) : (
@@ -65,6 +98,8 @@ export default async function DerslerSayfasi({
           </div>
 
           <form className="mt-5 flex flex-wrap gap-2">
+            {/* Sinif suzgeci durum degistirilirken kaybolmasin. */}
+            {sinifId && <input type="hidden" name="sinif" value={sinifId} />}
             {(["hepsi", "islendi", "planli", "iptal"] as const).map((d) => (
               <button
                 key={d}
