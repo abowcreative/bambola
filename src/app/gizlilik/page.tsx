@@ -100,7 +100,7 @@ export default function GizlilikSayfasi() {
         ogeler={[
           "Sitede reklam ve izleme çerezi yok, analitik kurulu değil. Sizi sayfalar arasında izlemiyoruz.",
           <>
-            Tek ölçüm şu: &quot;Bu programa kaydol&quot; düğmesine
+            Tek ölçüm şu: &quot;Detaylı bilgi al&quot; düğmesine
             basıldığında hangi programın seçildiği sayılıyor. Kişiye dair
             hiçbir bilgi tutulmadan — ayrıntısı{" "}
             <Link

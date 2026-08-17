@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ProgramAilesi } from "@/lib/data/types";
 import {
   tlYaz,
@@ -102,25 +101,19 @@ export function UcretKarti({
         (app/git/whatsapp/route.ts): hazir mesaj bu programa ozel yaziliyor
         ve tiklama "hangi programa kac kisi" olarak sayiliyor.
 
-        Form baglantisi KALDIRILMADI, altina kucuk yazi olarak alindi:
-        WhatsApp konusmayi basliyor ama yapili bir kayit birakmiyor;
-        formu tercih eden veliyi kaybetmemek gerekiyor.
+        MUSTERI KARARI, 17 Agustos 2026: buton "Detayli bilgi al" diyor,
+        "kaydol" demiyor -- veli bu asamada kayit degil bilgi bekliyor.
+        Altindaki "kayit formunu doldurun" baglantisi da KALDIRILDI: karttan
+        cikan tek yol WhatsApp. Form duruyor ve ust cubuktaki "Kayit formu"
+        dugmesi, /bilgi sayfasi ve program sayfalari uzerinden erisiliyor.
       */}
-      <div className="mt-6 flex flex-col items-start gap-2">
-        <a
-          href={`/git/whatsapp?grup=${aile.slug}&nereden=${nereden}`}
-          className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-yesil px-5 py-2.5 font-baslik font-semibold text-yesil-koyu transition-all duration-200 ease-yayli hover:-translate-y-0.5 hover:bg-lime-rozet hover:text-black"
-        >
-          <Ikon.Whatsapp boyut={17} />
-          Bu programa kaydol
-        </a>
-        <Link
-          href={`/kayit?program=${aile.slug}`}
-          className="text-sm text-murekkep-soluk underline underline-offset-2 hover:text-yesil-koyu"
-        >
-          ya da kayıt formunu doldurun
-        </Link>
-      </div>
+      <a
+        href={`/git/whatsapp?grup=${aile.slug}&nereden=${nereden}`}
+        className="mt-6 inline-flex items-center justify-center gap-2 self-start rounded-full border-2 border-yesil px-5 py-2.5 font-baslik font-semibold text-yesil-koyu transition-all duration-200 ease-yayli hover:-translate-y-0.5 hover:bg-lime-rozet hover:text-black"
+      >
+        <Ikon.Whatsapp boyut={17} />
+        Detaylı bilgi al
+      </a>
     </SiraliOge>
   );
 }

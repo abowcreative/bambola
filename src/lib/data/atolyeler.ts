@@ -159,3 +159,18 @@ export function atolyeBul(slug: string): Atolye | undefined {
 }
 
 export const ATOLYE_SLUGLARI: AtolyeSlug[] = ATOLYELER.map((a) => a.slug);
+
+/**
+ * Bir program AILESININ program sayfasi.
+ *
+ * DIKKAT, IKI AYRI SLUG VAR: aile slug'i ("okula-hazirlik") ile atolye
+ * slug'i ("okula-hazirlik-grubu") ayni sey degil. `/oyun-evi/programlar/[slug]`
+ * rotasi ATOLYE slug'lariyla uretiliyor; aile slug'i verilirse sayfa 404
+ * doner. /bilgi sayfasi tam bu yuzden 404 veriyordu.
+ *
+ * Okula hazirlik ailesine iki atolye bagli (grup ve guvenli ayrilma
+ * programi); dizideki ilki grubun kendisi, o donuyor.
+ */
+export function aileninAtolyesi(aileSlug: string): Atolye | undefined {
+  return ATOLYELER.find((a) => a.ailesi === aileSlug);
+}

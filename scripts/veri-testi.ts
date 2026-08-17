@@ -20,7 +20,16 @@ import {
   atolyeOgretmenleri,
 } from "../src/lib/data/ekip";
 import { AILELER } from "../src/lib/data/gruplar";
-import { ATOLYELER, atolyeBul } from "../src/lib/data/atolyeler";
+import {
+  ATOLYELER,
+  atolyeBul,
+  aileninAtolyesi,
+} from "../src/lib/data/atolyeler";
+import {
+  FOTOGRAFLAR,
+  GOSTERILMEYEN,
+  gosterilenFotolar,
+} from "../src/lib/data/fotograflar";
 import {
   PAKETLER,
   indirimVarMi,
@@ -768,6 +777,49 @@ if (kaynakEslesme) {
   );
 }
 
+// ------------------------------------------- aile -> program sayfasi baglantisi
+
+/*
+  IKI AYRI SLUG VAR ve karistirilmasi 404 uretiyor:
+    aile slug'i   -> "okula-hazirlik"
+    atolye slug'i -> "okula-hazirlik-grubu"
+  /oyun-evi/programlar/[slug] rotasi ATOLYE slug'lariyla uretiliyor.
+  /bilgi sayfasi aile slug'ini yazdigi icin "Programin ayrintisi"
+  baglantilari 404 donuyordu (musteri bildirdi, 17 Agustos 2026).
+
+  Test her ailenin bir program sayfasi karsiligi oldugunu ve o slug'in
+  gercekten var oldugunu dogruluyor.
+*/
+for (const aile of AILELER) {
+  const atolye = aileninAtolyesi(aile.slug);
+  dogru(
+    Boolean(atolye),
+    `${aile.slug}: program sayfasi karsiligi yok (aileninAtolyesi bos dondu)`,
+  );
+  if (atolye) {
+    dogru(
+      Boolean(atolyeBul(atolye.slug)),
+      `${aile.slug} -> ${atolye.slug}: atolye bulunamadi`,
+    );
+    dogru(
+      atolye.slug !== aile.slug,
+      `${aile.slug}: aile slug'i ile atolye slug'i ayni olmamali`,
+    );
+  }
+}
+
+// Bilerek gosterilmeyen kare hicbir yuzeyde gorunmemeli.
+for (const slug of Object.keys(GOSTERILMEYEN)) {
+  dogru(
+    !gosterilenFotolar().some((f) => f.slug === slug),
+    `gosterilmeyen kare listede: ${slug}`,
+  );
+  dogru(
+    FOTOGRAFLAR.some((f) => f.slug === slug),
+    `gosterilmeyen kare artik var olmayan bir slug: ${slug}`,
+  );
+}
+
 // ------------------------------------------------- yas etiketleri (ay yok)
 
 /*
@@ -818,7 +870,7 @@ for (const y of YAS_SAYFALARI) {
 // --------------------------------------------- program tiklama sayaci
 
 /*
-  "Bu programa kaydol" WhatsApp'a, arada sayac rotasindan gidiyor.
+  "Detayli bilgi al" WhatsApp'a, arada sayac rotasindan gidiyor.
   Dogrudan wa.me baglantisi olsaydi tiklama sayilamazdi.
 */
 const ucretKarti = readFileSync("src/components/site/ucret-tablosu.tsx", "utf8");

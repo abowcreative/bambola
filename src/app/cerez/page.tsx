@@ -102,7 +102,7 @@ export default function CerezSayfasi() {
 
       <YasalBaslik>Program sayacı</YasalBaslik>
       <p className="mt-3">
-        Ücret kartlarındaki &quot;Bu programa kaydol&quot; düğmesine
+        Ücret kartlarındaki &quot;Detaylı bilgi al&quot; düğmesine
         bastığınızda, <strong className="text-murekkep">hangi programın</strong>{" "}
         seçildiği sayısal olarak kaydedilir. Kurum böylece hangi gruba ilgi
         olduğunu görüyor.

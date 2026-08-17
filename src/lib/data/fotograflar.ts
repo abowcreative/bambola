@@ -174,6 +174,27 @@ export const FOTOGRAFLAR: Fotograf[] = [
   },
 ];
 
+/**
+ * BILEREK GOSTERILMEYEN kareler ve sebepleri.
+ *
+ * Kare listeden SILINMIYOR: dosya fotograf paketinde duruyor ve `npm run
+ * foto` her kosuda onu yine uretiyor. Silinse bir sonraki uretimde sessizce
+ * geri gelirdi. Bunun yerine burada adiyla ve sebebiyle isaretli.
+ *
+ * Tek kaynak olmasi onemli: /mekan yerlesimi, /bilgi seridi ve galeri
+ * semasi ayni listeye bakiyor. Yoksa musterinin "bu kareyi kaldirin"
+ * dedigi fotograf bir sayfadan cikip otekinde kalir.
+ */
+export const GOSTERILMEYEN: Record<string, string> = {
+  // Musteri istegi, 17 Agustos 2026: dogum gunu uzun masa duzenine yer
+  // verilmiyor.
+  "bambola-teras-03": "uzun masa duzeni, musteri istegiyle cikarildi",
+};
+
+/** Sitede gosterilebilecek kareler. */
+export const gosterilenFotolar = (): Fotograf[] =>
+  FOTOGRAFLAR.filter((f) => !(f.slug in GOSTERILMEYEN));
+
 const HARITA = new Map(FOTOGRAFLAR.map((f) => [f.slug, f]));
 
 /**

@@ -127,6 +127,34 @@
 }
 
 @layer utilities {
+  /*
+    Sonsuz kayan fotograf seridi (/bilgi sayfasi).
+
+    Serit icinde kare listesi IKI KEZ duruyor; animasyon bir kopya
+    genisligi kadar, yani -50% kaydiriyor ve bittiginde basa donuyor.
+    Gozle birlesme yeri gorunmuyor.
+
+    Yalniz transform animasyonlaniyor: layout ve boyama tetiklenmiyor,
+    telefonda da akici kaliyor. Duraklatma isteyen icin :hover'da duruyor;
+    prefers-reduced-motion aciksa asagidaki blok zaten hepsini kapatiyor.
+  */
+  @keyframes bambola-kaydir {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  .kaydir-seridi {
+    animation: bambola-kaydir var(--kaydir-sure, 70s) linear infinite;
+  }
+
+  .kaydir-seridi:hover {
+    animation-play-state: paused;
+  }
+
   /* Sonsuz donguli hareketler. PLAN Bolum 11: sayfa basina en fazla iki adet. */
   @keyframes bambola-sallan {
     0%,
@@ -339,6 +367,11 @@
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .kaydir-seridi {
+    animation: none !important;
+    transform: none !important;
   }
 
   *,

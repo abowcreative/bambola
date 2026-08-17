@@ -10,7 +10,7 @@ import { yoneticiIstemcisi } from "@/lib/supabase/server";
 import { ipOzeti, istekIp, sinirAsildiMi } from "@/lib/rate-limit";
 
 /**
- * "Bu programa kaydol" -> WhatsApp yonlendirmesi, arada SAYAC.
+ * "Detayli bilgi al" -> WhatsApp yonlendirmesi, arada SAYAC.
  *
  * Neden dogrudan wa.me baglantisi degil: kurumun bilmek istedigi sey
  * "hangi programa kac kisi tikladi". wa.me baglantisina tiklayan kisi

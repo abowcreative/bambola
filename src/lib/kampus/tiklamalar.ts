@@ -7,7 +7,7 @@ import { AILELER } from "@/lib/data/gruplar";
 /**
  * Program ilgisi sayaci. PLAN.md Bolum 35.
  *
- * "Bu programa kaydol" tiklamalari. Tabloda kisi tanimlayan hicbir alan
+ * "Detayli bilgi al" tiklamalari. Tabloda kisi tanimlayan hicbir alan
  * yok (bkz. 0005_tiklamalar.sql); burada da yalniz sayilar uretiliyor.
  */
 

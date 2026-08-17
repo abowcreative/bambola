@@ -11,11 +11,13 @@ import {
 } from "@/lib/data/ucretler";
 import { SORULAR } from "@/lib/data/sss";
 import { slotBul } from "@/lib/data/program";
+import { aileninAtolyesi } from "@/lib/data/atolyeler";
 import { UcretKarti } from "@/components/site/ucret-tablosu";
 import { SssAkordiyon } from "@/components/site/sss-akordiyon";
 import { Sirali } from "@/components/site/bolum";
 import { ButonLink } from "@/components/ui/buton";
 import { Ikon } from "@/components/ui/ikon";
+import { FotoKaydiragi } from "@/components/site/foto-kaydiragi";
 
 /**
  * Tek sayfada "her sey" -- Instagram otomasyonunun gonderdigi adres.
@@ -222,13 +224,22 @@ export default function BilgiSayfasi() {
                   ))}
                 </ul>
 
-                <Link
-                  href={`/oyun-evi/programlar/${a.slug}`}
-                  className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-yesil-koyu hover:underline"
-                >
-                  Programın ayrıntısı
-                  <Ikon.Ok boyut={14} />
-                </Link>
+                {/*
+                  AILE slug'i degil ATOLYE slug'i. Program sayfalari atolye
+                  slug'lariyla uretiliyor; buraya `a.slug` yazildigi icin
+                  baglanti 404 donuyordu (musteri bildirdi, 17 Agustos 2026).
+                  Karsiligi olmayan aile icin baglanti HIC basilmiyor:
+                  bos bir adrese goturmek 404'un baska bir hali.
+                */}
+                {aileninAtolyesi(a.slug) && (
+                  <Link
+                    href={`/oyun-evi/programlar/${aileninAtolyesi(a.slug)!.slug}`}
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-yesil-koyu hover:underline"
+                  >
+                    Programın ayrıntısı
+                    <Ikon.Ok boyut={14} />
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
@@ -269,6 +280,19 @@ export default function BilgiSayfasi() {
           </div>
         </Bolum>
 
+        {/*
+          Kurum kareleri: fiyattan sonra, kosullardan once. Veli ucreti
+          okuduktan hemen sonra mekani goruyor. Serit sonsuz akiyor
+          (musteri istegi, 17 Agustos 2026); hareket CSS'te, uzerine
+          gelince duruyor.
+        */}
+      </div>
+
+      <div className="mt-12 -mx-4 sm:-mx-6">
+        <FotoKaydiragi />
+      </div>
+
+      <div>
         <Bolum
           no="03"
           kimlik="kosullar"

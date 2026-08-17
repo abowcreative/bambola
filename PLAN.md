@@ -2145,3 +2145,44 @@ Panele elle on kayıt girmek yerine tek komut: `npm run ogrenci:ice-aktar -- <fo
 10 öğrenci, 10 veli ve 10 öğrenci-veli bağlantısı yazıldı. Panelde Öğrenciler sayfası doğruladı: hepsi aktif, yaşlar doğum tarihinden doğru hesaplanıyor.
 
 ⏳ **Bekleyen üç şey:** (1) bir velinin eksik haneli telefonu, (2) hangi çocuğun hangi gün-saat sınıfına yazılacağı, (3) Yağız 15 aylık ama "16-24 ay" grubuna yazılmış — kurum bilerek aldıysa sorun yok.
+
+## 37. `/bilgi` düzeltmeleri: WhatsApp dili, kayan şerit, 404
+
+*(17 Ağustos 2026, aynı gün gelen üç geri bildirim.)*
+
+### "Kaydol" değil "Detaylı bilgi al"
+
+Ücret kartlarındaki çağrı WhatsApp'ı açıyordu ama üzerinde "Bu programa kaydol" yazıyordu. Müşteri düzeltti: veli o düğmeye basarken kayıt olmayı değil **bilgi almayı** bekliyor; "kaydol" fazla erken bir söz. Yüzen balondaki düğme de zaten "Detaylı bilgi al" diyor — ikisi artık aynı dili konuşuyor.
+
+Altındaki "ya da kayıt formunu doldurun" bağlantısı da **kaldırıldı** (müşteri isteği): karttan çıkan tek yol WhatsApp. Form duruyor ve üst çubuktaki "Kayıt formu" düğmesi, program sayfaları ve hero çağrıları üzerinden erişiliyor.
+
+**Düğmenin adını anlatan metinler de güncellendi.** Çerez ve gizlilik politikası veliye "şu düğmeye basınca sayılır" diyor; düğmenin adı yanlış yazılırsa metin yanlış olur. Panel raporundaki açıklama ve kod yorumları da aynı adı taşıyor.
+
+### Kayan kurum şeridi
+
+`/bilgi` sayfasına, ücretlerden sonra sonsuz akan bir fotoğraf şeridi girdi. Veli fiyatı okuduktan hemen sonra mekânı görüyor; kararın iki yarısı yan yana duruyor.
+
+- **Sunucu bileşeni.** Hareketin tamamı CSS'te (`globals.css`, `.kaydir-seridi`); tarayıcıya bu iş için tek satır JavaScript gitmiyor.
+- Kare listesi **iki kez** basılıyor, animasyon bir kopya genişliği kadar (`-50%`) kaydırıp başa dönüyor. Birleşme yeri görünmüyor.
+- Yalnız `transform` animasyonlanıyor: layout ve boyama tetiklenmiyor.
+- İkinci kopya `aria-hidden`: ekran okuyucu aynı alt metinleri iki kez okumuyor.
+- Üzerine gelince duruyor; `prefers-reduced-motion` açıksa animasyon tamamen kapanıyor ve şerit duran bir dizi olarak kalıyor.
+
+### Program bağlantıları 404 dönüyordu
+
+Müşteri bildirdi: "Programın ayrıntısı" tıklanınca 404. Sebep **iki ayrı slug**:
+
+| Ne | Örnek |
+|---|---|
+| Aile slug'ı | `okula-hazirlik` |
+| Atölye slug'ı | `okula-hazirlik-grubu` |
+
+`/oyun-evi/programlar/[slug]` rotası **atölye** slug'larıyla üretiliyor; `/bilgi` sayfası aile slug'ını yazdığı için dördü de 404 veriyordu. `aileninAtolyesi()` eklendi, bağlantılar oradan geliyor; karşılığı olmayan aile için bağlantı hiç basılmıyor.
+
+Test bu sınıfı kapatıyor: her ailenin bir program sayfası karşılığı olduğu, o slug'ın gerçekten var olduğu ve iki slug'ın aynı olmadığı kontrol ediliyor. Tarayıcıda dört bağlantının dördü de 200 döndü.
+
+### Gösterilmeyen kare artık tek kaynakta
+
+Uzun masa karesinin dışlanması `/mekan` sayfasının içinde duruyordu. Yeni şerit de aynı listeye ihtiyaç duyunca kural veri katmanına taşındı (`lib/data/fotograflar.ts`, `GOSTERILMEYEN` + `gosterilenFotolar()`). Yoksa müşterinin "bu kareyi kaldırın" dediği fotoğraf bir sayfadan çıkıp ötekinde kalırdı. Test iki yönlü: kare gösterilenler arasında olmamalı, ama pakette hâlâ var olmalı.
+
+Veri testi 522'den **536 kontrole** çıktı.

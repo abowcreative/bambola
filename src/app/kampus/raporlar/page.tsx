@@ -189,7 +189,7 @@ export default async function RaporlarSayfasi() {
       </div>
 
       {/*
-        Program ilgisi: sitedeki "Bu programa kaydol" tiklamalari.
+        Program ilgisi: sitedeki "Detayli bilgi al" tiklamalari.
         Basvuru ve lead sayilari "kim yazdi"yi gosteriyor; bu tablo "kim
         ilgilendi ama yazmadi"yi gosteriyor. Ikisi arasindaki fark, hangi
         programin ilgi cekip kayda donmedigini soyluyor.
@@ -213,8 +213,8 @@ export default async function RaporlarSayfasi() {
           </p>
         ) : t.bosMu ? (
           <p className="py-4 text-sm leading-relaxed text-murekkep-soluk">
-            Henüz tıklama kaydı yok. Sitedeki ücret kartlarındaki &quot;Bu
-            programa kaydol&quot; düğmesine basan her kişi burada program
+            Henüz tıklama kaydı yok. Sitedeki ücret kartlarındaki &quot;Detaylı
+            bilgi al&quot; düğmesine basan her kişi burada program
             program sayılır. Kişiye dair hiçbir bilgi tutulmaz.
           </p>
         ) : (

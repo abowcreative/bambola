@@ -1,6 +1,7 @@
 import { MARKA, MEB_IFADESI, SITE_URL } from "@/lib/site";
 import {
   FOTOGRAFLAR,
+  GOSTERILMEYEN,
   foto,
   fotoYolu,
   type Fotograf,
@@ -316,17 +317,11 @@ export default function MekanSayfasi() {
 }
 
 /*
-  BILEREK GOSTERILMEYEN kareler. Liste bos degilse sebebi yaninda yazili
-  olmali: "unutulmus kare" ile "kaldirilmasi istenen kare" ayri seyler ve
-  asagidaki kontrolun anlami buna bagli.
+  Yerlesimde kullanilmayan kare kalmasin diye derleme aninda dogrulanir.
+  Bilerek cikarilan kareler haric; o liste veri katmaninda tutuluyor
+  (lib/data/fotograflar.ts GOSTERILMEYEN) cunku /bilgi seridi de ayni
+  listeye bakiyor.
 */
-const GOSTERILMEYEN: Record<string, string> = {
-  // Musteri istegi, 17 Agustos 2026: dogum gunu uzun masa duzenine yer
-  // verilmiyor. Kare pakette duruyor, sitede kullanilmiyor.
-  "bambola-teras-03": "uzun masa duzeni, musteri istegiyle cikarildi",
-};
-
-/** Yerlesimde kullanilmayan kare kalmasin diye derleme aninda dogrulanir. */
 const YERLESEN = new Set(
   BOLUMLER.flatMap((b) => b.satirlar.flat().map((k) => k.slug)),
 );
