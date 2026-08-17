@@ -16,6 +16,7 @@ import {
 import { EkmekKirintisi, SayfaBasligi } from "@/components/site/bolum-basligi";
 import { Belir } from "@/components/site/bolum";
 import { ButonLink } from "@/components/ui/buton";
+import { BilgiCagrisi } from "@/components/site/bilgi-cagrisi";
 import { Ikon } from "@/components/ui/ikon";
 import { GUNLER, GUN_ADI } from "@/lib/data/types";
 import { gunSlotlari, PAZAR_NOTU } from "@/lib/data/program";
@@ -25,7 +26,7 @@ import { HaritaKutusu } from "@/components/site/harita-kutusu";
 
 export const metadata = sayfaMetadata({
   baslik: "İletişim ve Ulaşım",
-  aciklama: `${MARKA.ad}, ${MARKA.ilce}, ${MARKA.sehir}. Adres, telefon, çalışma saatleri ve ulaşım. Kayıt için formu doldurabilirsiniz.`,
+  aciklama: `${MARKA.ad}, ${MARKA.ilce}, ${MARKA.sehir}. Adres, telefon, çalışma saatleri ve ulaşım. Kayıt için WhatsApp'tan yazabilirsiniz.`,
   yol: "/iletisim",
 });
 
@@ -69,13 +70,8 @@ export default function IletisimSayfasi() {
       <SayfaBasligi
         ustBaslik="İletişim"
         baslik="Bize ulaşın"
-        aciklama={`${MARKA.ilce}, ${MARKA.sehir}. En hızlı yol kayıt formunu doldurmak: talebiniz elimize ulaşır ulaşmaz sizi arıyoruz.`}
-        cocuklar={
-          <ButonLink href="/kayit" olcu="lg">
-            Kayıt formunu doldur
-            <Ikon.Ok boyut={19} />
-          </ButonLink>
-        }
+        aciklama={`${MARKA.ilce}, ${MARKA.sehir}. En hızlı yol WhatsApp: yazın, uygun grupları ve saatleri birlikte konuşalım.`}
+        cocuklar={<BilgiCagrisi metin="WhatsApp'tan yazın" olcu="lg" />}
       />
 
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
@@ -212,8 +208,8 @@ export default function IletisimSayfasi() {
             */}
             {!kanalVar && (
               <p className="mt-6 rounded-kart border-2 border-dashed border-cizgi bg-white p-5 leading-relaxed text-murekkep-soluk">
-                Telefon ve WhatsApp hattımız yayına hazırlanıyor. Bu arada kayıt
-                formunu doldurursanız size biz ulaşırız, hiçbir talep kaybolmaz.
+                Telefon ve WhatsApp hattımız yayına hazırlanıyor. Hat açılır
+                açılmaz bu sayfada görünecek.
               </p>
             )}
 

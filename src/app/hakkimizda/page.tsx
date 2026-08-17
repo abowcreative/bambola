@@ -224,7 +224,7 @@ export default function HakkimizdaSayfasi() {
       <div className="pt-16">
         <SonCagri
           baslik="Gelin, yerinde görün"
-          aciklama="Formu doldurun, sizi arayıp uygun bir gün ayarlayalım."
+          aciklama="WhatsApp'tan yazın, uygun bir gün ayarlayalım."
         />
       </div>
     </>

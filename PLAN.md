@@ -2186,3 +2186,43 @@ Test bu sınıfı kapatıyor: her ailenin bir program sayfası karşılığı ol
 Uzun masa karesinin dışlanması `/mekan` sayfasının içinde duruyordu. Yeni şerit de aynı listeye ihtiyaç duyunca kural veri katmanına taşındı (`lib/data/fotograflar.ts`, `GOSTERILMEYEN` + `gosterilenFotolar()`). Yoksa müşterinin "bu kareyi kaldırın" dediği fotoğraf bir sayfadan çıkıp ötekinde kalırdı. Test iki yönlü: kare gösterilenler arasında olmamalı, ama pakette hâlâ var olmalı.
 
 Veri testi 522'den **536 kontrole** çıktı.
+
+## 38. Kayıt formu kapatıldı: tek anahtar, "çok yakında"
+
+*(17 Ağustos 2026. Müşteri: "Kayıt formunu doldur butonu olmayacak" ve "bir şekilde kayıt olmak isteyen olursa çok yakında uyarısı çıksın tüm sitede.")*
+
+Online kayıt henüz açılmıyor; kayıt WhatsApp ve telefonla alınıyor. Bu iki cümle tek bir anahtara bağlandı: **`KAYIT_FORMU_ACIK = false`** (`lib/site.ts`).
+
+### Anahtar üç şeyi birden yapıyor
+
+| # | Ne olur |
+|---|---|
+| 1 | Sitedeki bütün "kayıt formunu doldur" çağrıları WhatsApp'a döner |
+| 2 | `/kayit` adresi formu değil **"Kayıt çok yakında"** kartını gösterir, `noindex` olur |
+| 3 | `/api/kayit` isteği **503** döner |
+
+Üçüncüsü kolay atlanır ama önemli: sitede forma giden düğme kalmasa da uçnokta açıktaydı. Eski bir sekme, önbellekten gelen bir sayfa veya doğrudan bir istek yine başvuru yazabilirdi — **kapalı kayıtta oluşan başvuru, kimsenin bakmadığı bir kayıt** demek. Veli bekler, kurum bilmez. 503 seçildi çünkü "şu an değil, sonra" diyor; 403 kalıcı bir yasak anlamına gelirdi.
+
+**Form kodu silinmedi.** Altı adımlı form, doğrulaması, KVKK onayı, `kaynak` ön doldurması olduğu gibi duruyor. Anahtar `true` olunca hepsi geri geliyor; sayfalara dokunmak gerekmiyor.
+
+### Tek çağrı bileşeni
+
+`components/site/bilgi-cagrisi.tsx` sitenin tek dönüşüm çağrısı oldu. Düğmenin metni, hedefi ve tıklama sayımı tek yerde. `grup` veya `atolye` verilirse bağlantı sayaç rotasından geçiyor; hazır mesaj o programa özel yazılıyor ve tıklama sayılıyor.
+
+Sayaç rotası artık **atölye slug'ı** da kabul ediyor: bir aileye bağlı olmayan programlar (şarkılı masal, matematik atölyesi, minik beyinler) da program program sayılabiliyor.
+
+`KayitYakindaNotu` bileşeni sayfa sonu çağrı bloğunun içinde duruyor. O blok sitenin hemen her sayfasının altında olduğu için uyarı da her yerde — "tüm sitede" isteği bu şekilde karşılandı.
+
+### Program kartları nereye gidiyor
+
+Ana sayfadaki ve `/oyun-evi`deki program kartlarının tamamı forma bağlıydı. Artık **program sayfasına** gidiyorlar. Kartı WhatsApp'a bağlamak yanlış olurdu: kartın başlığı programın adı, veli önce programı okumak istiyor.
+
+### Metinler de tarandı
+
+Yalnız düğmeleri değiştirmek yetmezdi; "formu doldurun" cümlesi on bir yerde daha geçiyordu (sayfa sonu blokları, SSS cevapları, /iletişim, /anaokulu, program sayfası, /sss). Hepsi WhatsApp diline çevrildi. Özellikle **"Kayıt nasıl yapılıyor?"** cevabı artık doğruyu söylüyor: "Şu an kayıtları WhatsApp ve telefonla alıyoruz... Online kayıt formu çok yakında açılıyor."
+
+### Doğrulama
+
+Veri testi 536'dan **557 kontrole** çıktı. Anahtar kapalıyken on iki sayfada `href="/kayit"` ve "formu doldur" metni aranıyor; `/kayit` sayfasının "çok yakında" gösterdiği ve uçnoktanın 503 döndüğü kontrol ediliyor.
+
+Tarayıcıda on iki sayfa gezildi: **hiçbir sayfada forma giden düğme kalmadı**, "çok yakında" uyarısı her sayfada görünüyor, `/kayit` kartı çıkıyor (`robots: noindex`), `/api/kayit` 503 dönüyor.

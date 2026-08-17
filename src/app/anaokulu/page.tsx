@@ -3,6 +3,7 @@ import { sayfaMetadata, ekmekKirintisiSemasi, SemaEtiketi } from "@/lib/seo";
 import { EkmekKirintisi, SayfaBasligi } from "@/components/site/bolum-basligi";
 import { Belir, Sirali, SiraliOge } from "@/components/site/bolum";
 import { ButonLink } from "@/components/ui/buton";
+import { BilgiCagrisi } from "@/components/site/bilgi-cagrisi";
 import { DinamikIkon, Ikon } from "@/components/ui/ikon";
 import { SonCagri } from "@/components/site/son-cagri";
 import { MekanSeridi } from "@/components/site/mekan-seridi";
@@ -81,10 +82,7 @@ export default function AnaokuluSayfasi() {
         baslik="Anaokulumuz bu sene açılıyor"
         aciklama="Oyun evinde başlayan çocuk, yaşı gelince aynı çatının altında devam ediyor. 1,5 yaştan 6 yaşa kadar tek bir yer."
         cocuklar={
-          <ButonLink href="/kayit?kurum=anaokulu" olcu="lg">
-            Ön kayıt formunu doldur
-            <Ikon.Ok boyut={19} />
-          </ButonLink>
+          <BilgiCagrisi metin="Anaokulu için bilgi al" olcu="lg" />
         }
       />
 
@@ -181,11 +179,11 @@ export default function AnaokuluSayfasi() {
             Ücretler ve kayıt takvimi
           </h2>
           <p className="mx-auto mt-4 max-w-xl leading-relaxed text-murekkep-soluk">
-            Anaokulu ücretleri ve kayıt takvimi henüz yayınlanmadı. Ön kayıt
-            formunu doldurun, bilgiler netleştiği anda ilk sizi arayalım.
+            Anaokulu ücretleri ve kayıt takvimi henüz yayınlanmadı.
+            WhatsApp&apos;tan yazın, bilgiler netleştiği anda ilk sizi arayalım.
           </p>
           <div className="mt-8">
-            <ButonLink href="/kayit?kurum=anaokulu" olcu="lg">
+            <ButonLink href="/iletisim" olcu="lg">
               Ön kayıt listesine girin
               <Ikon.Ok boyut={19} />
             </ButonLink>
@@ -193,11 +191,15 @@ export default function AnaokuluSayfasi() {
         </Belir>
       </section>
 
+      {/*
+        On kayit FORMU yok: online form yayinda degil (KAYIT_FORMU_ACIK).
+        Talep WhatsApp'tan aliniyor; SonCagri blogu "cok yakinda" notunu
+        kendisi basiyor.
+      */}
       <SonCagri
-        baslik="Anaokulu için ön kaydınızı bırakın"
-        aciklama="Kontenjan ve ücret bilgisi açıklandığında sırayla dönüyoruz."
-        butonMetni="Ön kayıt formu"
-        href="/kayit?kurum=anaokulu"
+        baslik="Anaokulu için sıraya girin"
+        aciklama="Kontenjan ve ücret bilgisi açıklandığında sırayla dönüyoruz. WhatsApp'tan yazın, listeye alalım."
+        butonMetni="Anaokulu için yazın"
       />
     </div>
   );

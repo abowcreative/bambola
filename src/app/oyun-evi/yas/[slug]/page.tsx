@@ -24,8 +24,8 @@ import { SlotKarti } from "@/components/takvim/haftalik-takvim";
 import { SssAkordiyon } from "@/components/site/sss-akordiyon";
 import { SonCagri } from "@/components/site/son-cagri";
 import { MekanSeridi } from "@/components/site/mekan-seridi";
-import { ButonLink } from "@/components/ui/buton";
-import { DinamikIkon, Ikon } from "@/components/ui/ikon";
+import { BilgiCagrisi } from "@/components/site/bilgi-cagrisi";
+import { DinamikIkon } from "@/components/ui/ikon";
 
 /**
  * Yas sayfalari programatik. Tek sablon, lib/data uzerinden dort sayfa.
@@ -105,10 +105,7 @@ export default async function YasSayfasi({
             : "Bu yaş için şu an açık grup görünmüyor. Formu doldurun, size uygun bir çözüm arayalım."
         }
         cocuklar={
-          <ButonLink href="/kayit" olcu="lg">
-            {yas.ad} için kayıt formu
-            <Ikon.Ok boyut={19} />
-          </ButonLink>
+          <BilgiCagrisi metin={`${yas.ad} için bilgi al`} olcu="lg" />
         }
       />
 

@@ -29,7 +29,7 @@ import {
 import { EkmekKirintisi, SayfaBasligi } from "@/components/site/bolum-basligi";
 import { Belir } from "@/components/site/bolum";
 import { DinamikIkon, Ikon } from "@/components/ui/ikon";
-import { ButonLink } from "@/components/ui/buton";
+import { BilgiCagrisi } from "@/components/site/bilgi-cagrisi";
 import { SssAkordiyon } from "@/components/site/sss-akordiyon";
 import { SonCagri } from "@/components/site/son-cagri";
 import { MekanSeridi } from "@/components/site/mekan-seridi";
@@ -100,7 +100,11 @@ export default async function ProgramDetaySayfasi({
     { ad: atolye.kisaAd, yol: `/oyun-evi/programlar/${atolye.slug}` },
   ];
 
-  const kayitYolu = aile ? `/kayit?program=${aile.slug}` : "/kayit";
+  /*
+    Cagri WhatsApp'a gidiyor, kayit formuna DEGIL: online form yayinda
+    degil (lib/site.ts KAYIT_FORMU_ACIK). Aileye bagli programda grup
+    slug'i, bagli olmayanda atolye slug'i gonderiliyor; ikisi de sayilyor.
+  */
 
   return (
     <>
@@ -145,10 +149,13 @@ export default async function ProgramDetaySayfasi({
           </div>
         }
         cocuklar={
-          <ButonLink href={kayitYolu} olcu="lg">
-            Bu programa kaydol
-            <Ikon.Ok boyut={19} />
-          </ButonLink>
+          <BilgiCagrisi
+            grup={aile?.slug}
+            atolye={aile ? undefined : atolye.slug}
+            nereden="program"
+            metin="Detaylı bilgi al"
+            olcu="lg"
+          />
         }
       />
 
@@ -169,7 +176,7 @@ export default async function ProgramDetaySayfasi({
               <p className="mt-4 leading-relaxed text-murekkep-soluk">
                 Programın ayrıntılı anlatımı hazırlanıyor. Aşağıdaki bilgiler
                 programın kesinleşmiş çerçevesidir; merak ettiğiniz her şeyi
-                formu doldurduktan sonra telefonda konuşuyoruz.
+                WhatsApp&apos;tan yazın, konuşalım.
               </p>
             )}
 
@@ -374,15 +381,19 @@ export default async function ProgramDetaySayfasi({
               /* PLAN.md Bolum 14 madde 13: bu atolyelerin tek seferlik
                  ucreti Excel'de yok. Uydurulmaz. */
               <p className="mt-3 leading-relaxed text-murekkep-soluk">
-                Bu atölyenin ücretini telefonda paylaşıyoruz. Formu doldurun,
-                sizi arayıp netleştirelim.
+                Bu atölyenin ücretini telefonda paylaşıyoruz. WhatsApp&apos;tan
+                yazın, netleştirelim.
               </p>
             )}
 
-            <ButonLink href={kayitYolu} className="mt-6 w-full">
-              Kayıt formunu doldur
-              <Ikon.Ok boyut={18} />
-            </ButonLink>
+            <BilgiCagrisi
+              grup={aile?.slug}
+              atolye={aile ? undefined : atolye.slug}
+              nereden="program"
+              metin="Detaylı bilgi al"
+              olcu="md"
+              className="mt-6 w-full"
+            />
           </Belir>
         </aside>
       </div>

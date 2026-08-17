@@ -38,7 +38,7 @@ export default function SssSayfasi() {
       <SayfaBasligi
         ustBaslik="Sık sorulanlar"
         baslik="Merak ettikleriniz"
-        aciklama="Aradığınızı bulamazsanız formu doldurun, telefonda konuşalım."
+        aciklama="Aradığınızı bulamazsanız WhatsApp'tan yazın, konuşalım."
       />
 
       <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6 sm:py-16">
@@ -64,7 +64,7 @@ export default function SssSayfasi() {
 
       <SonCagri
         baslik="Sorunuz burada yoksa"
-        aciklama="Formu doldurun, notunuza yazın. Sizi arayıp cevaplayalım."
+        aciklama="WhatsApp'tan yazın, sorunuzu cevaplayalım."
       />
     </>
   );

@@ -228,7 +228,7 @@ export default function MekanSayfasi() {
         aciklama="Çocuğunuz haftada iki gün, günde iki saat burada olacak. Nerede oynayacağını, hangi masada oturacağını ve sizin nerede bekleyeceğinizi peşinen görmenizde fayda var."
         cocuklar={
           <div className="flex flex-wrap gap-3">
-            <ButonLink href="/kayit" olcu="lg">
+            <ButonLink href="/iletisim" olcu="lg">
               Çocuğuma uygun grubu bul
               <Ikon.Ok boyut={19} />
             </ButonLink>
@@ -309,8 +309,8 @@ export default function MekanSayfasi() {
 
       <SonCagri
         baslik="Yerinde görmek ister misiniz?"
-        aciklama="Formu doldurun, uygun bir saat için sizi arayalım."
-        butonMetni="Kayıt formunu doldur"
+        aciklama="WhatsApp'tan yazın, uygun bir saat ayarlayalım."
+        butonMetni="Detaylı bilgi al"
       />
     </>
   );

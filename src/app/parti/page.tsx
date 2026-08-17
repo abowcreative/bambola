@@ -2,7 +2,7 @@ import { MARKA } from "@/lib/site";
 import { sayfaMetadata, ekmekKirintisiSemasi, SemaEtiketi } from "@/lib/seo";
 import { EkmekKirintisi, SayfaBasligi } from "@/components/site/bolum-basligi";
 import { Belir, Sirali, SiraliOge } from "@/components/site/bolum";
-import { ButonLink } from "@/components/ui/buton";
+import { BilgiCagrisi } from "@/components/site/bilgi-cagrisi";
 import { DinamikIkon, Ikon } from "@/components/ui/ikon";
 import { SonCagri } from "@/components/site/son-cagri";
 import { MekanSeridi } from "@/components/site/mekan-seridi";
@@ -11,7 +11,7 @@ import { foto } from "@/lib/data/fotograflar";
 
 export const metadata = sayfaMetadata({
   baslik: `${MARKA.ilce} Doğum Günü ve Parti Evi`,
-  aciklama: `${MARKA.sehir}, ${MARKA.ilce}'da çocuk doğum günü mekânı. ${MARKA.ad} parti evi, oyun evinin bir parçası. Talep formunu doldurun, size dönelim.`,
+  aciklama: `${MARKA.sehir}, ${MARKA.ilce}'da çocuk doğum günü mekânı. ${MARKA.ad} parti evi, oyun evinin bir parçası. WhatsApp'tan yazın, size dönelim.`,
   yol: "/parti",
 });
 
@@ -55,10 +55,7 @@ export default function PartiSayfasi() {
         baslik="Doğum gününü tanıdığı yerde kutlasın"
         aciklama={`${MARKA.ad} parti evi, oyun evinin ayrılmaz parçası. Aynı mekân, aynı öğretmenler, çocuğun tanıdığı yer.`}
         cocuklar={
-          <ButonLink href="/kayit?kurum=parti" olcu="lg">
-            Parti için bilgi isteyin
-            <Ikon.Ok boyut={19} />
-          </ButonLink>
+          <BilgiCagrisi metin="Parti için bilgi isteyin" olcu="lg" />
         }
       />
 
@@ -113,10 +110,7 @@ export default function PartiSayfasi() {
               uygun kurguyu birlikte çıkaralım.
             </p>
             <div className="mt-8">
-              <ButonLink href="/kayit?kurum=parti" olcu="lg">
-                Talep formunu doldur
-                <Ikon.Ok boyut={19} />
-              </ButonLink>
+              <BilgiCagrisi metin="WhatsApp'tan yazın" olcu="lg" />
             </div>
           </Belir>
         </div>
@@ -136,9 +130,8 @@ export default function PartiSayfasi() {
       <div className="pt-16">
         <SonCagri
           baslik="Aklınızda bir tarih var mı?"
-          aciklama="Formu doldurun, uygunluk ve kurgu için sizi arayalım."
-          butonMetni="Parti talebi bırak"
-          href="/kayit?kurum=parti"
+          aciklama="WhatsApp'tan yazın; uygunluk ve kurgu için konuşalım."
+          butonMetni="Parti için yazın"
         />
       </div>
     </>

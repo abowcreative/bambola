@@ -64,7 +64,7 @@ export default function HaftalikProgramSayfasi() {
       <div className="pt-16">
         <SonCagri
           baslik="Uyan bir saat gördünüz mü?"
-          aciklama="Formu doldurun, o gruptaki yerinizi birlikte netleştirelim. Uyan saat yoksa onu da yazabilirsiniz."
+          aciklama="WhatsApp'tan yazın, o gruptaki yerinizi birlikte netleştirelim. Uyan saat yoksa onu da söyleyin."
         />
       </div>
     </>

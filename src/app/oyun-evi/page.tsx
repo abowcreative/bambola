@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AILELER } from "@/lib/data/gruplar";
+import { aileninAtolyesi } from "@/lib/data/atolyeler";
 import { ATOLYELER } from "@/lib/data/atolyeler";
 import { PROGRAM_NOTLARI } from "@/lib/data/program";
 import { SORULAR } from "@/lib/data/sss";
@@ -50,7 +51,7 @@ export default function OyunEviSayfasi() {
         }
         cocuklar={
           <div className="flex flex-wrap gap-3">
-            <ButonLink href="/kayit" olcu="lg">
+            <ButonLink href="/bilgi" olcu="lg">
               Çocuğuma uygun grubu bul
               <Ikon.Ok boyut={19} />
             </ButonLink>
@@ -80,7 +81,7 @@ export default function OyunEviSayfasi() {
             return (
               <SiraliOge key={a.slug}>
                 <Link
-                  href={`/kayit?program=${a.slug}`}
+                  href={`/oyun-evi/programlar/${aileninAtolyesi(a.slug)?.slug ?? ""}`}
                   className="group flex h-full flex-col rounded-kart border-2 border-cizgi bg-white p-6 transition-all duration-200 ease-yayli hover:-translate-y-1 hover:border-yesil hover:shadow-kart-hover"
                 >
                   <span className="oyna grid size-12 place-items-center rounded-full bg-lime-rozet text-black transition-transform duration-200 group-hover:scale-110">

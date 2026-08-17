@@ -41,6 +41,7 @@ import {
 import { SORULAR } from "../src/lib/data/sss";
 import {
   ILETISIM,
+  KAYIT_FORMU_ACIK,
   MARKA,
   SAATLER,
   SITE_URL,
@@ -767,13 +768,28 @@ for (const dosya of [
   Kayit baglantisi kaynak etiketi tasimali: otomasyondan gelen talebin
   panelde sayilabilmesi buna bagli. Etiket KAYNAKLAR icinde olmali,
   yoksa form onu sessizce yok sayar.
+
+  YALNIZ FORM ACIKKEN gecerli. Kayit kapaliyken /bilgi sayfasinda forma
+  giden baglanti yok (musteri karari, 17 Agustos 2026), dolayisiyla
+  etiketlenecek bir baglanti da yok. O halde tersini kontrol ediyoruz:
+  forma giden baglanti KALMAMIS olmali.
 */
-const kaynakEslesme = bilgiSayfasi.match(/const KAYNAK = "([^"]+)"/);
-dogru(Boolean(kaynakEslesme), "/bilgi sayfasinda KAYNAK etiketi tanimli olmali");
-if (kaynakEslesme) {
+if (KAYIT_FORMU_ACIK) {
+  const kaynakEslesme = bilgiSayfasi.match(/const KAYNAK = "([^"]+)"/);
   dogru(
-    (KAYNAKLAR as readonly string[]).includes(kaynakEslesme[1]),
-    `/bilgi KAYNAK etiketi KAYNAKLAR icinde olmali: ${kaynakEslesme[1]}`,
+    Boolean(kaynakEslesme),
+    "/bilgi sayfasinda KAYNAK etiketi tanimli olmali",
+  );
+  if (kaynakEslesme) {
+    dogru(
+      (KAYNAKLAR as readonly string[]).includes(kaynakEslesme[1]),
+      `/bilgi KAYNAK etiketi KAYNAKLAR icinde olmali: ${kaynakEslesme[1]}`,
+    );
+  }
+} else {
+  dogru(
+    !bilgiSayfasi.includes("/kayit"),
+    "kayit kapali: /bilgi sayfasinda forma giden baglanti olmamali",
   );
 }
 
@@ -869,6 +885,62 @@ for (const y of YAS_SAYFALARI) {
   );
 }
 
+// ------------------------------------------- kayit formu kapali mi tutarli
+
+/*
+  Musteri karari, 17 Agustos 2026: online kayit formu yayinda degil,
+  "kayit formunu doldur" dugmesi hicbir sayfada olmayacak, forma ulasan
+  kisi "cok yakinda" gormeli.
+
+  Tek anahtar var (KAYIT_FORMU_ACIK). Testin isi anahtarla sayfalarin
+  birbirinden ayrilmadigini garanti etmek: anahtar kapaliyken sitede
+  forma giden bir dugme kalirsa veli bos bir sayfaya duser.
+*/
+if (!KAYIT_FORMU_ACIK) {
+  const cagriDosyalari = [
+    "src/components/site/site-header.tsx",
+    "src/components/site/son-cagri.tsx",
+    "src/app/page.tsx",
+    "src/app/bilgi/page.tsx",
+    "src/app/iletisim/page.tsx",
+    "src/app/mekan/page.tsx",
+    "src/app/parti/page.tsx",
+    "src/app/anaokulu/page.tsx",
+    "src/app/oyun-evi/page.tsx",
+    "src/app/oyun-evi/programlar/[slug]/page.tsx",
+    "src/app/oyun-evi/yas/[slug]/page.tsx",
+    "src/app/not-found.tsx",
+  ];
+  for (const yol of cagriDosyalari) {
+    const metin = readFileSync(yol, "utf8");
+    dogru(
+      !/href=["'{`]?\/kayit/.test(metin),
+      `kayit kapali ama forma giden cagri var: ${yol}`,
+    );
+    dogru(
+      !/Kayıt formunu doldur|Ön kayıt formunu doldur|Talep formunu doldur/.test(
+        metin,
+      ),
+      `kayit kapali ama "formu doldur" metni var: ${yol}`,
+    );
+  }
+
+  // /kayit sayfasi formu degil "cok yakinda" gostermeli.
+  const kayitSayfasi = readFileSync("src/app/kayit/page.tsx", "utf8");
+  dogru(
+    kayitSayfasi.includes("KAYIT_FORMU_ACIK") &&
+      kayitSayfasi.includes("Kayıt çok yakında"),
+    "/kayit sayfasi kapali halde 'cok yakinda' gostermeli",
+  );
+
+  // Ucnokta da reddetmeli: eski bir sekme yine basvuru yazamasin.
+  const api = readFileSync("src/app/api/kayit/route.ts", "utf8");
+  dogru(
+    /if \(!KAYIT_FORMU_ACIK\)/.test(api) && api.includes("503"),
+    "/api/kayit kayit kapaliyken 503 donmeli",
+  );
+}
+
 // --------------------------------------------- program tiklama sayaci
 
 /*
@@ -907,8 +979,15 @@ for (const yasak of ["user-agent", "userAgent", "ipHash,", "ip:"]) {
     `sayac rotasi kisi tanimlayan veri yazmamali: ${yasak}`,
   );
 }
+/*
+  Sayac artik aile slug'ini da atolye slug'ini da kabul ediyor (program
+  sayfalarindaki cagrilar da sayilsin diye); ikisi de `sayacSlug`
+  degiskeninden geliyor. YAZILAN ALAN LISTESI degismemeli: hedef, grup,
+  nereden. Buraya bir gun IP veya tarayici bilgisi eklenirse gizlilik ve
+  cerez metinleri sessizce yanlisa duser.
+*/
 dogru(
-  /insert\(\{ hedef: "whatsapp", grup: aile\.slug, nereden \}\)/.test(
+  /insert\(\{ hedef: "whatsapp", grup: sayacSlug, nereden \}\)/.test(
     sayacRotasi,
   ),
   "sayac yalniz hedef, grup ve nereden alanlarini yazmali",

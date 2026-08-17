@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MARKA, whatsappBaglantisi, saatSatirlari, ILETISIM } from "@/lib/site";
+import { MARKA, saatSatirlari, ILETISIM } from "@/lib/site";
 import { sayfaMetadata } from "@/lib/seo";
 import { AILELER } from "@/lib/data/gruplar";
 import {
@@ -15,7 +15,10 @@ import { aileninAtolyesi } from "@/lib/data/atolyeler";
 import { UcretKarti } from "@/components/site/ucret-tablosu";
 import { SssAkordiyon } from "@/components/site/sss-akordiyon";
 import { Sirali } from "@/components/site/bolum";
-import { ButonLink } from "@/components/ui/buton";
+import {
+  BilgiCagrisi,
+  KayitYakindaNotu,
+} from "@/components/site/bilgi-cagrisi";
 import { Ikon } from "@/components/ui/ikon";
 import { FotoKaydiragi } from "@/components/site/foto-kaydiragi";
 
@@ -49,13 +52,6 @@ export const metadata = sayfaMetadata({
 
 /** Kampanya durumu SUNUCUDA hesaplanir, bkz. ucretler.ts. */
 export const revalidate = 3600;
-
-/*
-  Kayit baglantisindaki kaynak etiketi. Otomasyon Instagram uzerinden
-  calisiyor; form "bizi nereden duydunuz" alanini bununla ON DOLDURUYOR,
-  veli degistirebiliyor. Baska bir kanaldan yayilirsa yalniz burasi degisir.
-*/
-const KAYNAK = "instagram";
 
 /** Sayfada gosterilecek sorular: fiyat, kayit ve grup mantigi. */
 const SECILI_SORULAR = SORULAR.filter((s) =>
@@ -110,12 +106,6 @@ function Bolum({
 export default function BilgiSayfasi() {
   const kampanyaAcik = kampanyaAcikMi();
   const yuzde = Math.round(ERKEN_KAYIT_ORANI * 100);
-  const wa = whatsappBaglantisi(
-    kampanyaAcik
-      ? `Merhaba, ${KAMPANYA_PENCERESI.sonGun}'e kadar süren erken kayıt indirimi için bilgi almak istiyorum.`
-      : "Merhaba, gruplar ve ücretler hakkında bilgi almak istiyorum.",
-  );
-  const kayitYolu = `/kayit?kaynak=${KAYNAK}`;
 
   return (
     <div data-kol="oyun-evi" className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
@@ -362,25 +352,16 @@ export default function BilgiSayfasi() {
           Çocuğunuza uygun grubu birlikte bulalım
         </h2>
         <p className="mt-2 leading-relaxed text-murekkep-soluk">
-          Formda doğum tarihini girin, yaşına uygun gruplar ve uygun saatler
-          karşınıza çıkar. Birkaç dakika sürer.
+          Çocuğunuzun yaşını yazın; uygun grupları, gün ve saatleri
+          WhatsApp&apos;tan birlikte konuşalım.
         </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <ButonLink href={kayitYolu}>
-            Kayıt formunu doldur
-            <Ikon.Ok boyut={17} />
-          </ButonLink>
-          {wa && (
-            <ButonLink
-              href={wa}
-              gorunum="cizgili"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Ikon.Whatsapp boyut={17} />
-              WhatsApp&apos;tan yazın
-            </ButonLink>
-          )}
+        <KayitYakindaNotu ton="acik" className="mt-2" />
+        {/*
+          TEK cagri: ikisi de WhatsApp'a gittigi icin yan yana iki dugme
+          gereksizdi. Bu dugme sayac rotasindan geciyor, digeri gecmiyordu.
+        */}
+        <div className="mt-6">
+          <BilgiCagrisi metin="Detaylı bilgi al" nereden="bilgi" olcu="md" />
         </div>
       </div>
     </div>

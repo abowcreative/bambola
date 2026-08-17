@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { KAYIT_FORMU_ACIK, KAYIT_YAKINDA_METNI } from "@/lib/site";
 import { kayitSemasi } from "@/lib/schema";
 import {
   yoneticiIstemcisi,
@@ -28,6 +29,25 @@ export const runtime = "nodejs";
  *  7. { ok: true, id } don
  */
 export async function POST(istek: Request) {
+  /*
+    KAYIT KAPALIYSA HICBIR SEY YAZILMAZ.
+
+    Sitede forma giden dugme kalmadi (musteri karari, 17 Agustos 2026) ama
+    bu ucnokta hala acikta: eski bir sekme, onbellekten gelen bir sayfa veya
+    dogrudan bir istek yine basvuru yazabilirdi. Kapali kayitta olusan bir
+    basvuru kimsenin bakmadigi bir kayit demek -- veli bekler, kurum
+    bilmez.
+
+    503 doniyor: "su an degil, sonra". 403 kalici bir yasak anlamina
+    gelirdi ve kayit acilinca yaniltici olurdu.
+  */
+  if (!KAYIT_FORMU_ACIK) {
+    return NextResponse.json(
+      { ok: false, hata: KAYIT_YAKINDA_METNI },
+      { status: 503 },
+    );
+  }
+
   /*
     Kurulum eksikse bunu ACIKCA soyle. Anahtarlar tanimli degilken asagidaki
     akis "beklenmeyen hata" verip 500 donuyordu; kayitlarda sebebi

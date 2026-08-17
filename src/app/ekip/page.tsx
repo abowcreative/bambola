@@ -212,7 +212,7 @@ export default function EkipSayfasi() {
       <div className="pt-16">
         <SonCagri
           baslik="Ekibimizle tanışın"
-          aciklama="Formu doldurun, uygun bir gün ayarlayıp sizi bekleyelim."
+          aciklama="WhatsApp'tan yazın, uygun bir gün ayarlayıp sizi bekleyelim."
         />
       </div>
     </>

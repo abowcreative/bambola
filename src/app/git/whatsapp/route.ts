@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { AILELER } from "@/lib/data/gruplar";
+import { atolyeBul } from "@/lib/data/atolyeler";
 import {
   KAMPANYA_PENCERESI,
   ERKEN_KAYIT_ORANI,
@@ -34,10 +35,19 @@ export async function GET(istek: NextRequest) {
   const q = istek.nextUrl.searchParams;
 
   /*
-    Grup slug'i AILELER ile dogrulaniyor. Beyaz liste olmadan buraya
-    yazilan her metin veritabanina duserdi ve sayac cop dolardi.
+    Slug BEYAZ LISTEDEN geciyor. Liste olmadan adres cubuguna yazilan her
+    metin veritabanina duser ve sayac cop dolar.
+
+    Iki tur slug kabul ediliyor:
+      grup=<aile slug'i>     ucret kartlari (bebek, okula-hazirlik...)
+      atolye=<atolye slug'i> program sayfalari (sarkili-masal... gibi
+                             bir aileye bagli olmayanlar dahil)
   */
   const aile = AILELER.find((a) => a.slug === q.get("grup"));
+  const atolye = aile ? undefined : atolyeBul(q.get("atolye") ?? "");
+  const hedefAdi = aile?.ad ?? atolye?.ad;
+  const hedefYas = aile?.yasEtiket ?? atolye?.yasEtiket;
+  const sayacSlug = aile?.slug ?? atolye?.slug;
   const nereden = NEREDEN.includes(
     (q.get("nereden") ?? "") as (typeof NEREDEN)[number],
   )
@@ -57,10 +67,10 @@ export async function GET(istek: NextRequest) {
     kez daha cozup yerine BOSLUK koyuyor, yani mesajda "20" kayboluyor.
     Harflerle yazmak bu sinifi tamamen ortadan kaldiriyor.
   */
-  const mesaj = aile
+  const mesaj = hedefAdi
     ? kampanyaAcik
-      ? `Merhaba, ${aile.ad} (${aile.yasEtiket}) için kayıt olmak istiyorum. Erken kayıt indirimi (yüzde ${yuzde}, son gün ${KAMPANYA_PENCERESI.sonGun}) hakkında bilgi alabilir miyim?`
-      : `Merhaba, ${aile.ad} (${aile.yasEtiket}) için kayıt olmak istiyorum. Uygun gün ve saatleri konuşabilir miyiz?`
+      ? `Merhaba, ${hedefAdi}${hedefYas ? ` (${hedefYas})` : ""} hakkında detaylı bilgi almak istiyorum. Erken kayıt indirimi (yüzde ${yuzde}, son gün ${KAMPANYA_PENCERESI.sonGun}) da geçerli mi?`
+      : `Merhaba, ${hedefAdi}${hedefYas ? ` (${hedefYas})` : ""} hakkında detaylı bilgi almak istiyorum. Uygun gün ve saatleri konuşabilir miyiz?`
     : "Merhaba, gruplar ve ücretler hakkında bilgi almak istiyorum.";
 
   const hedef = whatsappBaglantisi(mesaj);
@@ -69,9 +79,13 @@ export async function GET(istek: NextRequest) {
     Numara yoksa WhatsApp'a gonderilecek yer de yok: veliyi bos bir sekmede
     birakmak yerine kayit formuna gonderiyoruz (PLAN.md Bolum 3 madde 5).
   */
+  /*
+    Numara yoksa gidilecek WhatsApp da yok. Eskiden kayit formuna
+    dusuluyordu; form kapali oldugu icin (KAYIT_FORMU_ACIK) artik iletisim
+    sayfasina gonderiliyor -- orada telefon ve adres var.
+  */
   if (!hedef) {
-    const yol = aile ? `/kayit?program=${aile.slug}` : "/kayit";
-    return NextResponse.redirect(new URL(yol, istek.nextUrl.origin), 302);
+    return NextResponse.redirect(new URL("/iletisim", istek.nextUrl.origin), 302);
   }
 
   /*
@@ -79,7 +93,7 @@ export async function GET(istek: NextRequest) {
     hatasi yuzunden bekletmek veya hata sayfasina dusurmek kabul edilemez;
     kaybedilen sey bir satirlik istatistik.
   */
-  if (aile) {
+  if (sayacSlug) {
     try {
       const ipHash = ipOzeti(istekIp(istek.headers));
       // 5 dakikada 12 tiklama: dort programi karsilastiran veli sayilsin,
@@ -87,7 +101,7 @@ export async function GET(istek: NextRequest) {
       if (!sinirAsildiMi(`tiklama:${ipHash}`, 12)) {
         await yoneticiIstemcisi()
           .from("tiklamalar")
-          .insert({ hedef: "whatsapp", grup: aile.slug, nereden });
+          .insert({ hedef: "whatsapp", grup: sayacSlug, nereden });
       }
     } catch {
       // sayac calismadi, yonlendirme devam ediyor

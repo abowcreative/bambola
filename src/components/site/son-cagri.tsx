@@ -1,18 +1,27 @@
-import { ButonLink } from "@/components/ui/buton";
-import { Ikon } from "@/components/ui/ikon";
 import { Belir } from "./bolum";
+import { BilgiCagrisi, KayitYakindaNotu } from "./bilgi-cagrisi";
 
-/** Sayfa sonu cagri blogu. Kol rengine gore kendini boyar. */
+/**
+ * Sayfa sonu cagri blogu. Kol rengine gore kendini boyar.
+ *
+ * Cagri WHATSAPP'a gidiyor, kayit formuna DEGIL: online form henuz yayinda
+ * degil (bkz. lib/site.ts KAYIT_FORMU_ACIK). Altinda "cok yakinda" notu
+ * duruyor -- musteri istegi, 17 Agustos 2026: "bir sekilde kayit olmak
+ * isteyen olursa cok yakinda uyarisi ciksin tum sitede". Bu blok sitenin
+ * hemen her sayfasinin altinda oldugu icin uyari da her yerde.
+ */
 export function SonCagri({
   baslik = "Çocuğunuza uygun grubu birlikte bulalım",
-  aciklama = "Doğum tarihini girin, yaşına uygun bütün seçenekleri görün. Birkaç dakika sürer.",
-  butonMetni = "Kayıt formunu doldur",
-  href = "/kayit",
+  aciklama = "Çocuğunuzun yaşına uygun grupları, gün ve saatleri WhatsApp'tan konuşalım.",
+  butonMetni = "Detaylı bilgi al",
+  grup,
+  atolye,
 }: {
   baslik?: string;
   aciklama?: string;
   butonMetni?: string;
-  href?: string;
+  grup?: string;
+  atolye?: string;
 }) {
   return (
     <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
@@ -28,11 +37,15 @@ export function SonCagri({
         <p className="relative mx-auto mt-4 max-w-lg text-lg leading-relaxed text-white/90">
           {aciklama}
         </p>
-        <div className="relative mt-8 flex flex-wrap justify-center gap-3">
-          <ButonLink href={href} gorunum="yumusak" olcu="lg">
-            {butonMetni}
-            <Ikon.Ok boyut={19} />
-          </ButonLink>
+        <div className="relative mt-8 flex flex-col items-center gap-3">
+          <BilgiCagrisi
+            grup={grup}
+            atolye={atolye}
+            metin={butonMetni}
+            gorunum="yumusak"
+            olcu="lg"
+          />
+          <KayitYakindaNotu />
         </div>
       </Belir>
     </section>

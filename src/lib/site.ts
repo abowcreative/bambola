@@ -126,6 +126,29 @@ export const ILETISIM = {
       | null,
 } as const;
 
+/**
+ * Online kayit formu ACIK MI.
+ *
+ * Musteri karari, 17 Agustos 2026: "Kayit formunu doldur butonu olmayacak.
+ * Bir sekilde kayit olmak isteyen olursa cok yakinda uyarisi ciksin tum
+ * sitede." Yani kayit su an WhatsApp ve telefonla aliniyor, form henuz
+ * yayinda degil.
+ *
+ * TEK ANAHTAR, uc sonuc:
+ *   1. Sitedeki butun "kayit formunu doldur" cagrilari WhatsApp'a doner
+ *   2. /kayit adresi formu degil "cok yakinda" bilgisini gosterir
+ *   3. /api/kayit istegi reddeder -- eski bir sekme veya betik yine
+ *      basvuru yazamasin
+ *
+ * Kayit acilinca burasi `true` olacak; form kodu SILINMEDI, oldugu gibi
+ * duruyor ve tek satirla geri geliyor.
+ */
+export const KAYIT_FORMU_ACIK = false;
+
+/** Kayit kapaliyken veliye gosterilen tek cumle. Tek yerden degisir. */
+export const KAYIT_YAKINDA_METNI =
+  "Online kayıt formu çok yakında açılıyor. O zamana kadar WhatsApp'tan yazabilir ya da telefonla ulaşabilirsiniz.";
+
 export type SaatAraligi = { acilis: string; kapanis: string };
 
 const GUNDUZ: SaatAraligi = { acilis: "09.00", kapanis: "18.00" };

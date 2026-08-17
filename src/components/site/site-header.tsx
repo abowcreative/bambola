@@ -7,7 +7,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Logo } from "./logo";
 import { ANA_MENU } from "@/lib/nav";
 import { Ikon } from "@/components/ui/ikon";
-import { ButonLink } from "@/components/ui/buton";
+import { BilgiCagrisi } from "@/components/site/bilgi-cagrisi";
 
 export function SiteHeader() {
   const yol = usePathname();
@@ -66,10 +66,15 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2 lg:ml-2">
-          <ButonLink href="/kayit" olcu="sm" className="hidden sm:inline-flex">
-            Kayıt formu
-            <Ikon.Ok boyut={17} />
-          </ButonLink>
+          {/*
+            Kayit formu yayinda degil (lib/site.ts KAYIT_FORMU_ACIK):
+            ust cubuktaki cagri da WhatsApp'a gidiyor.
+          */}
+          <BilgiCagrisi
+            metin="Detaylı bilgi al"
+            olcu="sm"
+            className="hidden sm:inline-flex"
+          />
 
           <button
             type="button"
@@ -134,10 +139,8 @@ export function SiteHeader() {
                   </li>
                 ))}
               </ul>
-              <ButonLink href="/kayit" onClick={kapat} className="mt-3 w-full">
-                Kayıt formunu doldur
-                <Ikon.Ok boyut={18} />
-              </ButonLink>
+              {/* Cekmecedeki cagri da WhatsApp'a; form yayinda degil. */}
+              <BilgiCagrisi metin="Detaylı bilgi al" className="mt-3 w-full" />
             </nav>
           </motion.div>
         )}

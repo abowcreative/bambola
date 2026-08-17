@@ -85,13 +85,13 @@ export const SORULAR: Soru[] = [
   {
     soru: "Kayıt nasıl yapılıyor?",
     cevap:
-      "Kayıt formunu doldurmanız yeterli. Çocuğunuzun doğum tarihini girdiğinizde uygun gruplar kendiliğinden listelenir, gün ve saati seçip formu gönderirsiniz. Talebiniz bize ulaştıktan sonra sizi arıyoruz.",
+      "Şu an kayıtları WhatsApp ve telefonla alıyoruz: yazın, çocuğunuzun yaşına uygun grupları, gün ve saatleri birlikte netleştirelim. Online kayıt formu çok yakında açılıyor.",
     kategori: "kayit",
   },
   {
     soru: "Uygun bir saat bulamazsam ne olur?",
     cevap:
-      "Kayıt formunda “Bu saatlerin hiçbiri uymuyor” seçeneği var. İşaretleyip size uyan zamanı yazabilirsiniz. Bu talepler de bize ulaşır ve yeni grup açarken dikkate alınır.",
+      "Size uyan gün ve saat aralığını WhatsApp'tan yazın. Uyan bir saat yoksa onu da söyleyin: bu talepler yeni grup açarken dikkate alınıyor.",
     kategori: "kayit",
   },
 ];

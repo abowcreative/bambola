@@ -48,7 +48,7 @@ export default function BulunamadiSayfasi() {
         </p>
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <ButonLink href="/kayit" olcu="lg">
+          <ButonLink href="/bilgi" olcu="lg">
             Çocuğuma uygun grubu bul
             <Ikon.Ok boyut={19} />
           </ButonLink>

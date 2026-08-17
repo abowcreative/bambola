@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MARKA, MEB_IFADESI } from "@/lib/site";
 import { AILELER } from "@/lib/data/gruplar";
+import { aileninAtolyesi } from "@/lib/data/atolyeler";
 import { aileOgretmenleri } from "@/lib/data/ekip";
 import { OgretmenRozetleri } from "@/components/site/ogretmen-rozetleri";
 import { SORULAR } from "@/lib/data/sss";
@@ -9,6 +10,7 @@ import { KAMPANYA_PENCERESI, kampanyaAcikMi } from "@/lib/data/ucretler";
 import { YAS_SAYFALARI } from "@/lib/yas";
 import { kurumSemasi, sssSemasi, SemaEtiketi } from "@/lib/seo";
 import { ButonLink } from "@/components/ui/buton";
+import { BilgiCagrisi } from "@/components/site/bilgi-cagrisi";
 import { MarkaLogosu } from "@/components/site/marka-logosu";
 import { Ikon } from "@/components/ui/ikon";
 import { Belir, Sirali, SiraliOge } from "@/components/site/bolum";
@@ -129,10 +131,7 @@ export default function AnaSayfa() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <ButonLink href="/kayit" olcu="lg">
-                Çocuğuma uygun grubu bul
-                <Ikon.Ok boyut={19} />
-              </ButonLink>
+              <BilgiCagrisi metin="Çocuğuma uygun grubu bul" olcu="lg" />
               <ButonLink
                 href="/oyun-evi/haftalik-program"
                 gorunum="cizgili"
@@ -260,7 +259,7 @@ export default function AnaSayfa() {
                   </span>
                   <h3 className="mt-4 font-baslik text-lg font-bold leading-snug text-murekkep">
                     <Link
-                      href={`/kayit?program=${a.slug}`}
+                      href={`/oyun-evi/programlar/${aileninAtolyesi(a.slug)?.slug ?? ""}`}
                       className="after:absolute after:inset-0 after:rounded-kart"
                     >
                       {a.ad}
