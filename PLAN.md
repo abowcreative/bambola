@@ -1668,3 +1668,71 @@ Test kaydı silindi, tablo boş.
 ### Hâlâ eksik
 
 **Resend anahtarları yok.** Kayıt veritabanına düşüyor ama **kimseye e-posta gitmiyor**. Şu an bir veli form doldurursa talep kaybolmaz, ama kimse haberdar olmaz; başvurular Supabase Table Editor'den elle takip edilmeli. Admin paneli de henüz yok (Bölüm 10).
+
+---
+
+# BÖLÜM II — KAMPÜS (CRM)
+
+## 28. Kampüs mimarisi ve aşamalar
+
+*(17 Ağustos 2026. Müşteri kararı: CRM `kampus.bambola.com.tr` adresinde, ilk giren **adminler**.)*
+
+### Neden aynı depo, aynı Vercel projesi
+
+CRM ayrı bir uygulama değil. Sebep: aynı Supabase, aynı program/atölye/ücret/ekip verisi, aynı bileşenler. `src/lib/data/*` içindeki program tanımı hem sitede hem CRM'de aynı olmak zorunda; iki ayrı kopya bir hafta içinde ayrışır.
+
+Ayrım **alan adı düzeyinde**, kod düzeyinde değil:
+
+```
+bambola.com.tr         → app/(site)/...     herkese açık
+kampus.bambola.com.tr  → app/kampus/...     giriş zorunlu
+```
+
+`proxy.ts` gelen isteğin `Host` başlığına bakıp yönlendiriyor. Next.js 16'da middleware'in adı **proxy** oldu (`node_modules/next/dist/docs/01-app/01-getting-started/16-proxy.md`), işlevi aynı.
+
+İki yönlü kapatma şart: `/kampus` ana alan adından açılamaz, site sayfaları da kampüs alan adından açılamaz. Yoksa aynı içerik iki adresten yayınlanır.
+
+> Next belgeleri açıkça uyarıyor: proxy **tam yetkilendirme çözümü değildir**, her istekte (prefetch dahil) çalıştığı için yalnız çerezden okuyan iyimser kontrol yapılır. Asıl denetim veri erişim katmanında, veritabanına bakarak yapılır.
+
+### Roller
+
+| Rol | Görür |
+|---|---|
+| `admin` | Her şey: başvurular, öğrenciler, cari, doluluk, lead'ler, kullanıcı yönetimi |
+| `ogretmen` | Kendi grupları, yoklama, ders işlendi işaretleme. Cari ve lead **görmez** |
+| `veli` | Kendi çocuğu: programı, devamsızlığı, ödemesi. Başka veli/öğrenci **görmez** |
+
+Rol `profiller` tablosunda, `auth.users` ile birebir. Yetki RLS politikalarıyla veritabanı düzeyinde uygulanıyor &mdash; arayüzde gizlemek yeterli değil, API'ye doğrudan istek atan biri her şeyi görebilir.
+
+### Aşamalar
+
+Hepsini birden yazmak yanlış olur: gerçek kullanımdan önce tasarlanan alan, yanlış tasarlanan alandır.
+
+| Aşama | Kapsam | Neden bu sırada |
+|---|---|---|
+| **1** | Admin girişi, başvuru listesi, durum takibi, not | **Bugünkü boşluk.** Form canlıda kayıt topluyor, kimse göremiyor |
+| 2 | Öğrenci ve veli kartları, başvurudan öğrenciye dönüştürme | Başvuru ≠ öğrenci; kayıt olan çocuk ayrı bir varlık |
+| 3 | Gruplar, haftalık doluluk, kontenjan | "Hangi hafta dolu" sorusu buradan çıkıyor |
+| 4 | Yoklama, ders işlendi mi, öğretmen girişi | Öğretmen rolü ilk kez burada devreye giriyor |
+| 5 | Cari: paket, ödeme, borç, tahsilat | Para. En sıkı test edilecek bölüm |
+| 6 | Veli girişi | Dışarıya açılan son yüzey; öncekiler oturmadan açılmaz |
+| 7 | Lead yönetimi (Instagram vb.), yemek, raporlar | |
+
+### Varlık haritası
+
+Aşama 1 yalnız ilk satırı kuruyor, gerisi burada duruyor ki sonraki göçler sancısız olsun.
+
+```
+profiller      auth.users ile birebir, rol tasir
+basvurular     web sitesinden gelen talep          (VAR)
+leadler        Instagram/telefon/tavsiye ile gelen talep
+ogrenciler     kayit olmus cocuk
+veliler        ogrenci ile cok-a-cok (anne, baba, vasi)
+kayitlar       ogrenci + program + paket + donem     (sozlesme)
+gruplar        haftalik programdaki slotun somut ornegi
+yoklama        ogrenci x seans: geldi/gelmedi/telafi
+dersler        seans islendi mi, isleyen ogretmen, not
+odemeler       tahsilat ve borc hareketleri
+```
+
+`gruplar` tablosu `src/lib/data/program.ts` içindeki slotlardan **türetiliyor**, kopyalanmıyor: program değiştiğinde iki yerde düzeltme yapılmaz.
