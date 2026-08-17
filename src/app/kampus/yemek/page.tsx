@@ -144,7 +144,7 @@ export default async function YemekSayfasi({
       </div>
 
       <p className="mt-4 text-xs leading-relaxed text-murekkep-soluk">
-        Excel&apos;deki kurala göre her grup gününde ara öğün verilir.
+        Ara öğün yalnızca Okula Hazırlık Gruplarında verilir (müşteri düzeltmesi, 17 Ağustos 2026).
         Cumartesi programı ayrıdır, pazar grup programı yoktur.
       </p>
     </Kabuk>

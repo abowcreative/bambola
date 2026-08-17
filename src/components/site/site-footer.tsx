@@ -43,7 +43,7 @@ export function SiteFooter() {
 
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-murekkep-soluk">
               {MARKA.ilce}, {MARKA.sehir}. Oyun grupları, atölyeler, doğum günü
-              ve anaokulu. 6 aydan 6 yaşa, küçük gruplar.
+              ve anaokulu. 6 aydan 5 yaşa, küçük gruplar.
             </p>
 
             <address className="mt-5 space-y-2 text-sm not-italic text-murekkep-soluk">

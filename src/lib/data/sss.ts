@@ -30,7 +30,7 @@ export const SORULAR: Soru[] = [
   {
     soru: "Ebeveyn etkinliğe katılıyor mu?",
     cevap:
-      "Oyun gruplarında ve bebek gruplarında ebeveyn çocuğa eşlik eder. Okula Hazırlık Grupları ile Salı günkü Oyunlarla Matematik Atölyesi ebeveynsizdir; çocuk gruba tek başına katılır.",
+      "Evet. Oyun gruplarında ve bebek gruplarında ebeveyn çocuğa eşlik eder; çocuk güvenli ayrılmayı sağlayana kadar bu böyle sürer. Okula Hazırlık Grupları ile Salı günkü Oyunlarla Matematik Atölyesi ebeveynsizdir; çocuk gruba tek başına katılır.",
     kategori: "program",
   },
   {
@@ -49,7 +49,7 @@ export const SORULAR: Soru[] = [
   {
     soru: "Günün akışı nasıl?",
     cevap:
-      "Her grup gününün ilk bir saati serbest oyundur. Öğle arası her gün 12.30 - 13.30 arasındadır. Ara öğün verilir.",
+      "Her grup gününün ilk bir saati serbest oyundur. Öğle arası her gün 12.30 - 13.30 arasındadır. Ara öğün yalnızca Okula Hazırlık Gruplarında verilir.",
     kategori: "program",
   },
   {
@@ -67,13 +67,13 @@ export const SORULAR: Soru[] = [
   {
     soru: "İngilizce hangi programlarda var?",
     cevap:
-      "Okula Hazırlık Gruplarında her gün 1 saat İngilizce vardır. İngilizce Oyun Grubu tamamen İngilizce işlenir. İki katılım sağlayan her çocuğumuz için İngilizce oyun grubu hediyedir.",
+      "Okula Hazırlık Gruplarında her gün 1 saat İngilizce vardır. İngilizce Oyun Grubu tamamen İngilizce işlenir. Gelişim Odaklı Oyun Grubuna haftada 2 gün katılan çocuklarımıza haftada 1 İngilizce oyun grubu hediyedir.",
     kategori: "program",
   },
   {
     soru: "Serbest oyun ücretli mi?",
     cevap:
-      "Hafta sonu belirlenen zaman diliminde 1 saat serbest oyun ücretsizdir. Ayrıca her grup gününün ilk bir saati serbest oyun olarak geçer.",
+      "Kayıtlı çocuklara hafta sonu belirlenen zaman diliminde 1 saat serbest oyun ücretsizdir; bu, kayıtlı olmayan çocuklar için geçerli değildir. Ayrıca her grup gününün ilk bir saati serbest oyun olarak geçer.",
     kategori: "ucret",
   },
   {

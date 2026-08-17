@@ -19,7 +19,7 @@ export const AILELER: ProgramAilesi[] = [
     ozet: "Çocuk gruba ebeveynsiz katılır, güvenli ayrılma programıyla.",
     yasEtiket: "30+ ay",
     minAy: 30,
-    maxAy: 72,
+    maxAy: 71,
     maxKisi: 12,
     sure: "Haftada 3 gün · Günde 3 saat",
     ozellikler: [
@@ -54,7 +54,7 @@ export const AILELER: ProgramAilesi[] = [
     notlar: [
       "Tek seferlik katılım yoktur.",
       "1 katılım 3 saattir ve 1 saati İngilizce oyun grubu olacak şekilde programlanmıştır.",
-      "Ara öğün verilir, hafta sonu belirlenen zaman diliminde 1 saat serbest oyun ücretsizdir.",
+      "Ara öğün verilir. Kayıtlı çocuklara hafta sonu belirlenen zaman diliminde 1 saat serbest oyun ücretsizdir.",
     ],
     ikon: "Ampul",
   },
@@ -73,7 +73,7 @@ export const AILELER: ProgramAilesi[] = [
       "Gelişim takibi",
       "Güvenli ayrılma programına geçiş",
       "Toplam 3 gün seçeneği",
-      "İki katılımda İngilizce oyun grubu hediye",
+      "Haftada 2 gün katılana haftada 1 İngilizce hediye",
       "Hafta sonu seçeneği",
     ],
     paketler: PAKETLER["gelisim-odakli-oyun"],
@@ -105,7 +105,7 @@ export const AILELER: ProgramAilesi[] = [
       },
     ],
     notlar: [
-      "İki katılım sağlayan her çocuğumuz için İngilizce oyun grubu hediyedir.",
+      "Gelişim Odaklı Oyun Grubuna haftada 2 gün katılan çocuklarımıza haftada 1 İngilizce oyun grubu hediyedir.",
     ],
     ikon: "Grup",
   },
@@ -123,7 +123,7 @@ export const AILELER: ProgramAilesi[] = [
       "Etkinlik süresi 2 saat",
       "6-12 ay haftanın tek günü",
       "12-24 ay haftada 2 gün",
-      "12-24 ay: iki katılımda İngilizce hediye",
+      "12-24 ay: haftada 2 gün katılana haftada 1 İngilizce hediye",
       "Hafta sonu seçeneği",
     ],
     paketler: PAKETLER.bebek,
@@ -161,7 +161,7 @@ export const AILELER: ProgramAilesi[] = [
      * basladigini okuyor.
      */
     notlar: [
-      "12-24 ay gruplarında iki katılım sağlayan her çocuğumuz için İngilizce oyun grubu hediyedir.",
+      "12-24 ay gruplarında haftada 2 gün katılan çocuklarımıza haftada 1 İngilizce oyun grubu hediyedir.",
     ],
     ikon: "Bebek",
   },

@@ -62,12 +62,13 @@ export default function PartiSayfasi() {
         }
       />
 
-      {/* Terastaki uzun masa duzeni parti kurulumunun kendisi; ilk gorulen
-          kare o olsun. Paket ve fiyat yok, ama mekan gosterilebilir. */}
+      {/* MUSTERI KARARI, 17 Agustos 2026: uzun masa karesine yer verilmiyor.
+          Yerine tenteli terasin genel gorunumu kondu; parti kurulumu
+          terasta yapiliyor ama masa duzeni gosterilmiyor. */}
       <section className="mx-auto max-w-6xl px-4 pt-10 sm:px-6 sm:pt-14">
         <Belir>
           <Foto
-            foto={foto("bambola-teras-03")}
+            foto={foto("bambola-teras-01")}
             oran="serit"
             oncelikli
             boyutlar="(min-width: 1152px) 1088px, 100vw"

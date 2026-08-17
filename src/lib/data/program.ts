@@ -21,13 +21,13 @@ export const YAS: Record<string, YasAraligi> = {
   yuruyen24_36: { minAy: 24, maxAy: 36, etiket: "24-36 ay", ebeveynsiz: false },
   okulOncesi30: {
     minAy: 30,
-    maxAy: 72,
+    maxAy: 71,
     etiket: "30+ ay",
     ebeveynsiz: true,
   },
   okulOncesi30Ebeveynli: {
     minAy: 30,
-    maxAy: 72,
+    maxAy: 71,
     etiket: "30+ ay",
     ebeveynsiz: false,
   },
@@ -404,9 +404,15 @@ export const PROGRAM_NOTLARI = [
   "İlk bir saat serbest oyundur.",
   "Öğle arası her gün 12.30 - 13.30.",
   "Okula Hazırlık Gruplarında en fazla 12 çocuk, diğer gruplarda en fazla 8 çocuk bulunur.",
-  "Ara öğün verilir.",
+  "Ara öğün yalnızca Okula Hazırlık Gruplarında verilir.",
   "Hafta içi öğleden önce ve öğleden sonra iki grup açılır, uygunluk olması durumunda gruplar arasında telafi yapılabilir.",
-  "Hafta sonu belirlenen zaman diliminde 1 saat serbest oyun ücretsizdir.",
+  "Kayıtlı çocuklara hafta sonu belirlenen zaman diliminde 1 saat serbest oyun ücretsizdir.",
+  /*
+    MUSTERI ISTEGI, 17 Agustos 2026: "hafta sonu programini opsiyonel bir
+    yorum yazalim degisebilir". Hafta sonu seanslari kesin bir taahhut
+    olarak okunmasin.
+  */
+  "Hafta sonu grupları opsiyoneldir; talebe göre değişebilir.",
 ];
 
 // --------------------------------------------------------------- yardimcilar

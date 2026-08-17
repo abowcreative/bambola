@@ -15,7 +15,7 @@ import { SonCagri } from "@/components/site/son-cagri";
 
 export const metadata = sayfaMetadata({
   baslik: `${MARKA.ad} Mekân: Oyun Alanları, Atölyeler ve Bahçe`,
-  aciklama: `${MARKA.ilce}, ${MARKA.sehir}. Oyun alanları, atölye sınıfları, etkinlik salonu, kapalı bahçe, teras ve kafe. Çocuğunuzun vakit geçireceği yerleri gelmeden görün.`,
+  aciklama: `${MARKA.ilce}, ${MARKA.sehir}. Oyun alanları, atölye sınıfları, etkinlik salonu, kapalı bahçe, teras ve ebeveyn bekleme alanı. Çocuğunuzun vakit geçireceği yerleri gelmeden görün.`,
   yol: "/mekan",
 });
 
@@ -75,11 +75,11 @@ const BOLUMLER: Bolum[] = [
     no: "02",
     baslik: "Atölye ve etkinlik salonları",
     girisi:
-      "Grupların toplandığı yer. Masalar ve sandalyeler çocuk boyunda, malzeme dolapları çocuğun kendi uzanabileceği yükseklikte; bir çalışmaya başlamak için yetişkin beklemesi gerekmiyor. Duvarlar boyalı çizimlerle kaplı, dinozor duvarlı etkinlik salonu terasa cam cepheyle açılıyor. Gruplar küçük: Okula Hazırlık'ta en fazla 12, diğerlerinde en fazla 8 çocuk.",
+      "Grupların toplandığı yer. Masalar ve sandalyeler çocuk boyunda, malzeme dolapları çocuğun kendi uzanabileceği yükseklikte; bir çalışmaya başlamak için yetişkin beklemesi gerekmiyor. Duvarlar boyalı çizimlerle kaplı. Dinozor duvarlı etkinlik salonunun cam cephesi terasa bakıyor; kapı açıldığında iki alan birbirine bağlanıyor. Gruplar küçük: Okula Hazırlık'ta en fazla 12, diğerlerinde en fazla 8 çocuk.",
     olgular: [
       "Okula Hazırlık'ta en fazla 12, diğer gruplarda 8 çocuk",
       "Çocuk boyunda masa ve ulaşılabilir malzeme dolapları",
-      "Etkinlik salonu terasa açılıyor",
+      "Etkinlik salonunun cam cephesi terasa bakıyor",
     ],
     satirlar: [
       [
@@ -100,29 +100,29 @@ const BOLUMLER: Bolum[] = [
     no: "03",
     baslik: "Bahçe ve teras",
     girisi:
-      "Kapalı bahçede ahşap bir kum havuzu ve deniz temalı duvar resmi var; hava ne olursa olsun kullanılabiliyor. Üst kattaki tenteli teras günün büyük bölümünde gölgede kalıyor ve doğum günlerinde uzun masa düzeni burada kuruluyor. Korkuluk boyunca sardunyalar ve bir rüzgârgülü var.",
+      "Kapalı bahçede ahşap bir kum havuzu ve deniz temalı duvar resmi var; hava ne olursa olsun kullanılabiliyor. Üst kattaki tenteli teras günün büyük bölümünde gölgede kalıyor. Korkuluk boyunca sardunyalar ve bir rüzgârgülü var.",
     olgular: [
       "Kapalı bahçe, her mevsim kullanılabiliyor",
       "Tenteli teras",
-      "Doğum günü masa düzeni terasta kuruluyor",
     ],
     satirlar: [
       [
         { slug: "bambola-bahce-kum-havuzu-01", genislik: 4 },
         { slug: "bambola-teras-02", genislik: 2 },
       ],
+      /* teras-03 (uzun masa duzeni) MUSTERI ISTEGIYLE cikarildi,
+         17 Agustos 2026. Kalan iki kare satiri dolduruyor. */
       [
-        { slug: "bambola-teras-03", genislik: 2 },
-        { slug: "bambola-teras-01", genislik: 2 },
-        { slug: "bambola-teras-cicek-detay-01", genislik: 2 },
+        { slug: "bambola-teras-01", genislik: 3 },
+        { slug: "bambola-teras-cicek-detay-01", genislik: 3 },
       ],
     ],
   },
   {
     no: "04",
-    baslik: "Kafe",
+    baslik: "Ebeveyn bekleme alanı",
     girisi:
-      "Velinin beklediği yer. Cadde cepheli pencereler, aile masaları ve oyun alanını gören oturma bölümleri. Çocuğunu ilk kez bırakan bir veli için önemli: güvenli ayrılma programı boyunca binadan çıkmanız gerekmiyor, aşağıda oturup bekleyebiliyorsunuz.",
+      "Velinin beklediği yer. Cadde cepheli pencereler, aile masaları ve oyun alanını gören oturma bölümleri. Çocuğunu ilk kez bırakan bir veli için önemli: güvenli ayrılma programı boyunca binadan çıkmanız gerekmiyor, ebeveyn bekleme alanında oturup bekleyebilirsiniz.",
     olgular: [
       "Cadde cepheli, aydınlık",
       "Güvenli ayrılma sürecinde velinin bekleyebileceği yer",

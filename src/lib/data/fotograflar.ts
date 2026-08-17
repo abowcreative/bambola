@@ -133,16 +133,21 @@ export const FOTOGRAFLAR: Fotograf[] = [
     alan: "bahce",
   },
 
-  // --- kafe ---
+  /*
+    --- ebeveyn bekleme alani ---
+    Slug'larda "kafe" kaliyor: dosya adlari fotograf paketinden geliyor
+    (npm run foto) ve elle degistirilmiyor. Veliye GORUNEN metinler ise
+    "ebeveyn bekleme alani" -- musteri karari, 17 Agustos 2026.
+  */
   {
     slug: "bambola-kafe-ic-mekan-01",
-    alt: "Bambola kafe iç mekânı, cadde cepheli pencereler ve ahşap oturma grupları",
+    alt: "Bambola ebeveyn bekleme alanı, cadde cepheli pencereler ve ahşap oturma grupları",
     ...YATAY,
     alan: "kafe",
   },
   {
     slug: "bambola-kafe-pencere-kenari-01",
-    alt: "Bambola kafede pencere kenarı oturma alanı ve aile masaları",
+    alt: "Bambola ebeveyn bekleme alanında pencere kenarı oturma alanı ve aile masaları",
     ...YATAY,
     alan: "kafe",
     genisVar: true,

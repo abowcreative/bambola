@@ -42,7 +42,7 @@ export const ATOLYELER: Atolye[] = [
       "Haftada 2 gün, günde 2 saat, bütünleştirilmiş etkinlikler",
       "Gelişim takibi yapılır",
       "Güvenli ayrılma programına geçiş hazırlığı",
-      "İki katılım sağlayan her çocuğumuz için İngilizce oyun grubu hediyedir",
+      "Gelişim Odaklı Oyun Grubuna haftada 2 gün katılan çocuklarımıza haftada 1 İngilizce oyun grubu hediyedir",
     ],
     ikon: "Grup",
   },
@@ -146,7 +146,7 @@ export const ATOLYELER: Atolye[] = [
     aciklama: null,
     olgular: [
       "Her grup gününün ilk bir saati serbest oyundur",
-      "Hafta sonu belirlenen zaman diliminde 1 saat serbest oyun ücretsizdir",
+      "Kayıtlı çocuklara hafta sonu belirlenen zaman diliminde 1 saat serbest oyun ücretsizdir",
     ],
     ikon: "Balon",
   },
