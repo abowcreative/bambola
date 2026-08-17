@@ -1,4 +1,4 @@
-import type { Rol } from "./oturum";
+﻿import type { Rol } from "./oturum";
 
 /**
  * Kampus modul haritasi. Sol menu, panel kisayollari ve yetki kontrolleri
@@ -87,9 +87,12 @@ export const MODUL_GRUPLARI: ModulGrubu[] = [
         ozet: "Kayıtlı çocuklar, grupları ve devam durumları.",
         yol: "/kampus/ogrenciler",
         ikon: "Bebek",
-        roller: ["admin"],
-        durum: "bekliyor",
-        bekleyen: "ogrenciler tablosu",
+        /*
+          Ogretmen de goruyor ama YALNIZ kendi sinifindakileri: sinirlamayi
+          RLS politikasi yapiyor, menu degil (bkz. 0003 migration).
+        */
+        roller: ["admin", "ogretmen"],
+        durum: "hazir",
       },
       {
         slug: "veliler",
@@ -98,8 +101,7 @@ export const MODUL_GRUPLARI: ModulGrubu[] = [
         yol: "/kampus/veliler",
         ikon: "Grup",
         roller: ["admin"],
-        durum: "bekliyor",
-        bekleyen: "veliler tablosu",
+        durum: "hazir",
       },
     ],
   },
@@ -112,9 +114,9 @@ export const MODUL_GRUPLARI: ModulGrubu[] = [
         ozet: "Gruplar, kontenjan ve doluluk. Öğretmen ataması buradan.",
         yol: "/kampus/siniflar",
         ikon: "Ayi",
-        roller: ["admin"],
-        durum: "bekliyor",
-        bekleyen: "siniflar tablosu",
+        // Ogretmen kendi siniflarini goruyor, atama yapamiyor.
+        roller: ["admin", "ogretmen"],
+        durum: "hazir",
       },
       {
         slug: "programlar",

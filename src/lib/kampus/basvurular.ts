@@ -91,6 +91,23 @@ export async function basvurulariGetir(
   return (data ?? []) as unknown as BasvuruOzet[];
 }
 
+/**
+ * Bu basvurudan olusturulmus ogrenci var mi.
+ * Detay sayfasi "donustur" yerine "ogrenci kaydina git" gosterebilsin diye.
+ */
+export async function basvurununOgrencisi(
+  basvuruId: string,
+): Promise<string | null> {
+  await adminZorunlu();
+  const db = await sunucuIstemcisi();
+  const { data } = await db
+    .from("ogrenciler")
+    .select("id")
+    .eq("basvuru_id", basvuruId)
+    .maybeSingle();
+  return (data as { id: string } | null)?.id ?? null;
+}
+
 export async function basvuruGetir(id: string): Promise<Basvuru | null> {
   await adminZorunlu();
   const db = await sunucuIstemcisi();

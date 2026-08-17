@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { adminZorunlu } from "@/lib/kampus/oturum";
-import { basvuruGetir, basvuruNotlariGetir } from "@/lib/kampus/basvurular";
+import {
+  basvuruGetir,
+  basvuruNotlariGetir,
+  basvurununOgrencisi,
+} from "@/lib/kampus/basvurular";
+import { OgrenciyeDonustur } from "@/components/kampus/ogrenciye-donustur";
 import { Kabuk } from "@/components/kampus/kabuk";
 import { Ikon } from "@/components/ui/ikon";
 import { DurumSecici } from "@/components/kampus/durum-secici";
@@ -56,7 +61,10 @@ export default async function BasvuruDetaySayfasi({
   const basvuru = await basvuruGetir(id);
   if (!basvuru) notFound();
 
-  const notlar = await basvuruNotlariGetir(id);
+  const [notlar, ogrenciId] = await Promise.all([
+    basvuruNotlariGetir(id),
+    basvurununOgrencisi(id),
+  ]);
   const aile = basvuru.program_slug ? aileBul(basvuru.program_slug) : undefined;
 
   const telefonDuz = basvuru.telefon.replace(/\D/g, "");
@@ -82,6 +90,17 @@ export default async function BasvuruDetaySayfasi({
           </p>
         </div>
         <DurumSecici id={basvuru.id} durum={basvuru.durum} />
+      </div>
+
+      {/*
+        Donusturme cagrisi ustte: bir basvuruyla yapilacak asil is bu.
+        Zaten donusturulmusse baglanti gosteriliyor, ikinci kayit olusmasin.
+      */}
+      <div className="mt-5">
+        <OgrenciyeDonustur
+          basvuruId={basvuru.id}
+          mevcutOgrenciId={ogrenciId}
+        />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">

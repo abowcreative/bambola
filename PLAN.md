@@ -1795,3 +1795,55 @@ Mevcut veriyle **gerçekten** çalışanlar. Hiçbiri için yeni tablo gerekmedi
 **Mekânda yükleme yok.** Klasör `npm run foto` ile üretiliyor; yüklenen dosya bir sonraki üretimde silinirdi (Bölüm 17).
 
 **Entegrasyon durumları varsayılmıyor**, ortam değişkenlerine bakılarak belirleniyor. "Bağlı" yazıp aslında çalışmayan bir entegrasyon, hiç yazmamaktan kötü.
+
+---
+
+## 30. Öğrenciler, veliler ve sınıflar
+
+*(17 Ağustos 2026. Aşama 2. `0003_ogrenciler_veliler_siniflar.sql`.)*
+
+Beş tablo açıldı ve beş modül birden canlandı.
+
+### Tablolar ve neden böyle
+
+| Tablo | Ne tutuyor |
+|---|---|
+| `ogrenciler` | Kayıtlı çocuk. `basvuru_id` ile geldiği başvuruya bağlı |
+| `veliler` | Veli kaydı. `profil_id` ile panel hesabına bağlanabiliyor, zorunlu değil |
+| `ogrenci_veli` | **Çok-a-çok.** Anne ve baba ayrı ayrı kayıtlı olabilir, bir veli birden fazla çocuğa bağlanabilir (kardeşler) |
+| `siniflar` | Somut grup. Kontenjan, öğretmen, dönem |
+| `kayitlar` | Öğrencinin bir sınıfa kaydı. Paket ve ücret **kayıt anındaki** hâliyle |
+
+**Sınıf slota bağlı ama ondan bağımsız.** `slot_id` kod içindeki program verisine işaret ediyor; yabancı anahtar değil, çünkü o veri veritabanında değil. Gün, saat ve atölye bilgisi sınıfta da saklanıyor: program değiştiğinde geçmiş kayıtlar bozulmasın.
+
+**Öğretmen adla bağlanıyor**, profil kimliğiyle değil. Sebebi: öğretmenin panel hesabı olmayabilir ama sınıf yine de ona atanabilmeli. Ad, ekip verisindeki `ad` ile birebir aynı ("Emine").
+
+### Sınıflar programdan üretiliyor
+
+Elle otuz sınıf açmak yerine tek düğmeyle haftalık programdan üretiliyor: kurumun gerçek programı zaten kodda ve Excel'e karşı doğrulanmış. Her seans için bir sınıf, öğretmeni programdaki öğretmen, kontenjan 12 (Excel'deki grup mevcudu). Sonra hepsi tek tek değiştirilebiliyor.
+
+`slot_id + donem` tekil indeksi var, yani tekrar çalıştırmak zararsız: var olanlar atlanıyor. Serbest oyun dışarıda &mdash; atanmış öğretmeni ve kontenjanı olan bir grup değil, her grup gününün ilk saati.
+
+**2026-2027 dönemi için 29 sınıf açıldı.**
+
+### RLS: üç rol, üç görüş
+
+Yetki arayüzde değil veritabanında. Öğretmen **yalnız kendi sınıflarındaki** öğrencileri görüyor; bütün öğrenci listesi açık olsaydı başka grupların çocuklarının sağlık ve iletişim bilgileri de görünürdü. Veli yalnız kendi çocuğunu görüyor.
+
+İki yardımcı fonksiyon eklendi: `ogretmen_adim()` ve `veli_kaydim()`, ikisi de `security definer` + `search_path = ''` ile.
+
+### Başvurudan öğrenciye
+
+Başvuru **silinmiyor**: nereden geldiği ve ilk talebin ne olduğu kayıt olarak duruyor, öğrenci ona `basvuru_id` ile bağlı.
+
+İki koruma var. Aynı başvuru iki kez dönüştürülemiyor (ikinci çağrı var olan öğrenciyi döndürüyor) &mdash; çift tıklama veya geri tuşu yüzünden iki çocuk kaydı oluşmasın. Aynı telefonla kayıtlı veli varsa yeniden oluşturulmuyor, mevcut veliye bağlanıyor &mdash; kardeş kaydında ikinci bir veli kartı çıkmasın.
+
+### `server-only` işini yaptı
+
+Derleme, `ogrenci-suzgeci.tsx` istemci bileşeninin sunucu modülünden etiket aldığını yakalayıp **hata verdi**. O import bütün veri erişim katmanını tarayıcı paketine sürüklüyordu. Tipler ve etiketler `ogrenci-tipleri.ts` içine ayrıldı; sorgular `ogrenciler.ts` içinde ve orası `server-only` kalmaya devam ediyor.
+
+Bu tam olarak `server-only` işaretinin var olma sebebi: sessizce çalışacak ama sunucu kodunu istemciye sızdıracak bir import, derlemede durduruldu.
+
+### Doğrulama
+
+Uçtan uca sekiz kontrol: öğrenci ve veli oluşturma, çok-a-çok bağlantı, sınıfa kayıt, **aynı öğrencinin aynı sınıfa iki kez aktif kaydedilememesi** (tekil indeks), doluluk sayımı ve öğrenci → veli zinciri. Test verisi silindi.
