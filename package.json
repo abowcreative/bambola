@@ -17,6 +17,7 @@
     "belge:pdf": "tsx scripts/fiyat-pdf.ts && tsx scripts/uyelik-formu.ts",
     "belge:sosyal": "tsx scripts/sosyal-post.ts",
     "foto": "tsx scripts/foto-hazirla.ts",
+    "favicon": "tsx scripts/favicon-uret.ts",
     "bas": "tsx scripts/bas.ts",
     "belge": "npm run belge:pdf && npm run belge:sosyal && npm run bas"
   },
