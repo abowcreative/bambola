@@ -2,6 +2,7 @@
 
 import { sunucuIstemcisi } from "@/lib/supabase/server";
 import { adminZorunlu, oturumZorunlu } from "./oturum";
+import { aramaKalibi } from "./arama";
 
 /**
  * Ogrenci, veli ve sinif veri erisimi. PLAN.md Bolum 30.
@@ -39,10 +40,9 @@ export async function ogrencileriGetir(suzgec?: {
   if (suzgec?.durum && suzgec.durum !== "hepsi") {
     q = q.eq("durum", suzgec.durum);
   }
-  if (suzgec?.ara?.trim()) {
-    const a = suzgec.ara.trim();
-    q = q.or(`ad.ilike.%${a}%,soyad.ilike.%${a}%`);
-  }
+  // Enjeksiyona karsi temizlenmis kalip, bkz. lib/kampus/arama.ts.
+  const kalip = aramaKalibi(suzgec?.ara, ["ad", "soyad"]);
+  if (kalip) q = q.or(kalip);
 
   const { data, error } = await q;
   if (error) throw new Error(`Öğrenciler okunamadı: ${error.message}`);
@@ -123,15 +123,8 @@ export async function velileriGetir(ara?: string): Promise<
     .order("ad_soyad")
     .limit(500);
 
-  if (ara?.trim()) {
-    const a = ara.trim();
-    const rakamlar = a.replace(/\D/g, "").replace(/^(90|0)/, "");
-    const kaliplar = [
-      `ad_soyad.ilike.%${a}%`,
-      ...(rakamlar.length >= 3 ? [`telefon.ilike.%${rakamlar}%`] : []),
-    ];
-    q = q.or(kaliplar.join(","));
-  }
+  const veliKalibi = aramaKalibi(ara, ["ad_soyad"], "telefon");
+  if (veliKalibi) q = q.or(veliKalibi);
 
   const { data, error } = await q;
   if (error) throw new Error(`Veliler okunamadı: ${error.message}`);

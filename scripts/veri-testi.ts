@@ -33,6 +33,11 @@ import {
   googleKartBaglantisi,
 } from "../src/lib/site";
 import {
+  aramaTemizle,
+  telefonAramasi,
+  aramaKalibi,
+} from "../src/lib/kampus/arama";
+import {
   ayHesapla,
   yasMetni,
   uygunAileler,
@@ -442,6 +447,69 @@ for (const aile of AILELER) {
     }
   }
 }
+
+// -------------------------------------------------- arama temizligi (guvenlik)
+
+/*
+  Panel aramasi PostgREST suzgec SOZDIZIMI uretiyor; virgul, nokta ve
+  parantez orada yapisal karakterler. Girdi dogrudan birlestirildiginde
+  kullanici OR agacina kendi kosulunu ekleyebiliyordu (denendi, filtre
+  kirildi). Beyaz liste temizligi bu yuzden var ve burada sinaniyor:
+  bir daha gevsetilirse test duser.
+*/
+const enjeksiyonDenemeleri = [
+  "x,durum.eq.yeni",
+  "x,id.not.is.null",
+  "x),or(id.not.is.null",
+  "%",
+  "_",
+  'a"b\\c',
+  "a.b.c",
+];
+
+for (const d of enjeksiyonDenemeleri) {
+  const temiz = aramaTemizle(d);
+  dogru(
+    !/[,.()"\\%_]/.test(temiz),
+    `arama temizligi yapisal karakter birakti: "${d}" -> "${temiz}"`,
+  );
+}
+
+// Mesru girdi bozulmamali; Turkce harfler korunmali.
+esit(aramaTemizle("Ayşe Yılmaz"), "Ayşe Yılmaz", "Turkce harfler korunmuyor");
+esit(aramaTemizle("  Ali   Can  "), "Ali Can", "fazla bosluk kirpilmiyor");
+esit(aramaTemizle("O'Brien-Kaya"), "O'Brien-Kaya", "kesme ve cizgi korunmuyor");
+esit(aramaTemizle(""), "", "bos girdi bos donmeli");
+esit(aramaTemizle(undefined), "", "tanimsiz girdi bos donmeli");
+
+// Telefon: bicim ne olursa olsun 5XXXXXXXXX'e inmeli.
+for (const [girdi, beklenen] of [
+  ["0532 111 22 33", "5321112233"],
+  ["+90 532 111 22 33", "5321112233"],
+  ["905321112233", "5321112233"],
+  ["5321112233", "5321112233"],
+] as const) {
+  esit(telefonAramasi(girdi), beklenen, `telefon normalizesi: ${girdi}`);
+}
+
+/*
+  Kalip uretimi: temizlik sonrasi hicbir sey kalmadiysa kalip da
+  uretilmemeli. Aksi halde `ad.ilike.%%` gibi butun kayitlari donduren
+  bir suzgec olusur.
+*/
+esit(
+  aramaKalibi("%%%", ["ad"], "telefon"),
+  null,
+  "tumu temizlenen girdi kalip uretmemeli",
+);
+dogru(
+  (aramaKalibi("Ayşe", ["ad", "soyad"]) ?? "").split(",").length === 2,
+  "iki alan icin iki kalip parcasi uretilmeli",
+);
+dogru(
+  !(aramaKalibi("12", ["ad"], "telefon") ?? "").includes("telefon"),
+  "uc rakamdan kisa arama telefon kalibi uretmemeli",
+);
 
 // ------------------------------------------------------------------ NAP
 

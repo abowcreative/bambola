@@ -2,6 +2,7 @@ import "server-only";
 
 import { sunucuIstemcisi } from "@/lib/supabase/server";
 import { adminZorunlu } from "./oturum";
+import { aramaKalibi } from "./arama";
 import type { Basvuru, BasvuruDurumu } from "@/lib/supabase/types";
 import { DURUM_ETIKET } from "@/lib/supabase/types";
 
@@ -70,21 +71,17 @@ export async function basvurulariGetir(
     sorgu = sorgu.eq("kurum", suzgec.kurum);
   }
 
-  if (suzgec.ara?.trim()) {
-    const a = suzgec.ara.trim();
-    /*
-      Telefon veritabaninda 5XXXXXXXXX olarak normalize edilmis. Kullanici
-      "0532 123..." veya "+90 532..." yazabilir; rakam disi ne varsa atilip
-      basindaki 0 veya 90 kirpiliyor, yoksa hicbir sey bulunamaz.
-    */
-    const rakamlar = a.replace(/\D/g, "").replace(/^(90|0)/, "");
-    const kaliplar = [
-      `veli_adi.ilike.%${a}%`,
-      `cocuk_adi.ilike.%${a}%`,
-      ...(rakamlar.length >= 3 ? [`telefon.ilike.%${rakamlar}%`] : []),
-    ];
-    sorgu = sorgu.or(kaliplar.join(","));
-  }
+  /*
+    Arama kalibi `aramaKalibi` icinde TEMIZLENEREK kuruluyor. Girdiyi
+    dogrudan birlestirmek PostgREST suzgec enjeksiyonuna aciktir,
+    bkz. lib/kampus/arama.ts.
+  */
+  const kalip = aramaKalibi(
+    suzgec.ara,
+    ["veli_adi", "cocuk_adi"],
+    "telefon",
+  );
+  if (kalip) sorgu = sorgu.or(kalip);
 
   const { data, error } = await sorgu;
   if (error) throw new Error(`Başvurular okunamadı: ${error.message}`);

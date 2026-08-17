@@ -2,6 +2,7 @@ import "server-only";
 
 import { sunucuIstemcisi } from "@/lib/supabase/server";
 import { adminZorunlu, oturumZorunlu, oturumuGetir } from "./oturum";
+import { aramaKalibi } from "./arama";
 import type { Ogrenci, Sinif } from "./ogrenci-tipleri";
 import type {
   Ders,
@@ -211,16 +212,13 @@ export async function leadleriGetir(suzgec?: {
   if (suzgec?.durum && suzgec.durum !== "hepsi") {
     q = q.eq("durum", suzgec.durum);
   }
-  if (suzgec?.ara?.trim()) {
-    const a = suzgec.ara.trim();
-    const rakamlar = a.replace(/\D/g, "").replace(/^(90|0)/, "");
-    const kaliplar = [
-      `ad_soyad.ilike.%${a}%`,
-      `cocuk_adi.ilike.%${a}%`,
-      ...(rakamlar.length >= 3 ? [`telefon.ilike.%${rakamlar}%`] : []),
-    ];
-    q = q.or(kaliplar.join(","));
-  }
+  // Enjeksiyona karsi temizlenmis kalip, bkz. lib/kampus/arama.ts.
+  const kalip = aramaKalibi(
+    suzgec?.ara,
+    ["ad_soyad", "cocuk_adi"],
+    "telefon",
+  );
+  if (kalip) q = q.or(kalip);
 
   const { data, error } = await q;
   if (error) throw new Error(`Lead'ler okunamadı: ${error.message}`);
