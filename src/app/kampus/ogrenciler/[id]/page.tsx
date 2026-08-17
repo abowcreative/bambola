@@ -18,6 +18,14 @@ import { KURUM_ETIKET } from "@/lib/supabase/types";
 import type { Kurum } from "@/lib/supabase/types";
 import { telefonYaz } from "@/components/kampus/basvuru-satiri";
 import { Ikon } from "@/components/ui/ikon";
+import {
+  ogrencininOdemeleri,
+  ogrencininYoklamasi,
+  YOKLAMA_ETIKET,
+  YOKLAMA_RENGI,
+} from "@/lib/kampus/yoklama";
+import type { YoklamaDurumu } from "@/lib/kampus/yoklama-tipleri";
+import { OdemeKutusu } from "@/components/kampus/odeme-kutusu";
 
 export const metadata = { title: "Öğrenci", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -50,9 +58,12 @@ export default async function OgrenciDetaySayfasi({
   const ogrenci = await ogrenciGetir(id);
   if (!ogrenci) notFound();
 
-  const [veliler, kayitlar] = await Promise.all([
+  const [veliler, kayitlar, yoklama, odemeler] = await Promise.all([
     ogrencininVelileri(id),
     ogrencininKayitlari(id),
+    ogrencininYoklamasi(id),
+    // Odemeleri yalniz admin goruyor; ogretmen icin bos dizi.
+    oturum.rol === "admin" ? ogrencininOdemeleri(id) : Promise.resolve([]),
   ]);
 
   const aktifKayitlar = kayitlar.filter((k) => k.durum === "aktif");
@@ -180,6 +191,62 @@ export default async function OgrenciDetaySayfasi({
               </ul>
             )}
           </Kutu>
+
+          {/* --- devam gecmisi --- */}
+          <Kutu
+            baslik="Devam"
+            yanCocuk={
+              yoklama.length > 0 ? (
+                <span className="text-sm text-murekkep-soluk">
+                  {
+                    yoklama.filter(
+                      (y) => y.durum === "geldi" || y.durum === "telafi",
+                    ).length
+                  }
+                  /{yoklama.length} katılım
+                </span>
+              ) : undefined
+            }
+          >
+            {yoklama.length === 0 ? (
+              <p className="py-4 text-sm text-murekkep-soluk">
+                Henüz yoklama kaydı yok.
+              </p>
+            ) : (
+              <ul className="space-y-1.5">
+                {yoklama.slice(0, 15).map((y) => (
+                  <li
+                    key={y.id}
+                    className="flex flex-wrap items-center gap-x-3 text-sm"
+                  >
+                    <span className="w-20 shrink-0 tabular-nums text-murekkep-soluk">
+                      {y.dersler?.tarih
+                        ? new Date(y.dersler.tarih).toLocaleDateString("tr-TR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                          })
+                        : "—"}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-murekkep">
+                      {y.dersler?.siniflar?.ad ?? "—"}
+                    </span>
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${YOKLAMA_RENGI[y.durum as YoklamaDurumu]}`}
+                    >
+                      {YOKLAMA_ETIKET[y.durum as YoklamaDurumu]}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Kutu>
+
+          {/* Cari yalniz yoneticiye. Ogretmen para bilgisi gormuyor. */}
+          {oturum.rol === "admin" && (
+            <Kutu baslik="Cari hesap">
+              <OdemeKutusu ogrenciId={ogrenci.id} hareketler={odemeler} />
+            </Kutu>
+          )}
 
           {ogrenci.notlar && (
             <Kutu baslik="Notlar">

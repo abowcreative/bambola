@@ -1847,3 +1847,69 @@ Bu tam olarak `server-only` işaretinin var olma sebebi: sessizce çalışacak a
 ### Doğrulama
 
 Uçtan uca sekiz kontrol: öğrenci ve veli oluşturma, çok-a-çok bağlantı, sınıfa kayıt, **aynı öğrencinin aynı sınıfa iki kez aktif kaydedilememesi** (tekil indeks), doluluk sayımı ve öğrenci → veli zinciri. Test verisi silindi.
+
+---
+
+## 31. Yoklama, cari ve kalan modüller
+
+*(17 Ağustos 2026. Aşama 3. `0004_yoklama_odeme_lead.sql`. Müşteri: "eksik modül kalmasın".)*
+
+Altı tablo daha açıldı ve **bekleyen dokuz modül kapandı**. Panelde artık 22 modülün 22'si çalışıyor.
+
+### Tablolar
+
+| Tablo | Ne tutuyor |
+|---|---|
+| `dersler` | Bir sınıfın **belirli tarihteki** seansı. Sınıf haftalık tekrar eden şablon, ders onun somut örneği |
+| `yoklama` | Öğrenci × ders: geldi / gelmedi / izinli / telafi |
+| `odemeler` | Cari hareket. **Tek tablo**, `tur` ile borç/tahsilat ayrımı |
+| `leadler` | Web formu dışından gelen talepler |
+| `menuler` | Günlük menü, tarih tekil |
+| `duyurular` | Başlık, metin, hedef kitle, yayın durumu |
+
+**Ödemeler neden tek tablo:** bakiye = toplam borç eksi toplam tahsilat. İki ayrı tablo tutulsaydı bakiye hesabı iki sorgu ve iki yerde tutarlılık demekti.
+
+**Tutar tam sayı ve TL, kuruş değil:** kurumun bütün fiyatları tam TL (9000, 7200), ondalıklı tutar hiç geçmiyor.
+
+**Dersi işleyen, sınıfın öğretmeninden farklı olabilir:** birinin yerine başkası girdiğinde kayıt bunu göstermeli.
+
+**Lead neden `basvurular` tablosuna konmadı:** o tablo formun şema doğrulamasından geçiyor ve zorunlu alanları var (doğum tarihi, KVKK onayı). Instagram'dan gelen bir mesajda çoğu zaman yalnız bir ad ve telefon oluyor. Zorunlu alan sayısını artırmak kaydın hiç girilmemesine yol açar.
+
+### RLS: üç rol, keskin sınırlar
+
+| Tablo | Admin | Öğretmen | Veli |
+|---|---|---|---|
+| `dersler` | hepsi | kendi sınıfları, **işleyebilir** | çocuğunun dersleri, okur |
+| `yoklama` | hepsi | kendi dersinin yoklamasını **alır ve değiştirir** | çocuğunun devamı, okur |
+| `odemeler` | hepsi | **hiç görmüyor** | kendi borcu, okur |
+| `leadler` | hepsi | — | — |
+| `menuler` | yazar | okur | okur |
+| `duyurular` | hepsi + taslaklar | yayında + hedefi | yayında + hedefi |
+
+Öğretmen kendi dersinin yoklamasını **admin onayı olmadan** alabiliyor: yoklama günlük akışın parçası, onaya bağlamak işi kilitler. Ama başka sınıfın dersine dokunamıyor.
+
+Taslak duyuru kimseye görünmüyor: yazılmakta olan bir metnin veliye düşmesi geri alınamaz. Yeni duyuru **taslak olarak** açılıyor, yayına almak ayrı bir adım.
+
+### Ekranlarda verilen kararlar
+
+**Yoklama günün programına göre.** Otuz sınıfın hepsini listelemek her gün otuz satır demekti; sayfa seçilen günün sınıflarını gösteriyor. "İşaretlenmeyen N kişiyi geldi yap" düğmesi var: çoğu gün çoğu çocuk geliyor.
+
+**Yoklama işaretleri anında görünüyor**, sunucu beklenmeden. Otuz çocuk için otuz tıklama ve her birinde yarım saniye beklemek işi çekilmez hale getirir. Hata olursa o satır eski hâline dönüyor.
+
+**Cari ile tahsilat ayrı sayfa.** Cari tam tabloyu gösteriyor, tahsilat **yapılacak işi**: yalnız açık bakiyeliler, gecikmişler üstte.
+
+**Alerji bilgisi menü sayfasında.** Mutfağa giden iki bilgi (menü ve alerji) aynı ekranda birleşiyor, iki yere bakmak gerekmiyor.
+
+**Raporlar canlı sorgu**, önbelleklenmiş özet tablosu yok: veri hacmi küçük ve özet tablosu güncellenmeyi unutulan ikinci bir gerçek kaynak yaratır.
+
+**Veli sayfasında ödeme gösterilmiyor.** RLS veliye kendi borcunu okutuyor ama panele koymak önce kurumla konuşulmalı: yanlış görünen bir bakiye telefon trafiği yaratır.
+
+### Yer tutucu kaldırıldı
+
+Bütün modüller çalıştığı için `app/kampus/[modul]` dinamik rotası ve `Hazirlaniyor` bileşeni silindi. Hiçbir zaman görünmeyecek bir "hazırlanıyor" ekranı yanıltıcı olurdu.
+
+### Doğrulama
+
+Uçtan uca **14 kontrol**: ders açma, aynı sınıfa aynı gün ikinci ders açılamaması, yoklama işaretleme, aynı öğrencinin aynı derste iki kez işaretlenememesi, bakiye hesabı (9000 − 5000 = 4000), negatif tutar reddi, tanımsız hareket türü reddi, tanımsız lead kaynağı reddi, menünün üzerine yazılması ve duyurunun taslak açılması. Test verisi silindi.
+
+> **Migration çalıştırmada tuzak:** SQL Editor'de "Run" tıklanınca yıkıcı işlem onayı çıkıyor. İlk denemede onaya, modal henüz açılmadan tıklandı; sorgu çalışmadı ama hata da vermedi. Belirti PostgREST'in "Could not find the table in the schema cache" hatasıydı ve tablo yok sanıldı. Onay tıklandıktan sonra **sonucun okunması** şart.
