@@ -148,7 +148,12 @@ export const SAATLER: Record<Gun, SaatAraligi | null> = {
   carsamba: HAFTA_ICI,
   persembe: HAFTA_ICI,
   cuma: HAFTA_ICI,
-  cumartesi: { acilis: "10.00", kapanis: "18.00" },
+  /*
+    Cumartesi 19.00. Musteri ilk verdiginde 18.00 demisti; programdaki
+    "cumartesi 18.00-19.00 serbest oyun" seansiyla celisti ve teyit edildi
+    (17 Agustos 2026): cumartesi 19.00'a kadar acik.
+  */
+  cumartesi: { acilis: "10.00", kapanis: "19.00" },
   pazar: null,
 };
 

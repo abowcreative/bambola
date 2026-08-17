@@ -1016,8 +1016,8 @@ Bunlar müşteriden gelmeden ilgili bölüm yayına çıkmaz.
    - ✅ Adres: Osmantemiz Mah. 1022. Cad, Dikmen Cd. No: 2/A, 06450 Çankaya/Ankara *(16 Ağustos 2026'da müşterinin verdiği tam hâl. Posta kodu ilk kez burada geldi.)*
    - ✅ ~~**Dikmen mi Çankaya mı?**~~ **ÇÖZÜLDÜ, 16 Ağustos 2026.** İkisi aynı türden bilgi değilmiş: **Dikmen bir cadde adı** (Dikmen Caddesi), **ilçe Çankaya**. Afişlerdeki "Dikmen, Ankara" kısaltması bu ikisini birbirine karıştırıyordu, eski adres satırı da ("No: 2/A Dikmen, Çankaya, Ankara") aynı karışıklığı taşıyordu. Site ilçe olarak Çankaya kullanmaya devam ediyor; "Dikmen" artık cadde satırının içinde geçiyor.
    - ✅ ~~**WhatsApp hattının ayrı numarası var mı?**~~ **ÇÖZÜLDÜ, 17 Ağustos 2026.** Müşteri numarayı verdi: **+90 542 641 66 08** — telefonla **aynı hat**, ayrı bir WhatsApp numarası yok. Sitede zaten bu numara duruyordu (afişten okunmuştu); artık sahibinden teyitli. İkisinin ayrı alanlarda tutulup birbirinden sapmaması veri testiyle korunuyor.
-   - ✅ **Çalışma saatleri geldi, 17 Ağustos 2026.** Hafta içi 09.00-19.00, cumartesi 10.00-18.00, pazar kapalı. `lib/site.ts` içindeki `SAATLER` sabitine işlendi; footer, iletişim sayfası ve schema.org `openingHoursSpecification` bunu okuyor.
-     - ⚠️ **Cumartesi kapanışı ile program çelişiyor, karar gerekiyor.** Programda `cumartesi 18.00-19.00 serbest oyun` var ama cumartesi kapanışı 18.00 yazıyor. Ya kurum cumartesi 19.00'a kadar açık, ya o seans yanlış saatte. Çelişki **görünür** tutuldu: veri testinde adı yazılı tek istisna olarak duruyor (`cmt-1800-serbest-oyun`), cevap gelince istisna listesi boşalır. İletişim sayfasında iki tablo yan yana duruyor ve fark oradan da okunuyor.
+   - ✅ **Çalışma saatleri geldi, 17 Ağustos 2026.** Hafta içi 09.00-19.00, **cumartesi 10.00-19.00**, pazar kapalı. `lib/site.ts` içindeki `SAATLER` sabitine işlendi; footer, iletişim sayfası ve schema.org `openingHoursSpecification` bunu okuyor.
+     - ✅ ~~**Cumartesi kapanışı programla çelişiyor.**~~ **ÇÖZÜLDÜ, aynı gün.** Müşteri ilk verdiğinde cumartesi 18.00 demişti; programdaki `cumartesi 18.00-19.00 serbest oyun` seansı bununla çelişiyordu. Teyit edildi: **cumartesi 19.00'a kadar açık**, program doğru. Veri testindeki istisna listesi boşaldı; artık kapanış dışına taşan bir seans testi durduruyor.
    - ⏳ Hâlâ eksik: e-posta, vergi bilgileri (KVKK metni için).
    - ✅ **Google Business Profile kaydı geldi, 16 Ağustos 2026.** Bkz. Bölüm 22.
      - Google'daki işletme adı: **BAMBOLA OYUN VE PARTİ EVİ**
@@ -1986,7 +1986,7 @@ Not: 30 seans var, 29 sınıf açılıyor. Eksik olan `cumartesi 18.00 serbest o
 
 ### Çalışma saatleri: program saati değil, açılış saati
 
-Saatler `lib/site.ts` içindeki `SAATLER` sabitinde: hafta içi 09.00-19.00, cumartesi 10.00-18.00, pazar `null` (kapalı). Tek kaynak; footer, iletişim sayfası ve schema.org aynı yerden besleniyor.
+Saatler `lib/site.ts` içindeki `SAATLER` sabitinde: hafta içi 09.00-19.00, cumartesi 10.00-19.00, pazar `null` (kapalı). Tek kaynak; footer, iletişim sayfası ve schema.org aynı yerden besleniyor.
 
 **Bulunan hata:** schema.org `openingHoursSpecification` şimdiye kadar **haftalık programdan** üretiliyordu — ilk seansın başı açılış, son seansın sonu kapanış sayılıyordu. Sonuç yanlıştı: Google'a "pazartesi 09.30'da açılıyor" diyordu, kurum 09.00'da açık. Program seans saatini anlatır, açılış saatini anlatmaz. Artık `SAATLER` kaynak; saatler bir gün boşaltılırsa eski davranışa düşüyor (hiç saat yazmamak, yaklaşık saat yazmaktan kötü).
 
@@ -2026,8 +2026,7 @@ Sayfa gövdesi `Belir` (kaydırmayla açılan animasyon) sarmalayıcısından **
 Veri testi 338'den **460 kontrole** çıktı:
 - Saat biçimi "SS.DD" ve açılış < kapanış
 - schema açılış saati sayısı = açık gün sayısı, pazartesi 09:00, pazar schema'da yok
-- **Her program seansı çalışma saatlerinin içinde** — tek istisna adıyla yazılı (`cmt-1800-serbest-oyun`), o da teyit bekliyor
-- İstisna listesindeki id gerçekten var mı (cevap gelip seans değişirse liste ölü kalmasın)
+- **Her program seansı çalışma saatlerinin içinde** — istisna listesi boş; kapanış dışına taşan bir seans testi durduruyor
 - Dört yasal sayfanın dosyası var mı, hepsi sitemap dışında mı
 
 Tarayıcıda: dört sayfa 200 dönüyor, metin ilk boyamada görünür, harita onay öncesi hiçbir istek atmıyor.

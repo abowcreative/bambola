@@ -666,13 +666,12 @@ dogru(
   Program seanslari calisma saatlerinin ICINDE olmali. Disina tasan bir
   seans, veliye "kapaliyken ders var" diyen bir celiski demek.
 
-  BILINEN TEK ISTISNA, teyit bekliyor (PLAN.md Bolum 14 madde 9):
-  cumartesi 18.00-19.00 serbest oyun, cumartesi kapanisi 18.00. Ya saat
-  19.00'a kadar aciktir ya da o seans yanlis saatte duruyor. Cevap
-  gelince bu liste bosalir; simdilik celiski GORUNUR halde tutuluyor,
-  sessizce yok sayilmiyor.
+  ISTISNA YOK. Bir sure "cumartesi 18.00-19.00 serbest oyun" seansi
+  kapanisin (18.00) disinda kaliyordu; musteri 17 Agustos 2026'da teyit
+  etti, cumartesi 19.00'a kadar acik. Liste bos kaldi ve boyle kalmali:
+  yeni bir seans kapanisin disina tasarsa test dursun.
 */
-const SAAT_ISTISNALARI = new Set(["cmt-1800-serbest-oyun"]);
+const SAAT_ISTISNALARI = new Set<string>();
 for (const slot of SLOTLAR) {
   if (SAAT_ISTISNALARI.has(slot.id)) continue;
   const aralik = SAATLER[slot.gun];
