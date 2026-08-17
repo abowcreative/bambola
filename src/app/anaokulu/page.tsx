@@ -135,9 +135,9 @@ export default function AnaokuluSayfasi() {
 
             <ol className="mt-10 grid gap-3 text-left sm:grid-cols-3">
               {[
-                { yas: "6-24 ay", ad: "Bebek grubu" },
-                { yas: "16-36 ay", ad: "Oyun grupları" },
-                { yas: "30+ ay", ad: "Okula hazırlık" },
+                { yas: "6 aylık - 2 yaş", ad: "Bebek grubu" },
+                { yas: "1,5 - 3 yaş", ad: "Oyun grupları" },
+                { yas: "2,5 yaş ve üzeri", ad: "Okula hazırlık" },
               ].map((a, i) => (
                 <li
                   key={a.ad}

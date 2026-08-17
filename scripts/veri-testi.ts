@@ -768,6 +768,53 @@ if (kaynakEslesme) {
   );
 }
 
+// ------------------------------------------------- yas etiketleri (ay yok)
+
+/*
+  MUSTERI KARARI, 17 Agustos 2026: "Ay ve yas araligi vermeyelim."
+  Netlesen hali: AY ifadeleri kalkti, YAS ifadeleri kaldi. Veli "16-36 ay"
+  degil "1,5 - 3 yas" okuyor.
+
+  Ay hesabi ARKADA duruyor (minAy/maxAy, ayHesapla, form eslestirmesi);
+  yasak yalniz GORUNEN etiketler icin. Etiketler elle yazildigi icin yeni
+  bir grup eklenirken kolayca "24-36 ay" yazilabilir; test onu yakaliyor.
+*/
+const AY_ARALIGI = /\d+\s*(-|–)\s*\d+\s*ay\b|\d+\+\s*ay\b/;
+
+for (const a of AILELER) {
+  dogru(
+    !AY_ARALIGI.test(a.yasEtiket),
+    `${a.slug}: yas etiketinde ay araligi var: "${a.yasEtiket}"`,
+  );
+  for (const k of a.sabitKombinasyonlar) {
+    dogru(
+      !AY_ARALIGI.test(k.etiket),
+      `${a.slug}: kombinasyon etiketinde ay araligi var: "${k.etiket}"`,
+    );
+  }
+}
+for (const a of ATOLYELER) {
+  dogru(
+    !AY_ARALIGI.test(a.yasEtiket),
+    `${a.slug}: yas etiketinde ay araligi var: "${a.yasEtiket}"`,
+  );
+}
+for (const y of YAS_SAYFALARI) {
+  dogru(
+    !AY_ARALIGI.test(y.ad),
+    `${y.slug}: yas sayfasi adinda ay araligi var: "${y.ad}"`,
+  );
+  /*
+    SLUG'LAR ay temelli kaliyor ("12-24-ay"): adres degisirse eski
+    baglantilar kirilir ve arama sirasi sifirlanir. Gorunen ad yas,
+    adres ay -- bu bilincli.
+  */
+  dogru(
+    /^[0-9a-z-]+$/.test(y.slug),
+    `${y.slug}: yas sayfasi slug'i degismemeli`,
+  );
+}
+
 // --------------------------------------------- program tiklama sayaci
 
 /*

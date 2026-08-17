@@ -12,9 +12,9 @@ import type { ProgramAilesi, Slot } from "./data/types";
 
 /** Yas sayfalari icin sabit bantlar. PLAN.md Bolum 5, sayfa agaci. */
 export const YAS_SAYFALARI = [
-  { slug: "6-12-ay", ad: "6-12 ay", minAy: 6, maxAy: 12 },
-  { slug: "12-24-ay", ad: "12-24 ay", minAy: 12, maxAy: 24 },
-  { slug: "24-36-ay", ad: "24-36 ay", minAy: 24, maxAy: 36 },
+  { slug: "6-12-ay", ad: "6 aylık - 1 yaş", minAy: 6, maxAy: 12 },
+  { slug: "12-24-ay", ad: "1 - 2 yaş", minAy: 12, maxAy: 24 },
+  { slug: "24-36-ay", ad: "2 - 3 yaş", minAy: 24, maxAy: 36 },
   { slug: "3-5-yas", ad: "3-5 yaş", minAy: 36, maxAy: 71 },
 ] as const;
 

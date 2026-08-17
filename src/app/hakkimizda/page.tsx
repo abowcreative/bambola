@@ -156,7 +156,7 @@ export default function HakkimizdaSayfasi() {
             {
               baslik: "Küçük gruplar",
               metin:
-                "Okula hazırlıkta en fazla 12, diğer gruplarda en fazla 8 çocuk. Kalabalık grupta çocuk kayboluyor.",
+                "Grupları küçük tutuyoruz: okula hazırlıkta 12, diğer gruplarda 8 çocuk. Kalabalık grupta çocuk kayboluyor.",
             },
             {
               baslik: "Ayrılmak öğrenilir",

@@ -77,7 +77,11 @@ export type YasAraligi = {
   minAy: number;
   /** Dahil, ay cinsinden. */
   maxAy: number;
-  /** Sitede gorunen etiket: "16-24 ay", "3-5 yas". */
+  /**
+   * Sitede gorunen etiket. AY DEGIL YAS yazilir: "1,5 - 2 yas", "3-5 yas".
+   * Musteri karari, 17 Agustos 2026: "ay ve yas araligi vermeyelim" -->
+   * ay ifadeleri kalkti, yas ifadeleri kaldi. Ay hesabi arkada duruyor.
+   */
   etiket: string;
   /** Cocuk gruba ebeveyni olmadan katiliyor mu. */
   ebeveynsiz: boolean;

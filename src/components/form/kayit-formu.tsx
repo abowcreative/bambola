@@ -277,11 +277,23 @@ export function KayitFormu({
     }
 
     if (adim === "saat") {
-      if (!d.saatUymuyor && d.secilenSlotIdler.length === 0) {
-        h.saat = "Bir gün ve saat seçin veya aşağıdaki seçeneği işaretleyin.";
-      }
-      if (d.saatUymuyor && !d.saatNotu.trim()) {
-        h.saatNotu = "Size uyan zamanı kısaca yazın.";
+      /*
+        Serbest oyunda sabit slot YOK: gunluk akis her gun farkli oldugu
+        icin veliden ARALIK isteniyor ve talep kuruma gidiyor (musteri
+        istegi, 17 Agustos 2026). O yuzden slot zorunlulugu aranmaz,
+        saat araligi zorunludur.
+      */
+      if (d.secim?.tur === "serbest-oyun") {
+        if (!d.saatNotu.trim()) {
+          h.saatNotu = "Size uygun gün ve saat aralığını yazın.";
+        }
+      } else {
+        if (!d.saatUymuyor && d.secilenSlotIdler.length === 0) {
+          h.saat = "Bir gün ve saat seçin veya aşağıdaki seçeneği işaretleyin.";
+        }
+        if (d.saatUymuyor && !d.saatNotu.trim()) {
+          h.saatNotu = "Size uyan zamanı kısaca yazın.";
+        }
       }
     }
 
@@ -744,15 +756,24 @@ export function KayitFormu({
                       Serbest oyun saatleri
                     </p>
                     <p className="mt-2">
-                      Hafta sonu belirlenen zaman diliminde 1 saat serbest oyun
-                      ücretsizdir. Cumartesi grup programı yoktur, oyun alanı
-                      kullanıma açıktır. Aşağıya size uyan günü yazın,
-                      netleştirip dönelim.
+                      Günlük program ve akış her gün farklı olduğu için serbest
+                      oyun saatini birlikte netleştiriyoruz. Size uygun gün ve
+                      saat aralığını yazın, uygunluğa göre dönelim.
+                    </p>
+                    <p className="mt-2">
+                      Kayıtlı çocuklara hafta sonu belirlenen zaman diliminde 1
+                      saat serbest oyun ücretsizdir. Her grup gününün ilk bir
+                      saati de serbest oyun olarak geçer.
                     </p>
                   </div>
                 )}
 
-                {/* PLAN.md Bolum 7: kaybedilen talebi gorunur kilan secenek. */}
+                {/*
+                  PLAN.md Bolum 7: kaybedilen talebi gorunur kilan secenek.
+                  Serbest oyunda GOSTERILMEZ: orada secilecek sabit bir saat
+                  listesi yok, aralik zaten aciktan isteniyor.
+                */}
+                {d.secim?.tur !== "serbest-oyun" && (
                 <label
                   className={`flex cursor-pointer items-start gap-3 rounded-kart border-2 border-dashed p-4 transition-colors ${
                     d.saatUymuyor
@@ -782,10 +803,15 @@ export function KayitFormu({
                     </span>
                   </span>
                 </label>
+                )}
 
-                {d.saatUymuyor && (
+                {(d.saatUymuyor || d.secim?.tur === "serbest-oyun") && (
                   <Alan
-                    etiket="Size hangi gün ve saatler uyar?"
+                    etiket={
+                      d.secim?.tur === "serbest-oyun"
+                        ? "Size uygun gün ve saat aralığı"
+                        : "Size hangi gün ve saatler uyar?"
+                    }
                     zorunlu
                     hata={hatalar.saatNotu}
                   >

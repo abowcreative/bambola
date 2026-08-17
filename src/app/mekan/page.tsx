@@ -75,9 +75,9 @@ const BOLUMLER: Bolum[] = [
     no: "02",
     baslik: "Atölye ve etkinlik salonları",
     girisi:
-      "Grupların toplandığı yer. Masalar ve sandalyeler çocuk boyunda, malzeme dolapları çocuğun kendi uzanabileceği yükseklikte; bir çalışmaya başlamak için yetişkin beklemesi gerekmiyor. Duvarlar boyalı çizimlerle kaplı. Dinozor duvarlı etkinlik salonunun cam cephesi terasa bakıyor; kapı açıldığında iki alan birbirine bağlanıyor. Gruplar küçük: Okula Hazırlık'ta en fazla 12, diğerlerinde en fazla 8 çocuk.",
+      "Grupların toplandığı yer. Masalar ve sandalyeler çocuk boyunda, malzeme dolapları çocuğun kendi uzanabileceği yükseklikte; bir çalışmaya başlamak için yetişkin beklemesi gerekmiyor. Duvarlar boyalı çizimlerle kaplı. Dinozor duvarlı etkinlik salonunun cam cephesi terasa bakıyor; kapı açıldığında iki alan birbirine bağlanıyor. Grupları küçük tutuyoruz: Okula Hazırlık'ta 12, diğerlerinde 8 çocuk.",
     olgular: [
-      "Okula Hazırlık'ta en fazla 12, diğer gruplarda 8 çocuk",
+      "Okula Hazırlık'ta 12, diğer gruplarda 8 çocuk",
       "Çocuk boyunda masa ve ulaşılabilir malzeme dolapları",
       "Etkinlik salonunun cam cephesi terasa bakıyor",
     ],

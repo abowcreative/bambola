@@ -128,11 +128,16 @@ export const ILETISIM = {
 
 export type SaatAraligi = { acilis: string; kapanis: string };
 
-const HAFTA_ICI: SaatAraligi = { acilis: "09.00", kapanis: "19.00" };
+const GUNDUZ: SaatAraligi = { acilis: "09.00", kapanis: "18.00" };
 
 /**
- * Calisma saatleri. Musteri 17 Agustos 2026'da verdi (PLAN.md Bolum 14
- * madde 9): hafta ici 09.00-19.00, cumartesi 10.00-18.00, pazar kapali.
+ * Calisma saatleri: pazartesiden cumartesiye 09.00-18.00, pazar kapali
+ * (PLAN.md Bolum 14 madde 9).
+ *
+ * AYNI GUN IKI KEZ DEGISTI. 17 Agustos 2026'da once "hafta ici
+ * 09.00-19.00, cumartesi 10.00-19.00" geldi; ayni gun kurumun kendi
+ * notuyla "09.00-18.00 pazartesi-cumartesi" olarak duzeltildi. Cumartesi
+ * 18.00-19.00 serbest oyun seansi da bu yuzden 17.00-18.00'e cekildi.
  *
  * PROGRAM SAATLERI ILE AYNI SEY DEGIL. Program ilk seansi 09.30'da
  * basliyor; kurum 09.00'da acik. Once schema.org acilis saatleri haftalik
@@ -143,24 +148,20 @@ const HAFTA_ICI: SaatAraligi = { acilis: "09.00", kapanis: "19.00" };
  * yazmak Google yerel kartinda tek satirlik bir gun olarak gorunur.
  */
 export const SAATLER: Record<Gun, SaatAraligi | null> = {
-  pazartesi: HAFTA_ICI,
-  sali: HAFTA_ICI,
-  carsamba: HAFTA_ICI,
-  persembe: HAFTA_ICI,
-  cuma: HAFTA_ICI,
-  /*
-    Cumartesi 19.00. Musteri ilk verdiginde 18.00 demisti; programdaki
-    "cumartesi 18.00-19.00 serbest oyun" seansiyla celisti ve teyit edildi
-    (17 Agustos 2026): cumartesi 19.00'a kadar acik.
-  */
-  cumartesi: { acilis: "10.00", kapanis: "19.00" },
+  pazartesi: GUNDUZ,
+  sali: GUNDUZ,
+  carsamba: GUNDUZ,
+  persembe: GUNDUZ,
+  cuma: GUNDUZ,
+  cumartesi: GUNDUZ,
   pazar: null,
 };
 
 /**
  * Saatleri ekranda gosterilecek satirlara cevirir. Ayni saate sahip ardisik
- * gunler BIRLESTIRILIYOR: yedi satir yerine "Hafta ici" ve "Cumartesi".
- * Yedi satirin altisi aynı yaziyi tasiyorsa okuyan kisi hicbirini okumuyor.
+ * gunler BIRLESTIRILIYOR: su an yedi satir yerine iki satir cikiyor
+ * ("Pazartesi - Cumartesi" ve "Pazar"). Yedi satirin altisi ayni yaziyi
+ * tasiyorsa okuyan kisi hicbirini okumuyor.
  */
 export function saatSatirlari(): { gunler: string; saat: string }[] {
   const SIRA = [

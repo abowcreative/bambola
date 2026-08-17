@@ -84,7 +84,7 @@ export const KAMPANYA_KOSULLARI = [
   // Ajans tarafi asagidaki kisa halin daha iyi oldugunu soyledi, o kaldi.
   "Her programın, ödeme tarihinden itibaren 1 ay içinde tamamlanması gerekir.",
   "Hafta içi öğleden önce ve öğleden sonra iki grup açılır, uygunluk olması durumunda gruplar arasında telafi yapılabilir.",
-  "Okula Hazırlık Gruplarında en fazla 12 çocuk, diğer bütün gruplarda en fazla 8 çocuk bulunur.",
+  "Grupları küçük tutuyoruz: Okula Hazırlık Gruplarında 12, diğer bütün gruplarda 8 çocuk. Böylece her çocuk öğretmenin ilgisini görüyor.",
   "Her 12 katılımda bir çocuk değerlendirme raporu hazırlanır.",
 ];
 

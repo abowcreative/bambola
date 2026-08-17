@@ -15,20 +15,20 @@ import type { Slot, YasAraligi, Gun } from "./types";
 
 /** Yas bantlari tek yerden gelir, boylece filtre her sayfada ayni davranir. */
 export const YAS: Record<string, YasAraligi> = {
-  bebek6_12: { minAy: 6, maxAy: 12, etiket: "6-12 ay", ebeveynsiz: false },
-  bebek12_24: { minAy: 12, maxAy: 24, etiket: "12-24 ay", ebeveynsiz: false },
-  yuruyen16_24: { minAy: 16, maxAy: 24, etiket: "16-24 ay", ebeveynsiz: false },
-  yuruyen24_36: { minAy: 24, maxAy: 36, etiket: "24-36 ay", ebeveynsiz: false },
+  bebek6_12: { minAy: 6, maxAy: 12, etiket: "6 aylık - 1 yaş", ebeveynsiz: false },
+  bebek12_24: { minAy: 12, maxAy: 24, etiket: "1 - 2 yaş", ebeveynsiz: false },
+  yuruyen16_24: { minAy: 16, maxAy: 24, etiket: "1,5 - 2 yaş", ebeveynsiz: false },
+  yuruyen24_36: { minAy: 24, maxAy: 36, etiket: "2 - 3 yaş", ebeveynsiz: false },
   okulOncesi30: {
     minAy: 30,
     maxAy: 71,
-    etiket: "30+ ay",
+    etiket: "2,5 yaş ve üzeri",
     ebeveynsiz: true,
   },
   okulOncesi30Ebeveynli: {
     minAy: 30,
     maxAy: 71,
-    etiket: "30+ ay",
+    etiket: "2,5 yaş ve üzeri",
     ebeveynsiz: false,
   },
   buyuk3_5: { minAy: 36, maxAy: 71, etiket: "3-5 yaş", ebeveynsiz: false },
@@ -378,10 +378,15 @@ export const SLOTLAR: Slot[] = [
     tekSeferMumkun: false,
   },
   {
-    id: "cmt-1800-serbest-oyun",
+    /*
+      17.00-18.00 oldu (musteri karari, 17 Agustos 2026). Onceden
+      18.00-19.00'daydi ve calisma saatlerinin (09.00-18.00) disina
+      tasiyordu; veliye "kapaliyken serbest oyun var" diyen bir celiskiydi.
+    */
+    id: "cmt-1700-serbest-oyun",
     gun: "cumartesi",
-    bas: "18.00",
-    bit: "19.00",
+    bas: "17.00",
+    bit: "18.00",
     atolyeSlug: "serbest-oyun",
     yas: YAS.okulOncesi30Ebeveynli,
     dil: "tr",
@@ -403,7 +408,7 @@ export const PAZAR_NOTU = "Pazar günü grup programı yoktur.";
 export const PROGRAM_NOTLARI = [
   "İlk bir saat serbest oyundur.",
   "Öğle arası her gün 12.30 - 13.30.",
-  "Okula Hazırlık Gruplarında en fazla 12 çocuk, diğer gruplarda en fazla 8 çocuk bulunur.",
+  "Grupları küçük tutuyoruz: Okula Hazırlık Gruplarında 12, diğer gruplarda 8 çocuk.",
   "Ara öğün yalnızca Okula Hazırlık Gruplarında verilir.",
   "Hafta içi öğleden önce ve öğleden sonra iki grup açılır, uygunluk olması durumunda gruplar arasında telafi yapılabilir.",
   "Kayıtlı çocuklara hafta sonu belirlenen zaman diliminde 1 saat serbest oyun ücretsizdir.",

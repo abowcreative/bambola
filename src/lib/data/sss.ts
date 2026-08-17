@@ -18,7 +18,7 @@ export const SORULAR: Soru[] = [
   {
     soru: "Gruplar kaç kişilik?",
     cevap:
-      "Okula Hazırlık Gruplarında en fazla 12 çocuk, diğer bütün gruplarda en fazla 8 çocuk bulunur.",
+      "Grupları küçük tutuyoruz: Okula Hazırlık Gruplarında 12, diğer bütün gruplarda 8 çocuk. Böylece her çocuk öğretmenin ilgisini görüyor.",
     kategori: "genel",
   },
   {

@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     default: `${MARKA.ad} ${MARKA.ilce} | Oyun Evi ve Anaokulu`,
     template: `%s | ${MARKA.ad}`,
   },
-  description: `${MARKA.ilce}, ${MARKA.sehir}'da oyun evi, oyun gruplari ve anaokulu. 6 aydan 6 yasa kadar, en fazla 12 kisilik gruplar.`,
+  description: `${MARKA.ilce}, ${MARKA.sehir}'da oyun evi, oyun gruplari ve anaokulu. 6 aydan 5 yasa kadar, en fazla 12 kisilik gruplar.`,
   applicationName: MARKA.ad,
   /*
     Ana sayfanin kanonik adresi. Diger sayfalar bunu `sayfaMetadata`'dan

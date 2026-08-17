@@ -17,7 +17,7 @@ export const AILELER: ProgramAilesi[] = [
     ad: "Okula Hazırlık Grupları",
     kisaAd: "Okula Hazırlık",
     ozet: "Çocuk gruba ebeveynsiz katılır, güvenli ayrılma programıyla.",
-    yasEtiket: "30+ ay",
+    yasEtiket: "2,5 yaş ve üzeri",
     minAy: 30,
     maxAy: 71,
     maxKisi: 12,
@@ -63,7 +63,7 @@ export const AILELER: ProgramAilesi[] = [
     ad: "Gelişim Odaklı Oyun Grubu",
     kisaAd: "Gelişim Odaklı Oyun",
     ozet: "Ebeveyn eşlik eder, güvenli ayrılmaya geçiş burada başlar.",
-    yasEtiket: "16-36 ay",
+    yasEtiket: "1,5 - 3 yaş",
     minAy: 16,
     maxAy: 36,
     maxKisi: 8,
@@ -79,27 +79,27 @@ export const AILELER: ProgramAilesi[] = [
     paketler: PAKETLER["gelisim-odakli-oyun"],
     sabitKombinasyonlar: [
       {
-        etiket: "16-24 ay · Pazartesi + Çarşamba · 10.00 - 12.00",
+        etiket: "1,5 - 2 yaş · Pazartesi + Çarşamba · 10.00 - 12.00",
         slotIdler: ["pzt-1000-gelisim", "crs-1000-gelisim"],
         haftaSonu: false,
       },
       {
-        etiket: "16-24 ay · Salı + Perşembe · 15.00 - 17.00",
+        etiket: "1,5 - 2 yaş · Salı + Perşembe · 15.00 - 17.00",
         slotIdler: ["sali-1500-gelisim", "prs-1500-gelisim"],
         haftaSonu: false,
       },
       {
-        etiket: "24-36 ay · Salı + Perşembe · 10.00 - 12.00",
+        etiket: "2 - 3 yaş · Salı + Perşembe · 10.00 - 12.00",
         slotIdler: ["sali-1000-gelisim", "prs-1000-gelisim"],
         haftaSonu: false,
       },
       {
-        etiket: "24-36 ay · Pazartesi + Çarşamba · 16.00 - 18.00",
+        etiket: "2 - 3 yaş · Pazartesi + Çarşamba · 16.00 - 18.00",
         slotIdler: ["pzt-1600-gelisim", "crs-1600-gelisim"],
         haftaSonu: false,
       },
       {
-        etiket: "24-36 ay · Cumartesi · 14.00 - 16.00",
+        etiket: "2 - 3 yaş · Cumartesi · 14.00 - 16.00",
         slotIdler: ["cmt-1400-gelisim"],
         haftaSonu: true,
       },
@@ -114,7 +114,7 @@ export const AILELER: ProgramAilesi[] = [
     ad: "Bebek Oyun Grubu",
     kisaAd: "Bebek Grubu",
     ozet: "Oyunlarla Büyüyorum. Ebeveyn çocuğa eşlik eder.",
-    yasEtiket: "6-24 ay",
+    yasEtiket: "6 aylık - 2 yaş",
     minAy: 6,
     maxAy: 24,
     maxKisi: 8,
@@ -129,22 +129,22 @@ export const AILELER: ProgramAilesi[] = [
     paketler: PAKETLER.bebek,
     sabitKombinasyonlar: [
       {
-        etiket: "12-24 ay · Pazartesi + Cuma · 15.00 - 17.00",
+        etiket: "1 - 2 yaş · Pazartesi + Cuma · 15.00 - 17.00",
         slotIdler: ["pzt-1500-bebek", "cuma-1500-bebek"],
         haftaSonu: false,
       },
       {
-        etiket: "6-12 ay · Salı · 16.00 - 18.00",
+        etiket: "6 aylık - 1 yaş · Salı · 16.00 - 18.00",
         slotIdler: ["sali-1600-bebek"],
         haftaSonu: false,
       },
       {
-        etiket: "6-12 ay · Cuma · 10.00 - 12.00",
+        etiket: "6 aylık - 1 yaş · Cuma · 10.00 - 12.00",
         slotIdler: ["cuma-1000-bebek"],
         haftaSonu: false,
       },
       {
-        etiket: "6-12 ay · Cumartesi · 16.00 - 18.00",
+        etiket: "6 aylık - 1 yaş · Cumartesi · 16.00 - 18.00",
         slotIdler: ["cmt-1600-bebek"],
         haftaSonu: true,
       },
@@ -153,7 +153,7 @@ export const AILELER: ProgramAilesi[] = [
      * 10 Agustos 2026, Miray Hanim: "12-24 ay grubu icinde Ingilizce grubu
      * hediye ekleyelim."
      *
-     * Not "12-24 ay" ile nitelendi, cunku Ingilizce islenen en kucuk seans
+     * Not "1 - 2 yaş" ile nitelendi, cunku Ingilizce islenen en kucuk seans
      * 12 aydan basliyor (Sarkili Masal ve Sanat Atolyesi, Ingilizce).
      * 6-12 ay bebegin kullanabilecegi Ingilizce seans YOK; nitelemesiz
      * yazilirsa 6-12 ay blogunda tutulamayacak bir soz verilmis olurdu.
@@ -170,7 +170,7 @@ export const AILELER: ProgramAilesi[] = [
     ad: "İngilizce Oyun Grubu",
     kisaAd: "İngilizce Grubu",
     ozet: "Seans tamamen İngilizce işlenir.",
-    yasEtiket: "24-36 ay",
+    yasEtiket: "2 - 3 yaş",
     minAy: 24,
     maxAy: 36,
     maxKisi: 8,

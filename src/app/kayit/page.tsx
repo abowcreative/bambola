@@ -29,7 +29,7 @@ export default async function KayitSayfasi({
           görelim. Altı kısa adım, birkaç dakika sürer.
         </p>
         <p className="mt-2 text-sm text-murekkep-soluk">
-          {MARKA.ilce}, {MARKA.sehir}. Okula hazırlıkta en fazla 12, diğer gruplarda en fazla 8 çocuk.
+          {MARKA.ilce}, {MARKA.sehir}. Küçük gruplar: okula hazırlıkta 12, diğer gruplarda 8 çocuk.
         </p>
       </header>
 
