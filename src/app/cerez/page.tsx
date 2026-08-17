@@ -97,7 +97,23 @@ export default function CerezSayfasi() {
       <YasalBaslik>Dışa açılan bağlantılar</YasalBaslik>
       <p className="mt-3">
         WhatsApp, Instagram ve Google Maps bağlantılarına tıkladığınızda o
-        sitelerin kendi politikaları geçerli olur. Biz o tıklamayı ölçmüyoruz.
+        sitelerin kendi politikaları geçerli olur.
+      </p>
+
+      <YasalBaslik>Program sayacı</YasalBaslik>
+      <p className="mt-3">
+        Ücret kartlarındaki &quot;Bu programa kaydol&quot; düğmesine
+        bastığınızda, <strong className="text-murekkep">hangi programın</strong>{" "}
+        seçildiği sayısal olarak kaydedilir. Kurum böylece hangi gruba ilgi
+        olduğunu görüyor.
+      </p>
+      <p className="mt-3">
+        Bu kayıt <strong className="text-murekkep">kişiye bağlı değildir</strong>
+        : IP adresiniz, tarayıcı bilgileriniz ve herhangi bir kimlik
+        tutulmuyor, çerez yazılmıyor. Kaydedilen tek şey &quot;şu tarihte, şu
+        sayfadan, şu programa tıklandı&quot;. İki farklı kişinin tıklaması ile
+        aynı kişinin iki kez tıklaması birbirinden ayırt edilemez; bu bilinçli
+        bir tercih.
       </p>
 
       <YasalBaslik>Nasıl temizlerim?</YasalBaslik>

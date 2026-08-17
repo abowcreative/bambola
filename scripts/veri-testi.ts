@@ -768,6 +768,104 @@ if (kaynakEslesme) {
   );
 }
 
+// --------------------------------------------- program tiklama sayaci
+
+/*
+  "Bu programa kaydol" WhatsApp'a, arada sayac rotasindan gidiyor.
+  Dogrudan wa.me baglantisi olsaydi tiklama sayilamazdi.
+*/
+const ucretKarti = readFileSync("src/components/site/ucret-tablosu.tsx", "utf8");
+dogru(
+  ucretKarti.includes("/git/whatsapp?grup="),
+  "ucret kartindaki cagri sayac rotasindan gecmeli",
+);
+dogru(
+  !/href={`https:\/\/wa\.me/.test(ucretKarti),
+  "ucret kartinda dogrudan wa.me baglantisi olmamali, tiklama sayilamaz",
+);
+
+const sayacRotasi = readFileSync("src/app/git/whatsapp/route.ts", "utf8");
+
+/*
+  Grup slug'i AILELER ile dogrulanmali. Beyaz liste olmadan adres
+  cubugundan gelen her metin veritabanina yazilirdi.
+*/
+dogru(
+  sayacRotasi.includes("AILELER.find"),
+  "sayac rotasi grup slug'ini AILELER ile dogrulamali",
+);
+
+/*
+  KISI TANIMLAYAN VERI YAZILMAMALI. Gizlilik ve cerez politikasi bunu
+  yaziyor; kod bir gun IP veya tarayici bilgisi eklerse o metinler
+  sessizce yanlisa duser.
+*/
+for (const yasak of ["user-agent", "userAgent", "ipHash,", "ip:"]) {
+  dogru(
+    !sayacRotasi.includes(`${yasak}`),
+    `sayac rotasi kisi tanimlayan veri yazmamali: ${yasak}`,
+  );
+}
+dogru(
+  /insert\(\{ hedef: "whatsapp", grup: aile\.slug, nereden \}\)/.test(
+    sayacRotasi,
+  ),
+  "sayac yalniz hedef, grup ve nereden alanlarini yazmali",
+);
+
+/*
+  WhatsApp mesajinda YUZDE ISARETI olmamali. "%20" URL'de once %25 olarak
+  kodlaniyor, "%2520" cikiyor ve bazi istemciler bunu bir kez daha cozup
+  yerine bosluk koyuyor -- mesajda "20" kayboluyor. Harflerle yazilmali.
+*/
+const mesajSatirlari = sayacRotasi
+  .split("\n")
+  .filter((s) => s.includes("Merhaba,"));
+dogru(mesajSatirlari.length > 0, "sayac rotasinda hazir mesaj bulunamadi");
+for (const satir of mesajSatirlari) {
+  dogru(
+    !/%\$\{/.test(satir) && !/%\d/.test(satir),
+    `WhatsApp mesajinda yuzde isareti var, "yuzde N" yazilmali: ${satir.trim().slice(0, 60)}`,
+  );
+}
+
+/*
+  Sayac yazilamasa bile yonlendirme yapilmali: veli bir veritabani hatasi
+  yuzunden bekletilemez.
+*/
+dogru(
+  sayacRotasi.includes("try {") && sayacRotasi.includes("} catch {"),
+  "sayac hatasi yonlendirmeyi engellememeli (try/catch)",
+);
+
+/*
+  Cerez politikasi sayaci ACIKCA yazmali. Kod olcum yapip metin
+  "olcmuyoruz" derse, o metin dogru olmaz.
+*/
+const cerezMetni = readFileSync("src/app/cerez/page.tsx", "utf8");
+dogru(
+  cerezMetni.includes("Program sayacı"),
+  "cerez politikasi program sayacini yazmali",
+);
+dogru(
+  !cerezMetni.includes("Biz o tıklamayı ölçmüyoruz"),
+  "cerez politikasindaki 'tiklamayi olcmuyoruz' cumlesi artik dogru degil",
+);
+
+// Migration dosyasi duruyor mu ve anon insert izni VERMEMELI.
+const tiklamaSql = readFileSync(
+  "supabase/migrations/0005_tiklamalar.sql",
+  "utf8",
+);
+dogru(
+  tiklamaSql.includes("enable row level security"),
+  "tiklamalar tablosunda RLS acik olmali",
+);
+dogru(
+  !/for insert/i.test(tiklamaSql),
+  "tiklamalar icin insert politikasi OLMAMALI: sayac konsoldan sisirilebilir",
+);
+
 // ------------------------------------------------------- yasal metinler
 
 /*

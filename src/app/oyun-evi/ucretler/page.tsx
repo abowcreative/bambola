@@ -91,7 +91,12 @@ export default function UcretlerSayfasi() {
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <Sirali className="grid gap-5 sm:grid-cols-2">
           {AILELER.map((a) => (
-            <UcretKarti key={a.slug} aile={a} kampanyaAcik={kampanyaAcik} />
+            <UcretKarti
+              key={a.slug}
+              aile={a}
+              kampanyaAcik={kampanyaAcik}
+              nereden="ucretler"
+            />
           ))}
         </Sirali>
       </section>

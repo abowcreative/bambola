@@ -250,6 +250,7 @@ export default function BilgiSayfasi() {
                 key={a.slug}
                 aile={a}
                 kampanyaAcik={kampanyaAcik}
+                nereden="bilgi"
               />
             ))}
           </Sirali>

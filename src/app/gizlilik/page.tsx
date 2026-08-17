@@ -99,6 +99,18 @@ export default function GizlilikSayfasi() {
       <YasalListe
         ogeler={[
           "Sitede reklam ve izleme çerezi yok, analitik kurulu değil. Sizi sayfalar arasında izlemiyoruz.",
+          <>
+            Tek ölçüm şu: &quot;Bu programa kaydol&quot; düğmesine
+            basıldığında hangi programın seçildiği sayılıyor. Kişiye dair
+            hiçbir bilgi tutulmadan — ayrıntısı{" "}
+            <Link
+              href="/cerez"
+              className="font-medium text-mor underline underline-offset-2"
+            >
+              çerez politikasında
+            </Link>
+            .
+          </>,
           "Yalnız formda yazdığınız bilgileri ve kayıt sürecinin gerektirdiği bilgileri tutuyoruz.",
           "Verinizi pazarlama amacıyla kimseye satmıyoruz, devretmiyoruz.",
           "Çocuğa ait bilgiler yalnız kurumun yetkili çalışanlarının göreceği şekilde saklanıyor.",

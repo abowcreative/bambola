@@ -129,7 +129,12 @@ export default async function YasSayfasi({
 
           <Sirali className="mt-8 grid gap-5 sm:grid-cols-2">
             {aileler.map((a) => (
-              <UcretKarti key={a.slug} aile={a} kampanyaAcik={kampanyaAcik} />
+              <UcretKarti
+                key={a.slug}
+                aile={a}
+                kampanyaAcik={kampanyaAcik}
+                nereden="program"
+              />
             ))}
           </Sirali>
         </section>

@@ -15,13 +15,20 @@ import { SiraliOge } from "./bolum";
  *
  * `kampanyaAcik` cagiran sunucu bileseninden gelir. Kampanya kapaninca
  * ustu cizili fiyat da, indirim rozeti de kendiliginden kaybolur.
+ *
+ * `nereden` tiklama sayacina gidiyor: ayni kart uc sayfada duruyor
+ * (/bilgi, /oyun-evi/ucretler, /oyun-evi/yas/...) ve hangi sayfadan
+ * tiklandigi ayri ayri gorulmeli -- otomasyonun getirdigi ilgi ile
+ * organik trafigin getirdigi ilgi ayni sey degil.
  */
 export function UcretKarti({
   aile,
   kampanyaAcik,
+  nereden = "bilinmiyor",
 }: {
   aile: ProgramAilesi;
   kampanyaAcik: boolean;
+  nereden?: "bilgi" | "ucretler" | "program" | "bilinmiyor";
 }) {
   const indirimli = (p: (typeof aile.paketler)[number]) =>
     erkenKayitGosterilirMi(p, kampanyaAcik);
@@ -90,13 +97,30 @@ export function UcretKarti({
         </ul>
       )}
 
-      <Link
-        href={`/kayit?program=${aile.slug}`}
-        className="mt-6 inline-flex items-center justify-center gap-2 rounded-full border-2 border-yesil px-5 py-2.5 font-baslik font-semibold text-yesil-koyu transition-all duration-200 ease-yayli hover:-translate-y-0.5 hover:bg-lime-rozet hover:text-black"
-      >
-        Bu programa kaydol
-        <Ikon.Ok boyut={17} />
-      </Link>
+      {/*
+        Cagri WHATSAPP'a gidiyor, arada sayac rotasi var
+        (app/git/whatsapp/route.ts): hazir mesaj bu programa ozel yaziliyor
+        ve tiklama "hangi programa kac kisi" olarak sayiliyor.
+
+        Form baglantisi KALDIRILMADI, altina kucuk yazi olarak alindi:
+        WhatsApp konusmayi basliyor ama yapili bir kayit birakmiyor;
+        formu tercih eden veliyi kaybetmemek gerekiyor.
+      */}
+      <div className="mt-6 flex flex-col items-start gap-2">
+        <a
+          href={`/git/whatsapp?grup=${aile.slug}&nereden=${nereden}`}
+          className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-yesil px-5 py-2.5 font-baslik font-semibold text-yesil-koyu transition-all duration-200 ease-yayli hover:-translate-y-0.5 hover:bg-lime-rozet hover:text-black"
+        >
+          <Ikon.Whatsapp boyut={17} />
+          Bu programa kaydol
+        </a>
+        <Link
+          href={`/kayit?program=${aile.slug}`}
+          className="text-sm text-murekkep-soluk underline underline-offset-2 hover:text-yesil-koyu"
+        >
+          ya da kayıt formunu doldurun
+        </Link>
+      </div>
     </SiraliOge>
   );
 }

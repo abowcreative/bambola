@@ -25,13 +25,20 @@ export function istekIp(basliklar: Headers): string {
   return basliklar.get("x-real-ip") ?? "bilinmiyor";
 }
 
-export function sinirAsildiMi(anahtar: string): boolean {
+/**
+ * @param sinir Pencere basina izin verilen istek sayisi. Varsayilan 3, form
+ *   gonderimi icin. Tiklama sayaci gibi ZARARSIZ islerde daha yuksek
+ *   veriliyor: veli dort programi karsilastirirken dordune de tiklayabilir
+ *   ve bu sayilmali. Sinir orada sisirmeyi engellemek icin var, kullanimi
+ *   kisitlamak icin degil.
+ */
+export function sinirAsildiMi(anahtar: string, sinir = SINIR): boolean {
   const simdi = Date.now();
   const gecmis = (kayitlar.get(anahtar) ?? []).filter(
     (t) => simdi - t < PENCERE_MS,
   );
 
-  if (gecmis.length >= SINIR) {
+  if (gecmis.length >= sinir) {
     kayitlar.set(anahtar, gecmis);
     return true;
   }

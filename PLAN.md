@@ -2070,3 +2070,53 @@ Telefonda 8000 pikselden uzun. DM'den gelen kişi genelde tek bir şey arıyor, 
 Veri testi 462'den **471 kontrole** çıktı: sabitlerden okuma, kampanya kontrolü, `indeks: false`, sitemap dışı olma, elle yazılmış fiyat olmaması, iki dosyada geri sayım yasağı ve kaynak etiketinin `KAYNAKLAR` içinde olması.
 
 Tarayıcıda: masaüstü ve telefon, `robots: noindex, follow`, kampanya kutusu ve bütün bölümler yerinde; `?kaynak=instagram` formu ön dolduruyor, geçersiz değer yok sayılıyor.
+
+## 35. Program tıklama sayacı
+
+*(17 Ağustos 2026. İstek: "bu programa kaydol denildiğinde WhatsApp'a mesaj atsın, hangi grubu seçtiyse ona özel olsun; ama arka planda kaç kişi hangi gruba tıkladığını görmem lazım.")*
+
+### Neden araya bir rota kondu
+
+Düğme doğrudan `wa.me` adresine gitse, hazır mesaj programa özel olurdu ama **hiçbir sayım yapılamazdı**: tıklayıp WhatsApp'ı açan sonra vazgeçen kişiden hiç iz kalmaz. Asıl bilgi de tam orada — tıklama sayısı ile gelen mesaj sayısı arasındaki farkta.
+
+Çözüm: `/git/whatsapp?grup=<slug>&nereden=<sayfa>` rotası. Sırayla: grup slug'ını doğrula → say → WhatsApp'a 302 yönlendir.
+
+| Karar | Gerekçe |
+|---|---|
+| Slug `AILELER` ile doğrulanıyor | Beyaz liste olmadan adres çubuğundan gelen her metin veritabanına düşerdi |
+| Sayaç yazılamazsa yönlendirme **yine** yapılıyor | Veliyi bir veritabanı hatası yüzünden bekletmek kabul edilemez; kaybedilen şey bir satır istatistik |
+| 302 (geçici) yönlendirme | Hedef metin kampanya durumuna göre değişiyor; kalıcı yönlendirme tarayıcıda önbelleklenip eski metni taşırdı |
+| `nereden` de yazılıyor | Aynı kart üç sayfada duruyor; otomasyonun getirdiği ilgi ile organik trafiğin getirdiği ilgi ayrı sayılmalı |
+| Beş dakikada 12 tıklama sınırı | Dört programı karşılaştıran veli sayılsın, adres çubuğundan sayacı şişiren sayılmasın |
+
+### Kişi tanımlayan hiçbir şey tutulmuyor
+
+`tiklamalar` tablosunda dört alan var: `id`, `created_at`, `hedef`, `grup`, `nereden`. **IP yok, IP özeti yok, tarayıcı bilgisi yok, çerez yok, oturum kimliği yok.** IP özeti yalnız bellekte, hız sınırı için kullanılıyor ve hiçbir yere yazılmıyor.
+
+Sonuç: iki farklı kişinin tıklaması ile aynı kişinin iki kez tıklaması **ayırt edilemiyor**. Bu bilinçli; sayaç "kaç kişi" değil "kaç tıklama" sayıyor.
+
+Bu yüzden `/cerez` ve `/gizlilik` sayfaları güncellendi ve sayaç açıkça yazıldı. Çerez politikasındaki eski **"Biz o tıklamayı ölçmüyoruz"** cümlesi artık doğru olmadığı için kaldırıldı — veri testi o cümlenin geri gelmesini engelliyor.
+
+### RLS: yazma politikası hiç yok
+
+Tabloyu yalnız admin **okuyor**. Insert politikası **tanımlanmadı**: yazma işlemi sunucudaki rotadan servis anahtarıyla yapılıyor. Anonim istemciye insert izni verilseydi sayaç tarayıcı konsolundan şişirilebilir ve sayı değersiz hale gelirdi. Ölçüldü: anon ne okuyabiliyor ne yazabiliyor.
+
+### Form bağlantısı kaldırılmadı
+
+WhatsApp konuşmayı başlatıyor ama **yapılı bir kayıt bırakmıyor**: çocuğun doğum tarihi, seçilen paket, KVKK onayı hiçbiri gelmiyor. Bu yüzden kartın altında küçük bir "ya da kayıt formunu doldurun" bağlantısı bırakıldı. Formu tercih eden veli kaybedilmiyor.
+
+### Yüzde işareti tuzağı
+
+Hazır mesajda "%20" yazılmıyor, **"yüzde 20"** yazılıyor. Sebep: yüzde işareti URL'de `%25` olarak kodlanınca metin `%2520` oluyor ve bazı istemciler bunu bir kez daha çözüp yerine **boşluk** koyuyor — mesajda "20" kayboluyor. Harflerle yazmak bu sınıf hatayı tamamen ortadan kaldırıyor. Veri testi mesaj satırlarında yüzde işaretini yasaklıyor.
+
+### Panelde nerede görünüyor
+
+Raporlar sayfasında **"Program ilgisi"** bölümü: program program 7 gün / 30 gün / toplam tıklama, yanında hangi sayfadan geldiğinin dağılımı. En çok tıklanan üstte.
+
+Migration çalıştırılmadan yayına çıkılırsa raporlar sayfası **çökmüyor**: tablo yoksa (`42P01`) bölüm "kurulum eksik" diyor, sitenin geri kalanı çalışmaya devam ediyor.
+
+### Doğrulama
+
+Veri testi 471'den **488 kontrole** çıktı: çağrının sayaç rotasından geçmesi, doğrudan `wa.me` bağlantısı olmaması, slug beyaz listesi, kişi tanımlayan alan yazılmaması, sayaç hatasının yönlendirmeyi engellememesi, mesajda yüzde işareti olmaması, çerez politikasının sayacı yazması ve migration'da insert politikası bulunmaması.
+
+Canlı veritabanında **6 kontrol**: tablo var, servis anahtarıyla yazılıyor, kişi tanımlayan kolon yok, tanımsız `hedef` reddediliyor, anon okuyamıyor, anon yazamıyor. Ardından uçtan uca beş tıklama atıldı; panelde doğru program ve kaynak dağılımıyla göründü, test satırları silindi.

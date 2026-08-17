@@ -1,5 +1,6 @@
 import { adminZorunlu } from "@/lib/kampus/oturum";
 import { raporuGetir } from "@/lib/kampus/yoklama";
+import { tiklamaOzeti } from "@/lib/kampus/tiklamalar";
 import { Kabuk, SayfaBasi, Kutu, Sayac } from "@/components/kampus/kabuk";
 import { tlYaz } from "@/lib/data/ucretler";
 import { SLOTLAR } from "@/lib/data/program";
@@ -7,6 +8,14 @@ import { EKIP } from "@/lib/data/ekip";
 
 export const metadata = { title: "Raporlar", robots: { index: false } };
 export const dynamic = "force-dynamic";
+
+/** Tiklamanin yapildigi sayfanin okunur adi. */
+const NEREDEN_ETIKET: Record<string, string> = {
+  bilgi: "bilgi sayfası",
+  ucretler: "ücretler",
+  program: "program sayfası",
+  bilinmiyor: "bilinmiyor",
+};
 
 /** Yuzde. Bolen sifirsa tire. */
 function yuzde(pay: number, bolen: number): string {
@@ -56,7 +65,7 @@ function Oran({
  */
 export default async function RaporlarSayfasi() {
   const oturum = await adminZorunlu();
-  const r = await raporuGetir();
+  const [r, t] = await Promise.all([raporuGetir(), tiklamaOzeti()]);
 
   const bosVeri =
     r.ogrenciSayisi === 0 && r.basvuruSayisi === 0 && r.leadSayisi === 0;
@@ -178,6 +187,70 @@ export default async function RaporlarSayfasi() {
           </dl>
         </Kutu>
       </div>
+
+      {/*
+        Program ilgisi: sitedeki "Bu programa kaydol" tiklamalari.
+        Basvuru ve lead sayilari "kim yazdi"yi gosteriyor; bu tablo "kim
+        ilgilendi ama yazmadi"yi gosteriyor. Ikisi arasindaki fark, hangi
+        programin ilgi cekip kayda donmedigini soyluyor.
+      */}
+      <Kutu
+        baslik="Program ilgisi"
+        className="mt-5"
+        yanCocuk={
+          <span className="text-sm text-murekkep-soluk">
+            {t.yediGun} tıklama / 7 gün · {t.toplam} toplam
+          </span>
+        }
+      >
+        {t.tabloYok ? (
+          <p className="py-4 text-sm leading-relaxed text-murekkep">
+            <strong>Kurulum eksik:</strong> sayaç tablosu henüz açılmamış.
+            <code className="mx-1">supabase/migrations/0005_tiklamalar.sql</code>
+            dosyası Supabase SQL Editor&apos;de çalıştırıldığında bu bölüm
+            kendiliğinden dolmaya başlar. Site tarafı bu arada normal
+            çalışıyor; yalnız sayım yapılmıyor.
+          </p>
+        ) : t.bosMu ? (
+          <p className="py-4 text-sm leading-relaxed text-murekkep-soluk">
+            Henüz tıklama kaydı yok. Sitedeki ücret kartlarındaki &quot;Bu
+            programa kaydol&quot; düğmesine basan her kişi burada program
+            program sayılır. Kişiye dair hiçbir bilgi tutulmaz.
+          </p>
+        ) : (
+          <ul className="divide-y divide-cizgi">
+            {t.programlar.map((p) => (
+              <li
+                key={p.slug}
+                className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block font-baslik text-sm font-bold text-murekkep">
+                    {p.ad}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-murekkep-soluk">
+                    {p.yasEtiket}
+                    {Object.entries(p.nereden).length > 0 && " · "}
+                    {Object.entries(p.nereden)
+                      .sort((a, b) => b[1] - a[1])
+                      .map(([k, v]) => `${NEREDEN_ETIKET[k] ?? k}: ${v}`)
+                      .join(", ")}
+                  </span>
+                </span>
+                <span className="shrink-0 text-xs text-murekkep-soluk">
+                  7 gün: <strong className="text-murekkep">{p.yediGun}</strong>
+                </span>
+                <span className="shrink-0 text-xs text-murekkep-soluk">
+                  30 gün: <strong className="text-murekkep">{p.otuzGun}</strong>
+                </span>
+                <span className="shrink-0 rounded-full bg-lime-rozet px-2.5 py-0.5 font-baslik text-sm font-bold tabular-nums text-black">
+                  {p.toplam}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Kutu>
 
       {bosVeri && (
         <p className="mt-5 rounded-kart border-2 border-dashed border-cizgi bg-white px-5 py-4 text-sm leading-relaxed text-murekkep-soluk">
