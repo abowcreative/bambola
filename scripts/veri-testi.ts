@@ -53,6 +53,7 @@ import {
   yasBandiAileleri,
 } from "../src/lib/yas";
 import { YASAL_SAYFALAR } from "../src/lib/yasal";
+import { KAYNAKLAR } from "../src/lib/schema";
 import { acilisSaatleri } from "../src/lib/seo";
 
 let gecen = 0;
@@ -698,6 +699,75 @@ for (const id of SAAT_ISTISNALARI) {
   );
 }
 
+// ------------------------------------------------- /bilgi (otomasyon sayfasi)
+
+/*
+  Otomasyonun gonderdigi tek sayfa. Ucretler, gruplar ve sorular ORADA
+  YENIDEN YAZILMAMALI; sabitlerden okunmali. Test bunu dosya icerigine
+  bakarak kontrol ediyor: sayfada elle yazilmis bir TL rakami veya saat
+  varsa, bir gun fiyat degistiginde o rakam geride kalir.
+*/
+const sitemapMetni = readFileSync("src/app/sitemap.ts", "utf8");
+const bilgiSayfasi = readFileSync("src/app/bilgi/page.tsx", "utf8");
+
+dogru(
+  bilgiSayfasi.includes("AILELER") &&
+    bilgiSayfasi.includes("KAMPANYA_KOSULLARI") &&
+    bilgiSayfasi.includes("SORULAR"),
+  "/bilgi icerigi sabitlerden okumali (AILELER, KAMPANYA_KOSULLARI, SORULAR)",
+);
+dogru(
+  bilgiSayfasi.includes("kampanyaAcikMi"),
+  "/bilgi kampanya durumunu kontrol etmeli: kapaninca indirim yazisi dusmeli",
+);
+dogru(
+  bilgiSayfasi.includes("indeks: false"),
+  "/bilgi aramaya kapali olmali, /oyun-evi/ucretler ile yarismasin",
+);
+dogru(
+  !sitemapMetni.includes('"/bilgi"'),
+  "/bilgi sitemap'te olmamali",
+);
+
+/*
+  Elle yazilmis fiyat aramasi: dort haneli bir sayinin yaninda "TL" veya
+  bin ayraci. Fiyatlar PAKETLER'den gelmeli.
+*/
+dogru(
+  !/\b\d\.\d{3}\s*TL/.test(bilgiSayfasi) && !/\b\d{4,}\s*TL/.test(bilgiSayfasi),
+  "/bilgi sayfasinda elle yazilmis fiyat var, PAKETLER'den okunmali",
+);
+
+/*
+  Geri sayim yasagi (PLAN.md Bolum 3 madde 4, musteri onayi 17 Agustos 2026).
+  Ne /bilgi sayfasinda ne WhatsApp balonunda "gun kaldi" yazmamali; yalniz
+  son gun tarihi yazilir.
+*/
+for (const dosya of [
+  "src/app/bilgi/page.tsx",
+  "src/components/site/whatsapp-butonu.tsx",
+]) {
+  const metin = readFileSync(dosya, "utf8");
+  dogru(
+    !/gün kaldı/.test(metin),
+    `geri sayim yasak, "gün kaldı" gecmemeli: ${dosya}`,
+  );
+}
+
+/*
+  Kayit baglantisi kaynak etiketi tasimali: otomasyondan gelen talebin
+  panelde sayilabilmesi buna bagli. Etiket KAYNAKLAR icinde olmali,
+  yoksa form onu sessizce yok sayar.
+*/
+const kaynakEslesme = bilgiSayfasi.match(/const KAYNAK = "([^"]+)"/);
+dogru(Boolean(kaynakEslesme), "/bilgi sayfasinda KAYNAK etiketi tanimli olmali");
+if (kaynakEslesme) {
+  dogru(
+    (KAYNAKLAR as readonly string[]).includes(kaynakEslesme[1]),
+    `/bilgi KAYNAK etiketi KAYNAKLAR icinde olmali: ${kaynakEslesme[1]}`,
+  );
+}
+
 // ------------------------------------------------------- yasal metinler
 
 /*
@@ -722,7 +792,6 @@ dogru(
   Yasal sayfalar sitemap'e GIRMEMELI: hepsi indeks disi. Biri sitemap'e
   girerse Google'a "indeksle" derken sayfa "indeksleme" diyor olur.
 */
-const sitemapMetni = readFileSync("src/app/sitemap.ts", "utf8");
 for (const sayfa of YASAL_SAYFALAR) {
   dogru(
     !sitemapMetni.includes(`"${sayfa.yol}"`),

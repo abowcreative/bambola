@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function KayitSayfasi({
   searchParams,
 }: {
-  searchParams: Promise<{ program?: string; kurum?: string }>;
+  searchParams: Promise<{ program?: string; kurum?: string; kaynak?: string }>;
 }) {
   const q = await searchParams;
 
@@ -33,7 +33,11 @@ export default async function KayitSayfasi({
         </p>
       </header>
 
-      <KayitFormuYukleyici onProgram={q.program} onKurum={q.kurum} />
+      <KayitFormuYukleyici
+        onProgram={q.program}
+        onKurum={q.kurum}
+        onKaynak={q.kaynak}
+      />
     </div>
   );
 }

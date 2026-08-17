@@ -5,7 +5,7 @@ import { MARKA, SITE_URL } from "@/lib/site";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { WhatsappButonu } from "@/components/site/whatsapp-butonu";
-import { kampanyaAcikMi, kampanyaKalanGun } from "@/lib/data/ucretler";
+import { kampanyaAcikMi } from "@/lib/data/ucretler";
 import { kampusIstegiMi } from "@/lib/kampus/istek";
 
 /**
@@ -114,10 +114,7 @@ export default async function RootLayout({
               "acik" istemci "kapali" diyebilir ve hydration uyusmazligi
               cikardi (bkz. ucretler.ts, kampanyaAcikMi).
             */}
-            <WhatsappButonu
-              kampanyaAcik={kampanyaAcikMi()}
-              kalanGun={kampanyaKalanGun()}
-            />
+            <WhatsappButonu kampanyaAcik={kampanyaAcikMi()} />
           </>
         )}
       </body>

@@ -2030,3 +2030,43 @@ Veri testi 338'den **460 kontrole** çıktı:
 - Dört yasal sayfanın dosyası var mı, hepsi sitemap dışında mı
 
 Tarayıcıda: dört sayfa 200 dönüyor, metin ilk boyamada görünür, harita onay öncesi hiçbir istek atmıyor.
+
+## 34. `/bilgi`: otomasyonun gönderdiği tek sayfa
+
+*(17 Ağustos 2026. Müşteri erken kayıt için bir Instagram otomasyonu kurdu; "gruplar, sık sorulanlar, ücretler soran herkese bu gidecek" dedi.)*
+
+### Neden beşinci bir içerik sayfası değil
+
+Bu bilgiler zaten dört sayfada duruyor: `/oyun-evi/programlar`, `/oyun-evi/haftalik-program`, `/oyun-evi/ucretler`, `/sss`. Aynı metni bir daha yazmak iki sorun üretirdi: fiyat değişince biri güncellenip öteki eski kalır, ve Google iki sayfayı aynı sorguda birbirine rakip görüp ikisinin de sırasını düşürür.
+
+Çözüm: **tek sayfa, içerik kopyalanmadan.** Sayfa `AILELER`, `PAKETLER`, `KAMPANYA_KOSULLARI` ve `SORULAR` sabitlerinden okuyor. Fiyat bir yerde değişir, iki sayfa birlikte değişir. Veri testi bunu kontrol ediyor: sayfada elle yazılmış bir TL rakamı varsa test düşüyor.
+
+### Kalıcı sayfa, kampanya sayfası değil
+
+Adres sabit (`/bilgi`) çünkü otomasyonun linki bir daha değişmesin. Erken kayıt kutusu yalnız `kampanyaAcikMi()` doğruyken çıkıyor; 1 Eylül'de kutu kendiliğinden düşüyor ve fiyat kartları normal fiyata dönüyor. Tek kontrol, iki sonuç.
+
+Aksi hâlde 5 Eylül'de otomasyon hâlâ "indirim var" diyen bir sayfa göndermeye devam ederdi — ilan edilen fiyat parayla ilgili olduğu için bu, elle kaldırılmaya bırakılamaz.
+
+### Aramaya kapalı
+
+`indeks: false` ve sitemap'te yok. Trafik DM'den geliyor, Google'dan değil; indekslenseydi `/oyun-evi/ucretler` ile aynı sorguda yarışırdı. Sayfa menüde de yok: bağlantı kurumun kendi paylaşacağı bir adres.
+
+### Ölçüm çerezsiz
+
+Çerez politikası "sitede analitik yok" diyor; Google Analytics eklemek o metni yanlışa düşürürdü. Bunun yerine sayfadaki kayıt bağlantısı `?kaynak=instagram` taşıyor ve form "bizi nereden duydunuz" alanını bununla **ön dolduruyor** — veli değiştirebiliyor. Talep `basvurular.kaynak` alanına yazılıyor, panelde sayılabiliyor.
+
+Değer beyaz listeden geçiyor: `?kaynak=hacked` yazıldığında alan boş kalıyor (ölçüldü). Etiket kodda tek bir sabitte; kanal değişirse yalnız orası değişir.
+
+### Geri sayım kaldırıldı
+
+PLAN Bölüm 3 madde 4 geri sayımı yasaklıyor ama WhatsApp balonunda "N gün kaldı" yazan bir satır duruyordu. Müşteri 17 Ağustos 2026'da kararı verdi: **yalnız tarih.** Tarih bilgi verir, geri sayım baskı kurar. Balondaki satır kaldırıldı, `kalanGun` prop'u da zincirden çıktı. Veri testi artık hem `/bilgi` sayfasında hem balonda "gün kaldı" ifadesini yasaklıyor.
+
+### Sayfa uzun, kısayol şeridi var
+
+Telefonda 8000 pikselden uzun. DM'den gelen kişi genelde tek bir şey arıyor, çoğu zaman fiyat. Üstteki şerit (Gruplar · Ücretler · Koşullar · Sorular · Adres ve saat) doğrudan ilgili bölüme götürüyor.
+
+### Doğrulama
+
+Veri testi 462'den **471 kontrole** çıktı: sabitlerden okuma, kampanya kontrolü, `indeks: false`, sitemap dışı olma, elle yazılmış fiyat olmaması, iki dosyada geri sayım yasağı ve kaynak etiketinin `KAYNAKLAR` içinde olması.
+
+Tarayıcıda: masaüstü ve telefon, `robots: noindex, follow`, kampanya kutusu ve bütün bölümler yerinde; `?kaynak=instagram` formu ön dolduruyor, geçersiz değer yok sayılıyor.

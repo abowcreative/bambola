@@ -34,9 +34,17 @@ const KayitFormu = dynamic(
 export function KayitFormuYukleyici({
   onProgram,
   onKurum,
+  onKaynak,
 }: {
   onProgram?: string;
   onKurum?: string;
+  onKaynak?: string;
 }) {
-  return <KayitFormu onProgram={onProgram} onKurum={onKurum} />;
+  return (
+    <KayitFormu
+      onProgram={onProgram}
+      onKurum={onKurum}
+      onKaynak={onKaynak}
+    />
+  );
 }

@@ -82,7 +82,18 @@ type Durum = {
  * olarak isaretliyor. Bu bilesen istemci tarafinda yuklendigi icin
  * (bkz. kayit-formu-yukleyici.tsx) hidrasyon uyusmazligi olusmaz.
  */
-function baslangicDurumu(onProgram?: string, onKurum?: string): Durum {
+/*
+  Adresten gelen on secimler. `onKaynak` /bilgi sayfasindaki cagri
+  baglantisindan geliyor ve "bizi nereden duydunuz" alanini ONERI olarak
+  dolduruyor -- veli degistirebiliyor. Amac: otomasyondan gelen talebi
+  panelde sayabilmek. Cerezli olcum yerine bu yol secildi, cunku sitede
+  hicbir analitik yok ve cerez politikasi bunu yaziyor.
+*/
+function baslangicDurumu(
+  onProgram?: string,
+  onKurum?: string,
+  onKaynak?: string,
+): Durum {
   let d: Durum = { ...BOS };
 
   try {
@@ -90,6 +101,10 @@ function baslangicDurumu(onProgram?: string, onKurum?: string): Durum {
     if (ham) return { ...BOS, ...(JSON.parse(ham) as Partial<Durum>) };
   } catch {
     // depo kapaliysa form yine calisir
+  }
+
+  if (onKaynak && (KAYNAKLAR as readonly string[]).includes(onKaynak)) {
+    d = { ...d, kaynak: onKaynak };
   }
 
   if (onProgram) {
@@ -137,9 +152,11 @@ const ADIM_ADI: Record<AdimKodu, string> = {
 export function KayitFormu({
   onProgram,
   onKurum,
+  onKaynak,
 }: {
   onProgram?: string;
   onKurum?: string;
+  onKaynak?: string;
 }) {
   const router = useRouter();
   /*
@@ -151,7 +168,7 @@ export function KayitFormu({
     state icinde tutuluyor.
   */
   const [kampanyaAcik] = useState(kampanyaAcikMi);
-  const [d, setD] = useState<Durum>(() => baslangicDurumu(onProgram, onKurum));
+  const [d, setD] = useState<Durum>(() => baslangicDurumu(onProgram, onKurum, onKaynak));
   const [adimIndex, setAdimIndex] = useState(0);
   const [yon, setYon] = useState<1 | -1>(1);
   const [hatalar, setHatalar] = useState<Record<string, string>>({});

@@ -17,8 +17,7 @@ import { MarkaLogosu } from "./marka-logosu";
  * Renk sitenin kendi yesili, WhatsApp'in markasal yesili degil: sayfada
  * zaten yesil bir dil var ve ikinci bir yesil yamali duruyordu.
  *
- * DIKKAT: `kampanyaAcik` ve `kalanGun` PROP olarak geliyor, burada
- * hesaplanmiyor. Ucretler dosyasindaki uyari: sayfa onbellekten gelirken
+ * DIKKAT: `kampanyaAcik` PROP olarak geliyor, burada hesaplanmiyor. Ucretler dosyasindaki uyari: sayfa onbellekten gelirken
  * sunucu "acik" istemci "kapali" derse hydration uyusmazligi cikar.
  */
 
@@ -47,13 +46,7 @@ const KAPATMA_ANAHTARI = "bambola-wa-balon-kapali";
     duruyorsa "beliriyor" hissi kayboluyor. */
 const ACILMA_GECIKMESI = 900;
 
-export function WhatsappButonu({
-  kampanyaAcik,
-  kalanGun,
-}: {
-  kampanyaAcik: boolean;
-  kalanGun: number;
-}) {
+export function WhatsappButonu({ kampanyaAcik }: { kampanyaAcik: boolean }) {
   const yol = usePathname();
   const azHareket = useReducedMotion();
   const [balonAcik, setBalonAcik] = useState(false);
@@ -152,11 +145,15 @@ export function WhatsappButonu({
                 <p className="font-baslik text-sm font-bold leading-snug text-murekkep">
                   Erken kayıt indirimi
                 </p>
+                {/*
+                  GERI SAYIM YOK. PLAN.md Bolum 3 madde 4 geri sayimi
+                  yasakliyor; balonda "N gun kaldi" yazan bir satir vardi ve
+                  kurala aykiriydi. Musteri 17 Agustos 2026'da yalniz tarih
+                  yazilmasini onayladi: tarih bilgi verir, geri sayim baski
+                  kurar. /bilgi sayfasi da ayni dili konusuyor.
+                */}
                 <p className="text-xs font-medium text-yesil-koyu">
                   Son gün {KAMPANYA_PENCERESI.sonGun}
-                  {kalanGun > 0 && kalanGun <= 21 && (
-                    <> · {kalanGun} gün kaldı</>
-                  )}
                 </p>
               </div>
               <button
