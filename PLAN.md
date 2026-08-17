@@ -1736,3 +1736,62 @@ odemeler       tahsilat ve borc hareketleri
 ```
 
 `gruplar` tablosu `src/lib/data/program.ts` içindeki slotlardan **türetiliyor**, kopyalanmıyor: program değiştiğinde iki yerde düzeltme yapılmaz.
+
+---
+
+## 29. Kampüs dashboard ve modül haritası
+
+*(17 Ağustos 2026. Müşteri: "en az 10-15 modül, solda, bildiğimiz dashboard mantığında".)*
+
+Panel bir dashboard'a çevrildi: solda gruplanmış modül menüsü, sağda gün özeti.
+
+### Modül listesi tek yerden
+
+`src/lib/kampus/moduller.ts` **21 modülü** taşıyor. Sol menü, panel kısayolları ve yetki kontrolleri hepsi buradan üretiliyor.
+
+Tek liste olmasının sebebi: menüde görünen ama olmayan bir sayfa, ya da olan ama menüde görünmeyen bir sayfa en sık rastlanan panel hatası.
+
+| Grup | Modüller |
+|---|---|
+| Genel | Panel, Haftalık takvim |
+| Kayıt ve satış | Başvurular, Lead'ler, Öğrenciler, Veliler |
+| Eğitim | Sınıflar, Programlar, Yoklama, Ders kayıtları, Öğretmenler |
+| Finans | Paketler ve ücretler, Cari hesap, Tahsilat takibi |
+| Kurum | Mekân, Yemek ve menü, Duyurular, Raporlar |
+| Veli | Çocuğum |
+| Sistem | Kullanıcılar, Entegrasyonlar, Ayarlar |
+
+### Hazır olmayan modüller gizlenmiyor
+
+Her modülün bir `durum` alanı var. Hazır olmayanlar menüde **noktayla işaretli** duruyor ve açıldıklarında neyi beklediklerini yazıyorlar.
+
+Neden boş bir "yakında" ekranı değil: panelde bir ekran açılıp veri girilebiliyor görünürse, girilen veri kaybolur. Neden gizlemek de değil: panelin neyi kapsadığını görmek, neyin henüz olmadığını görmek kadar önemli.
+
+Bekleyen modüller **tek bir dinamik rotayla** karşılanıyor (`app/kampus/[modul]/page.tsx`). On iki boş dosya yazmak, hangisinin gerçekten çalıştığını göremez hale getirirdi. Bir modülün kendi sayfası açıldığı anda Next özel rotayı kullanıyor ve dinamik rota devreden çıkıyor.
+
+### Şu an çalışan sekiz modül
+
+Mevcut veriyle **gerçekten** çalışanlar. Hiçbiri için yeni tablo gerekmedi; hepsi `src/lib/data/*` içindeki veriyi okuyor, yani site neyi gösteriyorsa panel de onu gösteriyor.
+
+| Modül | Ne gösteriyor |
+|---|---|
+| **Panel** | Bekleyen başvuru, bu hafta gelen, bugünkü seanslar, kampanya penceresi |
+| **Haftalık takvim** | 30 seans gün gün, öğretmen yükü çubukları. Öğretmen kendi seanslarını vurgulu görüyor |
+| **Başvurular** | Liste, süzgeç, arama, detay, durum, not |
+| **Programlar** | Dokuz atölye, seans sayısı, günler, öğretmenler |
+| **Öğretmenler** | Kadro, haftalık yük, çalıştığı günler, seans listesi |
+| **Paketler ve ücretler** | Tarife, erken kayıt penceresi, o an geçerli fiyat |
+| **Mekân** | Yirmi kare ve alt metinleri |
+| **Kullanıcılar** | Hesaplar, roller, hesabı olmayan öğretmenler |
+| **Entegrasyonlar** | Bağlantı durumları, **ortam değişkenlerine bakılarak** |
+| **Ayarlar** | Kurum bilgileri, çalışma saatleri (salt okunur) |
+
+### Bilerek yapılmayanlar
+
+**Hesap açma panelde değil**, `npm run kampus:kullanici` betiğinde. Hesap açmak Supabase yönetici anahtarını gerektiriyor ve o anahtar tarayıcıya gitmemeli.
+
+**Ayarlar salt okunur.** Kurum bilgileri `src/lib/site.ts` içinde kod olarak duruyor; site, PDF fiyat listesi, üyelik formu ve schema.org hepsi oradan besleniyor. Düzenlenebilir yapmak o kaynağı veritabanına taşımak demek. Yarım yapmak en kötüsü olurdu: panelde değiştirilip sitede görünmeyen bir alan, yanlış bilgiyi sessizce yayar.
+
+**Mekânda yükleme yok.** Klasör `npm run foto` ile üretiliyor; yüklenen dosya bir sonraki üretimde silinirdi (Bölüm 17).
+
+**Entegrasyon durumları varsayılmıyor**, ortam değişkenlerine bakılarak belirleniyor. "Bağlı" yazıp aslında çalışmayan bir entegrasyon, hiç yazmamaktan kötü.

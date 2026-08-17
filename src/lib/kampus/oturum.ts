@@ -102,9 +102,9 @@ export const adminZorunlu = () => rolZorunlu("admin");
 export function rolAnaSayfasi(rol: Rol): string {
   switch (rol) {
     case "admin":
-      return "/kampus/basvurular";
+      return "/kampus/panel";
     case "ogretmen":
-      return "/kampus/programim";
+      return "/kampus/takvim";
     case "veli":
       return "/kampus/cocugum";
   }

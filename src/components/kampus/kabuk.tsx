@@ -3,25 +3,18 @@ import { MARKA } from "@/lib/site";
 import { MarkaLogosu } from "@/components/site/marka-logosu";
 import { Ikon } from "@/components/ui/ikon";
 import type { Oturum, Rol } from "@/lib/kampus/oturum";
+import { rolunGruplari } from "@/lib/kampus/moduller";
 import { CikisButonu } from "./cikis-butonu";
+import { MenuCekmecesi, YanMenuSutunu } from "./yan-menu";
 
 /**
- * Panel kabugu: ust cubuk, gezinme, icerik alani.
+ * Panel kabugu: ust cubuk, sol menu, icerik alani.
  *
- * Menu ROLE GORE uretiliyor. Ama bu yalniz gorunum: bir ogretmen adres
- * cubuguna /kampus/basvurular yazarsa menude gormemesi onu durdurmaz.
- * Asil engel her sayfanin basindaki `rolZorunlu()` cagrisi ve veritabani
+ * Menu ROLE GORE uretiliyor (lib/kampus/moduller.ts). Ama bu yalniz gorunum:
+ * bir ogretmen adres cubuguna /kampus/cari yazarsa menude gormemesi onu
+ * durdurmaz. Asil engel her sayfanin basindaki `rolZorunlu()` ve veritabani
  * RLS politikalari.
  */
-
-type MenuOgesi = { ad: string; yol: string; roller: Rol[] };
-
-const MENU: MenuOgesi[] = [
-  { ad: "Başvurular", yol: "/kampus/basvurular", roller: ["admin"] },
-  { ad: "Öğrenciler", yol: "/kampus/ogrenciler", roller: ["admin"] },
-  { ad: "Program", yol: "/kampus/programim", roller: ["admin", "ogretmen"] },
-  { ad: "Çocuğum", yol: "/kampus/cocugum", roller: ["veli"] },
-];
 
 const ROL_ETIKET: Record<Rol, string> = {
   admin: "Yönetici",
@@ -38,44 +31,25 @@ export function Kabuk({
   aktifYol: string;
   children: React.ReactNode;
 }) {
-  const menu = MENU.filter((m) => m.roller.includes(oturum.rol));
+  const gruplar = rolunGruplari(oturum.rol);
 
   return (
     <div className="min-h-dvh bg-krem">
-      <header className="sticky top-0 z-40 border-b-2 border-cizgi bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
+      <header className="sticky top-0 z-40 border-b-2 border-cizgi bg-white">
+        <div className="flex items-center gap-3 px-4 py-2.5">
+          <MenuCekmecesi gruplar={gruplar} aktifYol={aktifYol} />
+
           <Link href="/kampus" className="flex shrink-0 items-center gap-2.5">
-            <MarkaLogosu boyut={36} />
-            <span className="hidden font-baslik text-lg font-bold leading-none text-yesil-koyu sm:block">
+            <MarkaLogosu boyut={32} />
+            <span className="font-baslik text-base font-bold leading-none text-yesil-koyu">
               {MARKA.ad}
-              <span className="ml-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-murekkep-soluk">
+              <span className="ml-1.5 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-murekkep-soluk">
                 Kampüs
               </span>
             </span>
           </Link>
 
-          <nav className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
-            {menu.map((m) => {
-              const aktif =
-                aktifYol === m.yol || aktifYol.startsWith(`${m.yol}/`);
-              return (
-                <Link
-                  key={m.yol}
-                  href={m.yol}
-                  aria-current={aktif ? "page" : undefined}
-                  className={`shrink-0 rounded-full px-3.5 py-1.5 font-baslik text-sm font-semibold transition-colors ${
-                    aktif
-                      ? "bg-yesil-koyu text-white"
-                      : "text-murekkep-soluk hover:bg-krem-koyu hover:text-murekkep"
-                  }`}
-                >
-                  {m.ad}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="ml-auto flex shrink-0 items-center gap-3">
             <span className="hidden text-right leading-tight sm:block">
               <span className="block text-sm font-medium text-murekkep">
                 {oturum.adSoyad}
@@ -89,7 +63,12 @@ export function Kabuk({
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">{children}</main>
+      <div className="flex">
+        <YanMenuSutunu gruplar={gruplar} aktifYol={aktifYol} />
+        <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
@@ -106,13 +85,11 @@ export function SayfaBasi({
 }) {
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <h1 className="font-baslik text-2xl font-bold text-murekkep sm:text-3xl">
+      <div className="min-w-0">
+        <h1 className="font-baslik text-2xl font-bold text-murekkep">
           {baslik}
         </h1>
-        {aciklama && (
-          <p className="mt-1.5 text-murekkep-soluk">{aciklama}</p>
-        )}
+        {aciklama && <p className="mt-1 text-murekkep-soluk">{aciklama}</p>}
       </div>
       {cocuklar}
     </div>
@@ -138,6 +115,64 @@ export function BosDurum({
       <p className="mx-auto mt-1.5 max-w-sm leading-relaxed text-murekkep-soluk">
         {aciklama}
       </p>
+    </div>
+  );
+}
+
+/** Panel kutusu. Baslik + icerik, her modulde ayni cerceve. */
+export function Kutu({
+  baslik,
+  yanCocuk,
+  className = "",
+  children,
+}: {
+  baslik?: string;
+  yanCocuk?: React.ReactNode;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      className={`rounded-blok border-2 border-cizgi bg-white p-5 ${className}`}
+    >
+      {baslik && (
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="font-baslik text-base font-bold text-murekkep">
+            {baslik}
+          </h2>
+          {yanCocuk}
+        </div>
+      )}
+      {children}
+    </section>
+  );
+}
+
+/** Sayisal gosterge. */
+export function Sayac({
+  etiket,
+  deger,
+  alt,
+  vurgu = false,
+}: {
+  etiket: string;
+  deger: string | number;
+  alt?: string;
+  vurgu?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-kart border-2 p-4 ${
+        vurgu ? "border-yesil bg-lime-rozet/25" : "border-cizgi bg-white"
+      }`}
+    >
+      <p className="text-xs uppercase tracking-wide text-murekkep-soluk">
+        {etiket}
+      </p>
+      <p className="mt-1 font-baslik text-2xl font-bold tabular-nums text-murekkep">
+        {deger}
+      </p>
+      {alt && <p className="mt-0.5 text-xs text-murekkep-soluk">{alt}</p>}
     </div>
   );
 }
