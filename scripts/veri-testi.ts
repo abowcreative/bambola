@@ -801,10 +801,12 @@ for (const aile of AILELER) {
       Boolean(atolyeBul(atolye.slug)),
       `${aile.slug} -> ${atolye.slug}: atolye bulunamadi`,
     );
-    dogru(
-      atolye.slug !== aile.slug,
-      `${aile.slug}: aile slug'i ile atolye slug'i ayni olmamali`,
-    );
+    /*
+      "Aile slug'i ile atolye slug'i ayni olmasin" diye bir kontrol
+      YAZILMADI: TypeScript iki turun (AtolyeSlug, ProgramAilesiSlug)
+      kesismedigini zaten biliyor ve boyle bir karsilastirma derleme
+      hatasi veriyor. Tur sistemi garanti ediyorsa test gereksizdir.
+    */
   }
 }
 
