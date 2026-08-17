@@ -6,9 +6,10 @@
  * ve schema legalName alaninda gecer.
  *
  * TEYIT BEKLEYENLER (PLAN.md Bolum 14, madde 9 ve 13):
- * Adres, telefon, WhatsApp, e-posta, Instagram ve calisma saatleri henuz gelmedi.
- * Bunlar null birakildi. null olan bir iletisim kanali icin site hicbir yerde
- * cagri yapmaz (Bolum 3, madde 5: "kap olmadan cagri yapilmaz").
+ * Adres, telefon, WhatsApp ve Instagram GELDI. Eksik kalanlar: e-posta,
+ * calisma saatleri ve vergi bilgileri (KVKK metni icin).
+ * Eksikler null birakiliyor. null olan bir iletisim kanali icin site hicbir
+ * yerde cagri yapmaz (Bolum 3, madde 5: "kap olmadan cagri yapilmaz").
  */
 
 export const MARKA = {
@@ -54,7 +55,14 @@ const POSTA_KODU = "06450";
  */
 export const ILETISIM = {
   telefon: "0542 641 66 08" as string | null,
-  /** 905XXXXXXXXX formatinda, basinda arti yok. wa.me baglantisi bundan uretilir. */
+  /**
+   * 905XXXXXXXXX formatinda, basinda arti yok. wa.me baglantisi bundan uretilir.
+   *
+   * TELEFONLA AYNI HAT. Musteri 17 Agustos 2026'da teyit etti: ayri bir
+   * WhatsApp numarasi yok. Iki alan yine de ayri duruyor -- ileride ayri bir
+   * hat alinirsa yalniz burasi degisir. Ikisinin ayni kalmasi veri testiyle
+   * korunuyor (scripts/veri-testi.ts).
+   */
   whatsapp: "905426416608" as string | null,
   eposta: null as string | null,
   instagram: "https://www.instagram.com/bambolaoyunvepartievi/" as string | null,

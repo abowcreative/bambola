@@ -1015,7 +1015,8 @@ Bunlar müşteriden gelmeden ilgili bölüm yayına çıkmaz.
    - ✅ Instagram: bambolaoyunvepartievi
    - ✅ Adres: Osmantemiz Mah. 1022. Cad, Dikmen Cd. No: 2/A, 06450 Çankaya/Ankara *(16 Ağustos 2026'da müşterinin verdiği tam hâl. Posta kodu ilk kez burada geldi.)*
    - ✅ ~~**Dikmen mi Çankaya mı?**~~ **ÇÖZÜLDÜ, 16 Ağustos 2026.** İkisi aynı türden bilgi değilmiş: **Dikmen bir cadde adı** (Dikmen Caddesi), **ilçe Çankaya**. Afişlerdeki "Dikmen, Ankara" kısaltması bu ikisini birbirine karıştırıyordu, eski adres satırı da ("No: 2/A Dikmen, Çankaya, Ankara") aynı karışıklığı taşıyordu. Site ilçe olarak Çankaya kullanmaya devam ediyor; "Dikmen" artık cadde satırının içinde geçiyor.
-   - ⏳ Hâlâ eksik: e-posta, WhatsApp hattının ayrı numarası olup olmadığı, vergi bilgileri (KVKK metni için), çalışma saatleri.
+   - ✅ ~~**WhatsApp hattının ayrı numarası var mı?**~~ **ÇÖZÜLDÜ, 17 Ağustos 2026.** Müşteri numarayı verdi: **+90 542 641 66 08** — telefonla **aynı hat**, ayrı bir WhatsApp numarası yok. Sitede zaten bu numara duruyordu (afişten okunmuştu); artık sahibinden teyitli. İkisinin ayrı alanlarda tutulup birbirinden sapmaması veri testiyle korunuyor.
+   - ⏳ Hâlâ eksik: e-posta, vergi bilgileri (KVKK metni için), çalışma saatleri.
    - ✅ **Google Business Profile kaydı geldi, 16 Ağustos 2026.** Bkz. Bölüm 22.
      - Google'daki işletme adı: **BAMBOLA OYUN VE PARTİ EVİ**
      - Koordinat: `39.8739282, 32.8394536`

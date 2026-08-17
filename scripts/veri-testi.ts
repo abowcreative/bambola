@@ -545,6 +545,20 @@ if (ILETISIM.whatsapp) {
 }
 
 /*
+  WhatsApp ve telefon AYNI HAT: musteri 17 Agustos 2026'da teyit etti
+  (Bolum 14, madde 9). Iki alan ayri durdugu icin biri degisip oteki eski
+  halde kalabilir; ekranda hicbir sey bozulmaz, yalniz yanlis numaraya
+  yazilir. Ayri bir WhatsApp hatti alinirsa bu test de birlikte guncellenir.
+*/
+if (ILETISIM.whatsapp && ILETISIM.telefon) {
+  const telefonHanesi = `90${ILETISIM.telefon.replace(/\D/g, "").replace(/^0/, "")}`;
+  dogru(
+    ILETISIM.whatsapp === telefonHanesi,
+    `WhatsApp telefonla ayni hat olmali: ${ILETISIM.whatsapp} ≠ ${telefonHanesi}`,
+  );
+}
+
+/*
   Isim tarafi: musteri karari (c). Footer NAP'i ve schema `name` alani Google
   kaydindaki adi tasimali, tuzel ad da parantez icinde gorunmeli. Ikisinden
   biri dusudugunde yerel SEO sessizce bolunur, ekranda hicbir sey bozulmaz --
