@@ -145,7 +145,7 @@ async function main() {
       options: { redirectTo: `${site}/sifre-belirle` },
     });
 
-  if (baglantiHatasi || !baglanti.properties?.action_link) {
+  if (baglantiHatasi || !baglanti.properties?.hashed_token) {
     console.error(
       "\nBaglanti uretilemedi:",
       baglantiHatasi?.message ?? "bilinmeyen hata",
@@ -157,10 +157,26 @@ async function main() {
     process.exit(1);
   }
 
+  /*
+    Supabase'in kendi `action_link` adresi KULLANILMIYOR.
+
+    O adres /auth/v1/verify uzerinden gecip belirteci adres parcasinda
+    (hash) birakiyor. Tarayici istemcimiz @supabase/ssr ve o varsayilan
+    olarak PKCE akisinda; PKCE'de tarayicida saklanmis bir dogrulayici
+    aranıyor, baglantiyla gelen kisinin ise oyle bir kaydi yok. Sonuc:
+    belirtec goz ardi ediliyor ve sayfa "gecersiz baglanti" diyor.
+
+    Yerine ham `hashed_token` dogrudan sayfamiza veriliyor; sayfa
+    `verifyOtp` cagirarak oturumu kendisi kuruyor. Bu yontem akistan
+    bagimsiz calisiyor.
+  */
+  const hedef = new URL(`${site}/sifre-belirle`);
+  hedef.searchParams.set("belirtec", baglanti.properties.hashed_token);
+
   console.log(
     "\n--- SIFRE BELIRLEME BAGLANTISI ---\n" +
       "Yalniz hesap sahibine verilir, tek kullanimlik ve suresi sinirli.\n\n" +
-      baglanti.properties.action_link +
+      hedef.toString() +
       "\n",
   );
 }

@@ -15,6 +15,8 @@ const EN_AZ = 8;
 export function SifreFormu() {
   const yonlendirici = useRouter();
   const [hazir, setHazir] = useState<boolean | null>(null);
+  /** Baglanti calismadiysa Supabase'in soyledigi sebep. Teshis icin. */
+  const [sebep, setSebep] = useState<string | null>(null);
   const [sifre, setSifre] = useState("");
   const [tekrar, setTekrar] = useState("");
   const [hata, setHata] = useState<string | null>(null);
@@ -22,33 +24,55 @@ export function SifreFormu() {
   const [bekliyor, basla] = useTransition();
 
   /*
-    Baglantidaki belirtec tarayici istemcisi tarafindan adres parcasindan
-    okunup gecici oturuma cevriliyor. Bu bir an suruyor, o yuzden once
-    oturumun gerceklesip gerceklesmedigine bakiliyor: gecersiz veya suresi
-    dolmus baglantiyla gelen kisi bos bir form doldurup hata almasin.
+    Belirtec adres SORGUSUNDAN aliniyor ve `verifyOtp` ile oturuma
+    cevriliyor.
+
+    Neden Supabase'in kendi baglantisi degil: o baglanti belirteci adres
+    parcasinda (hash) birakiyor, @supabase/ssr ise varsayilan olarak PKCE
+    akisinda ve tarayicida saklanmis bir dogrulayici ariyor. Baglantiyla
+    gelen kiside oyle bir kayit yok, belirtec goz ardi ediliyordu.
+    `verifyOtp` akistan bagimsiz calisiyor.
   */
   useEffect(() => {
-    const db = tarayiciIstemcisi();
     let iptal = false;
 
-    const bak = async () => {
-      const {
-        data: { session },
-      } = await db.auth.getSession();
-      if (!iptal) setHazir(Boolean(session));
-    };
+    (async () => {
+      const belirtec = new URLSearchParams(window.location.search).get(
+        "belirtec",
+      );
 
-    // Belirtec islenince olay tetikleniyor; ilk bakis kaciran durumu kapatiyor.
-    const { data: abone } = db.auth.onAuthStateChange((_olay, oturum) => {
-      if (!iptal && oturum) setHazir(true);
-    });
+      if (!belirtec) {
+        // Zaten oturumu acik biri sifresini degistirmek icin gelmis olabilir.
+        const {
+          data: { session },
+        } = await tarayiciIstemcisi().auth.getSession();
+        if (!iptal) setHazir(Boolean(session));
+        return;
+      }
 
-    const zamanlayici = setTimeout(bak, 600);
+      const { error } = await tarayiciIstemcisi().auth.verifyOtp({
+        token_hash: belirtec,
+        type: "recovery",
+      });
+
+      if (iptal) return;
+      if (error) {
+        setHazir(false);
+        setSebep(error.message);
+        return;
+      }
+
+      /*
+        Belirtec adres cubugundan siliniyor: sayfa yenilenirse ayni
+        belirtec ikinci kez kullanilmaya calisilir ve "gecersiz" hatasi
+        verir, oysa oturum aslinda acilmistir.
+      */
+      window.history.replaceState(null, "", window.location.pathname);
+      setHazir(true);
+    })();
 
     return () => {
       iptal = true;
-      clearTimeout(zamanlayici);
-      abone.subscription.unsubscribe();
     };
   }, []);
 
@@ -91,8 +115,15 @@ export function SifreFormu() {
           Bu bağlantı geçersiz veya süresi dolmuş.
         </p>
         <p className="text-sm leading-relaxed text-murekkep-soluk">
-          Kurum yöneticisinden yeni bir bağlantı isteyin.
+          Bağlantılar tek kullanımlıktır: bir kez açıldıktan sonra ikinci kez
+          çalışmaz. Yeni bağlantı için kurum yöneticisine başvurun.
         </p>
+        {/* Sebep gizlenmiyor: "gecersiz" demek sorunu teshis ettirmiyor. */}
+        {sebep && (
+          <p className="rounded-yumusak bg-krem px-3 py-2 font-mono text-xs text-murekkep-soluk">
+            {sebep}
+          </p>
+        )}
       </div>
     );
   }
