@@ -71,7 +71,7 @@ export default function AnaSayfa() {
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute -left-24 -top-24 size-[26rem] rounded-full bg-lime-rozet/40 blur-3xl" />
-          <div className="absolute -right-20 top-40 size-[20rem] rounded-full bg-kum/35 blur-3xl" />
+          <div className="absolute -right-20 top-40 size-[20rem] rounded-full bg-lime-rozet/30 blur-3xl" />
         </div>
 
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-[1.05fr_0.95fr]">
@@ -183,10 +183,10 @@ export default function AnaSayfa() {
                 <Ayi boyut={78} className="text-yesil-koyu" />
               </Cikartma>
               <Cikartma konum="-left-4 bottom-16 sm:-left-8" gecikme="-2.2s">
-                <Tavsan boyut={72} className="text-mor" dolgu="#ffffff" />
+                <Tavsan boyut={72} className="text-yesil-derin" dolgu="#ffffff" />
               </Cikartma>
               <Cikartma konum="-bottom-3 right-8" gecikme="-0.6s">
-                <Kedi boyut={70} className="text-mor" dolgu="#d8c09a" />
+                <Kedi boyut={70} className="text-yesil-derin" dolgu="#bdf270" />
               </Cikartma>
             </div>
           </Belir>
@@ -307,7 +307,7 @@ export default function AnaSayfa() {
           <div className="mb-8 flex justify-center gap-6">
             <Kule boyut={92} className="text-yesil-koyu" />
             <Ayi boyut={92} className="text-yesil-koyu sm:size-28" />
-            <Tavsan boyut={92} className="hidden text-mor sm:block" />
+            <Tavsan boyut={92} className="hidden text-yesil-derin sm:block" />
           </div>
 
           <BolumBasligi
@@ -430,19 +430,19 @@ export default function AnaSayfa() {
             <Link
               href="/anaokulu"
               data-kol="anaokulu"
-              className="group flex h-full flex-col rounded-blok border-2 border-cizgi bg-mor p-8 transition-all duration-200 ease-yayli hover:-translate-y-1 hover:shadow-mor"
+              className="group flex h-full flex-col rounded-blok border-2 border-cizgi bg-yesil-derin p-8 transition-all duration-200 ease-yayli hover:-translate-y-1 hover:shadow-kart-hover"
             >
-              <span className="grid size-14 place-items-center rounded-full bg-kum text-mor transition-transform duration-200 group-hover:scale-110">
+              <span className="grid size-14 place-items-center rounded-full bg-lime-rozet text-black transition-transform duration-200 group-hover:scale-110">
                 <Ikon.Ampul boyut={28} />
               </span>
               <h2 className="mt-5 font-baslik text-2xl font-bold text-white">
                 Anaokulu
               </h2>
-              <p className="mt-3 flex-1 leading-relaxed text-kum">
+              <p className="mt-3 flex-1 leading-relaxed text-lime-rozet">
                 Bu sene açılıyor. Oyun evinde başlayan çocuk, yaşı gelince aynı
                 çatının altında devam ediyor.
               </p>
-              <span className="mt-5 inline-flex items-center gap-2 font-baslik font-semibold text-kum">
+              <span className="mt-5 inline-flex items-center gap-2 font-baslik font-semibold text-lime-rozet">
                 Ön kayıt ve bilgi
                 <Ikon.Ok boyut={17} />
               </span>

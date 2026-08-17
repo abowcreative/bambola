@@ -73,7 +73,7 @@ export function YasalSayfa({
                 <li key={s.yol}>
                   <Link
                     href={s.yol}
-                    className="font-medium text-mor underline underline-offset-2"
+                    className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
                   >
                     {s.ad}
                   </Link>

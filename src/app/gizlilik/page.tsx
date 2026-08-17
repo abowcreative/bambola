@@ -105,7 +105,7 @@ export default function GizlilikSayfasi() {
             hiçbir bilgi tutulmadan — ayrıntısı{" "}
             <Link
               href="/cerez"
-              className="font-medium text-mor underline underline-offset-2"
+              className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
             >
               çerez politikasında
             </Link>
@@ -124,7 +124,7 @@ export default function GizlilikSayfasi() {
         alındığı{" "}
         <Link
           href="/kvkk"
-          className="font-medium text-mor underline underline-offset-2"
+          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
         >
           KVKK aydınlatma metninde
         </Link>{" "}
@@ -190,7 +190,7 @@ export default function GizlilikSayfasi() {
         başvurulacağı{" "}
         <Link
           href="/kvkk"
-          className="font-medium text-mor underline underline-offset-2"
+          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
         >
           KVKK aydınlatma metninde
         </Link>{" "}

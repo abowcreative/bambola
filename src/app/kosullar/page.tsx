@@ -77,7 +77,7 @@ export default function KosullarSayfasi() {
         ve teknik kayıt tutulur. Ayrıntısı{" "}
         <Link
           href="/kvkk"
-          className="font-medium text-mor underline underline-offset-2"
+          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
         >
           KVKK aydınlatma metninde
         </Link>
@@ -112,7 +112,7 @@ export default function KosullarSayfasi() {
         {ILETISIM.telefon ? (
           <a
             href={`tel:${ILETISIM.telefon.replace(/\s/g, "")}`}
-            className="font-medium text-mor underline underline-offset-2"
+            className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
           >
             {ILETISIM.telefon}
           </a>
@@ -122,7 +122,7 @@ export default function KosullarSayfasi() {
         üzerinden ya da{" "}
         <Link
           href="/iletisim"
-          className="font-medium text-mor underline underline-offset-2"
+          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
         >
           iletişim sayfasından
         </Link>{" "}

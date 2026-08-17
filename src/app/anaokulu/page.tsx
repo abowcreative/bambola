@@ -103,9 +103,9 @@ export default function AnaokuluSayfasi() {
           {OLGULAR.map((o) => (
             <SiraliOge
               key={o.baslik}
-              className="rounded-kart border-2 border-cizgi bg-white p-6 transition-all duration-200 ease-yayli hover:-translate-y-1 hover:border-mor hover:shadow-mor"
+              className="rounded-kart border-2 border-cizgi bg-white p-6 transition-all duration-200 ease-yayli hover:-translate-y-1 hover:border-yesil hover:shadow-kart-hover"
             >
-              <span className="oyna grid size-12 place-items-center rounded-full bg-kum text-mor">
+              <span className="oyna grid size-12 place-items-center rounded-full bg-lime-rozet text-black">
                 <DinamikIkon ad={o.ikon} boyut={24} />
               </span>
               <h3 className="mt-4 font-baslik text-lg font-bold text-murekkep">
@@ -120,13 +120,13 @@ export default function AnaokuluSayfasi() {
       </section>
 
       {/* --- yas merdiveni --- */}
-      <section className="border-y border-cizgi bg-mor">
+      <section className="border-y border-cizgi bg-yesil-derin">
         <div className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 sm:py-20">
           <Belir>
             <h2 className="font-baslik text-3xl font-bold text-white sm:text-4xl">
               Oyun evinden anaokuluna
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-kum">
+            <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-lime-rozet">
               Çocuk altı aylıkken bebek grubuyla tanışıyor, yürümeye başlayınca
               oyun grubuna geçiyor, otuz ayı geçince ebeveyninden ayrılmayı
               öğreniyor ve anaokuluna hazır hale geliyor. Hepsi aynı kurumda,
@@ -143,13 +143,13 @@ export default function AnaokuluSayfasi() {
                   key={a.ad}
                   className="rounded-kart bg-white/10 p-5 backdrop-blur-sm"
                 >
-                  <span className="font-baslik text-sm font-bold text-kum">
+                  <span className="font-baslik text-sm font-bold text-lime-rozet">
                     {i + 1}. adım
                   </span>
                   <p className="mt-1 font-baslik text-lg font-bold text-white">
                     {a.ad}
                   </p>
-                  <p className="mt-0.5 text-sm text-kum">{a.yas}</p>
+                  <p className="mt-0.5 text-sm text-lime-rozet">{a.yas}</p>
                 </li>
               ))}
             </ol>

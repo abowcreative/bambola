@@ -104,7 +104,7 @@ export default function KvkkSayfasi() {
         (sınıf, yoklama, ödeme) bu metnin kapsamı dışındadır ve{" "}
         <Link
           href="/gizlilik"
-          className="font-medium text-mor underline underline-offset-2"
+          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
         >
           gizlilik politikasında
         </Link>{" "}
@@ -142,7 +142,7 @@ export default function KvkkSayfasi() {
         taraflar olarak devrededir; hangi sağlayıcıların devrede olduğu{" "}
         <Link
           href="/gizlilik"
-          className="font-medium text-mor underline underline-offset-2"
+          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
         >
           gizlilik politikasında
         </Link>{" "}
@@ -166,7 +166,7 @@ export default function KvkkSayfasi() {
         kullanılmaz; ayrıntısı{" "}
         <Link
           href="/cerez"
-          className="font-medium text-mor underline underline-offset-2"
+          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
         >
           çerez politikasında
         </Link>
@@ -185,7 +185,7 @@ export default function KvkkSayfasi() {
         {ILETISIM.eposta ? (
           <a
             href={`mailto:${ILETISIM.eposta}`}
-            className="font-medium text-mor underline underline-offset-2"
+            className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
           >
             {ILETISIM.eposta}
           </a>
@@ -200,7 +200,7 @@ export default function KvkkSayfasi() {
         Kayıt formuna dönmek için{" "}
         <Link
           href="/kayit"
-          className="font-medium text-mor underline underline-offset-2"
+          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
         >
           buraya tıklayın
         </Link>

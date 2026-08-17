@@ -130,14 +130,14 @@ export default function CerezSayfasi() {
         Hangi kişisel veriyi topladığımız ve nerede sakladığımız{" "}
         <Link
           href="/gizlilik"
-          className="font-medium text-mor underline underline-offset-2"
+          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
         >
           gizlilik politikasında
         </Link>
         , kayıt formundaki alanların tamamı{" "}
         <Link
           href="/kvkk"
-          className="font-medium text-mor underline underline-offset-2"
+          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
         >
           KVKK aydınlatma metninde
         </Link>{" "}

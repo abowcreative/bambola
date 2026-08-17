@@ -73,7 +73,7 @@ export function HeroFotograf() {
       />
       <motion.div
         aria-hidden="true"
-        className="absolute -inset-2 bg-kum/45"
+        className="absolute -inset-2 bg-lime-rozet/40"
         animate={sekil}
         transition={sekilGecisi}
       />

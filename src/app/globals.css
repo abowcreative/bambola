@@ -68,11 +68,20 @@
     --kol-vurgu-metin: #000000;
   }
 
+  /*
+    Anaokulu kolu da KURUMSAL YESIL. Musteri karari, 17 Agustos 2026:
+    "anaokulu neden mor, kurumsal rengimizde olsun".
+
+    Kol mekanizmasi kaldi ki mor geri istenirse yalniz bu dort satir
+    degissin; sayfalarda tek tek renk aramak gerekmesin. Mor palet
+    (--color-mor, --color-kum) sozlukte duruyor: anaokulunun kendi
+    AMBLEMI mor ve o degismiyor.
+  */
   [data-kol="anaokulu"] {
-    --kol-ana: var(--color-mor);
-    --kol-koyu: var(--color-mor);
-    --kol-vurgu: var(--color-kum);
-    --kol-vurgu-metin: var(--color-mor);
+    --kol-ana: var(--color-yesil);
+    --kol-koyu: var(--color-yesil-koyu);
+    --kol-vurgu: var(--color-lime-rozet);
+    --kol-vurgu-metin: #000000;
   }
 
   html {

@@ -31,7 +31,7 @@ export default function BulunamadiSayfasi() {
           aria-hidden="true"
           className="sallan mx-auto grid size-28 place-items-center rounded-full border-4 border-white bg-krem-koyu shadow-kart"
         >
-          <Tavsan boyut={72} className="text-mor" dolgu="#ffffff" />
+          <Tavsan boyut={72} className="text-yesil-derin" dolgu="#ffffff" />
         </span>
 
         {/* Lime denendi ama krem zeminde neredeyse gorunmuyordu; sayi
