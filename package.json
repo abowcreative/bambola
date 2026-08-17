@@ -12,6 +12,7 @@
     "test:font": "node scripts/font-testi.mjs",
     "test:supabase": "tsx scripts/supabase-kontrol.ts",
     "env:vercel": "node scripts/env-vercele-tasi.mjs",
+    "kampus:kullanici": "tsx scripts/kampus-admin-ekle.ts",
     "test": "npm run test:veri && npm run build && npm run test:font",
     "belge:pdf": "tsx scripts/fiyat-pdf.ts && tsx scripts/uyelik-formu.ts",
     "belge:sosyal": "tsx scripts/sosyal-post.ts",
