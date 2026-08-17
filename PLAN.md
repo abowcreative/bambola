@@ -123,7 +123,7 @@ Bunlar önceki çalışmalarda patron kararı olarak netleşti. İhlal edilmez.
 1. **Görünen metinde uzun tire (—) yok.** Normal tire veya virgül kullanılır.
 2. **Emoji yok.** İkon seti kullanılır.
 3. **Teyit edilmemiş rakam metne girmez.** Kontenjan doluluğu, öğrenci sayısı, yıl sayısı, memnuniyet oranı.
-4. **Kapanış tarihi ilan edilmez.** "Erken kayıt dönemi başladı" denir. Geri sayım, "son gün", "üç gün kaldı" gibi ifadeler kullanılmaz. Aciliyet tarihten değil kontenjandan gelir: grup saatleri sınırlı ve dolduğu sırayla kapanır.
+4. **Geri sayım yapılmaz, tarih yazılır.** *(17 Ağustos 2026'da güncellendi. Önceki hali "kapanış tarihi ilan edilmez" idi; kurum tarihi kendi afişlerinde ve otomasyonunda zaten ilan ediyordu, müşteri de sitenin aynı dili konuşmasını onayladı.)* "Son gün 1 Eylül" yazılır; "üç gün kaldı", "N gün kaldı" gibi geri sayım ifadeleri kullanılmaz. Tarih bilgi verir, geri sayım baskı kurar. Kural veri testiyle korunuyor: `/bilgi` sayfasında ve WhatsApp balonunda "gün kaldı" ifadesi yasak.
    > ⚠️ **Çelişki var, karar gerekiyor.** Yeni Excel'in ücret sayfasında kampanya penceresi açıkça yazılı: **10.08.2026 - 01.09.2026**. Bu, "tarih verilmez" kuralıyla çelişiyor. Bkz. Bölüm 14, madde 1.
 5. **Kap olmadan çağrı yapılmaz.** Kayıt formu ve WhatsApp hattı yayına girmeden hiçbir kanalda "kayıt al" çağrısı yapılmaz. Sitenin sabaha kadar bitmesinin asıl sebebi bu.
 6. **Çocuk yüzü için yazılı veli izni.** Sitede kullanılacak her fotoğrafta geçerli.
@@ -2120,3 +2120,28 @@ Migration çalıştırılmadan yayına çıkılırsa raporlar sayfası **çökm�
 Veri testi 471'den **488 kontrole** çıktı: çağrının sayaç rotasından geçmesi, doğrudan `wa.me` bağlantısı olmaması, slug beyaz listesi, kişi tanımlayan alan yazılmaması, sayaç hatasının yönlendirmeyi engellememesi, mesajda yüzde işareti olmaması, çerez politikasının sayacı yazması ve migration'da insert politikası bulunmaması.
 
 Canlı veritabanında **6 kontrol**: tablo var, servis anahtarıyla yazılıyor, kişi tanımlayan kolon yok, tanımsız `hedef` reddediliyor, anon okuyamıyor, anon yazamıyor. Ardından uçtan uca beş tıklama atıldı; panelde doğru program ve kaynak dağılımıyla göründü, test satırları silindi.
+
+## 36. Öğrenci ve veli bilgi formunun içe aktarılması
+
+*(17 Ağustos 2026. Kurum doldurduğu Excel'i gönderdi: 10 öğrenci, velileriyle.)*
+
+Panele elle on kayıt girmek yerine tek komut: `npm run ogrenci:ice-aktar -- <form.xlsx> [yaz]`. `yaz` verilmezse hiçbir şey yazmaz, yalnız ne olacağını gösterir — gerçek çocuk verisiyle çalışan bir betiğin varsayılanı bu olmalı.
+
+### Kararlar ve gerekçeleri
+
+| Karar | Neden |
+|---|---|
+| **Sınıf ataması yapılmıyor** | Excel'de yalnız grup adı var ("16-24 ay", "okula hazırlık 30+ ay"); gün ve saat yok. Panelde 29 sınıf var ve hangisi olduğu belirsiz. Tahminle atamak yanlış yoklama listesi demek. Grup metni öğrencinin notuna yazılıyor, atamayı yönetici yapıyor |
+| **Aynı çocuk atlanıyor** | Ad + soyad + doğum tarihi eşleşirse geçiliyor. Betik iki kez koşarsa kayıt ikilenmiyor; ölçüldü |
+| **Veli telefona göre tekilleniyor** | Kardeş kaydında ikinci veli kartı ve bölünmüş aile bakiyesi olmasın |
+| **Veli yazılamazsa öğrenci geri alınıyor** | Velisi olmayan öğrenci kaydı, kime ulaşılacağı bilinmeyen bir kayıt |
+| **Eksik haneli telefon uydurulmuyor** | Bir velinin numarası 9 hane geldi. Eksik hane tahmin edilmedi: numara olduğu gibi yazıldı, veli notuna uyarı düşüldü ve özet listesinde gösterildi. Yanlış bir numarayı "düzeltilmiş" gibi kaydetmek, hiç kaydetmemekten kötü |
+| **Adlar düzeltiliyor** | Excel'de "yünlü", "barlas", "mustafa melikşah" gibi karışık yazım vardı. Türkçe harf kurallarıyla baş harfler büyütülüyor; nüfusta nasıl yazıldığı ayrı bir teyit konusu |
+| **Alerji "yok" ise boş** | "Yok" metnini alerji alanına yazmak, alerji listesinde on tane "yok" satırı demek |
+| **xlsx bağımlılığı yok** | Dosya zip; `unzip` ile açılıp sharedStrings ve sheet1 XML'i okunuyor. Tek seferlik bir kurulum aracı için pakete gerek yok |
+
+### Sonuç
+
+10 öğrenci, 10 veli ve 10 öğrenci-veli bağlantısı yazıldı. Panelde Öğrenciler sayfası doğruladı: hepsi aktif, yaşlar doğum tarihinden doğru hesaplanıyor.
+
+⏳ **Bekleyen üç şey:** (1) bir velinin eksik haneli telefonu, (2) hangi çocuğun hangi gün-saat sınıfına yazılacağı, (3) Yağız 15 aylık ama "16-24 ay" grubuna yazılmış — kurum bilerek aldıysa sorun yok.

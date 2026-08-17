@@ -53,7 +53,7 @@ export default function PartiSayfasi() {
       <SayfaBasligi
         ustBaslik="Parti evi"
         baslik="Doğum gününü tanıdığı yerde kutlasın"
-        aciklama={`${MARKA.ad}, ${MARKA.altBaslik}. Parti evi oyun evinin ayrılmaz parçası, markanın adında da öyle geçiyor.`}
+        aciklama={`${MARKA.ad} parti evi, oyun evinin ayrılmaz parçası. Aynı mekân, aynı öğretmenler, çocuğun tanıdığı yer.`}
         cocuklar={
           <ButonLink href="/kayit?kurum=parti" olcu="lg">
             Parti için bilgi isteyin
