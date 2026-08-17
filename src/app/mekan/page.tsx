@@ -315,11 +315,24 @@ export default function MekanSayfasi() {
   );
 }
 
+/*
+  BILEREK GOSTERILMEYEN kareler. Liste bos degilse sebebi yaninda yazili
+  olmali: "unutulmus kare" ile "kaldirilmasi istenen kare" ayri seyler ve
+  asagidaki kontrolun anlami buna bagli.
+*/
+const GOSTERILMEYEN: Record<string, string> = {
+  // Musteri istegi, 17 Agustos 2026: dogum gunu uzun masa duzenine yer
+  // verilmiyor. Kare pakette duruyor, sitede kullanilmiyor.
+  "bambola-teras-03": "uzun masa duzeni, musteri istegiyle cikarildi",
+};
+
 /** Yerlesimde kullanilmayan kare kalmasin diye derleme aninda dogrulanir. */
 const YERLESEN = new Set(
   BOLUMLER.flatMap((b) => b.satirlar.flat().map((k) => k.slug)),
 );
-const EKSIK = FOTOGRAFLAR.filter((f: Fotograf) => !YERLESEN.has(f.slug));
+const EKSIK = FOTOGRAFLAR.filter(
+  (f: Fotograf) => !YERLESEN.has(f.slug) && !(f.slug in GOSTERILMEYEN),
+);
 if (EKSIK.length > 0) {
   throw new Error(
     `/mekan yerlesiminde yer almayan fotograf var: ${EKSIK.map((f) => f.slug).join(", ")}`,
