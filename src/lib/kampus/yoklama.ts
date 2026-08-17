@@ -291,46 +291,63 @@ export async function raporuGetir(): Promise<Rapor> {
   await adminZorunlu();
   const db = await sunucuIstemcisi();
 
-  const sayi = async (tablo: string, filtre?: [string, string]) => {
-    let q = db.from(tablo).select("*", { count: "exact", head: true });
-    if (filtre) q = q.eq(filtre[0], filtre[1]);
-    const { count } = await q;
-    return count ?? 0;
-  };
+  /*
+    Her tablodan TEK sorgu, sayimlar burada yapiliyor.
 
+    Onceki hali on iki ayri `count` sorgusu atiyordu (ogrenciler-hepsi,
+    ogrenciler-aktif, basvurular-hepsi, basvurular-kayit_oldu, ...). Sunucu
+    Frankfurt'ta, veritabani Irlanda'da: her sorgu bir gidis-donus ve on iki
+    sorgu sayfayi 1,4 saniyeye cikariyordu.
+
+    Durum alanlarini cekip JS'te saymak, veri hacmi bu olcekte (binlerce
+    satir) sayim sorgularindan hizli. On binlere cikarsa veritabaninda bir
+    gorunum veya `group by` sayfasi yazilir.
+  */
   const [
-    ogrenciSayisi,
-    aktifOgrenci,
-    basvuruSayisi,
-    kayitOlanBasvuru,
-    leadSayisi,
-    leadKazanilan,
-    islenenDers,
-    planliDers,
-    gelenIsaret,
-    gelmedenIsaret,
-    toplamKayit,
+    { data: ogrenciler },
+    { data: basvurular },
+    { data: leadler },
+    { data: dersler },
+    { data: yoklamalar },
+    { data: kayitlar },
+    { data: siniflar },
+    { data: hareketler },
   ] = await Promise.all([
-    sayi("ogrenciler"),
-    sayi("ogrenciler", ["durum", "aktif"]),
-    sayi("basvurular"),
-    sayi("basvurular", ["durum", "kayit_oldu"]),
-    sayi("leadler"),
-    sayi("leadler", ["durum", "kayit_oldu"]),
-    sayi("dersler", ["durum", "islendi"]),
-    sayi("dersler", ["durum", "planli"]),
-    sayi("yoklama", ["durum", "geldi"]),
-    sayi("yoklama", ["durum", "gelmedi"]),
-    sayi("kayitlar", ["durum", "aktif"]),
+    db.from("ogrenciler").select("durum"),
+    db.from("basvurular").select("durum"),
+    db.from("leadler").select("durum"),
+    db.from("dersler").select("durum"),
+    db.from("yoklama").select("durum"),
+    db.from("kayitlar").select("durum"),
+    db.from("siniflar").select("kontenjan"),
+    db.from("odemeler").select("tur, tutar"),
   ]);
 
-  const { data: siniflar } = await db.from("siniflar").select("kontenjan");
+  const say = (
+    liste: { durum?: string }[] | null,
+    durum?: string,
+  ): number => {
+    const l = liste ?? [];
+    return durum ? l.filter((x) => x.durum === durum).length : l.length;
+  };
+
+  const ogrenciSayisi = say(ogrenciler);
+  const aktifOgrenci = say(ogrenciler, "aktif");
+  const basvuruSayisi = say(basvurular);
+  const kayitOlanBasvuru = say(basvurular, "kayit_oldu");
+  const leadSayisi = say(leadler);
+  const leadKazanilan = say(leadler, "kayit_oldu");
+  const islenenDers = say(dersler, "islendi");
+  const planliDers = say(dersler, "planli");
+  const gelenIsaret = say(yoklamalar, "geldi");
+  const gelmedenIsaret = say(yoklamalar, "gelmedi");
+  const toplamKayit = say(kayitlar, "aktif");
+
   const toplamKontenjan = (siniflar ?? []).reduce(
     (t, s) => t + ((s as { kontenjan: number }).kontenjan ?? 0),
     0,
   );
 
-  const { data: hareketler } = await db.from("odemeler").select("tur, tutar");
   const { borc, tahsilat } = bakiyeHesapla(
     (hareketler ?? []) as { tur: "borc" | "tahsilat"; tutar: number }[],
   );
