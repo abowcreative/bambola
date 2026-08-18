@@ -88,18 +88,22 @@ export type DonemGrubu = {
 };
 
 /**
- * Eylul donemi duyurusu. Son kayit gunu DAHIL; 26 Agustos 00:00'da (TR)
+ * Eylul donemi duyurusu. Son kayit gunu DAHIL; 2 Eylul 00:00'da (TR)
  * kendiliginden dusuyor.
  *
- * Kampanya penceresiyle (bkz. ucretler.ts KAMPANYA_PENCERESI, son gun
- * 1 Eylul) AYNI SEY DEGIL: o fiyat indirimi, bu donem kaydi. Ikisinin
- * tarihi de birbirinden bagimsiz.
+ * TARIH 25 AGUSTOS IDI, 18 Agustos 2026'da 1 Eylul'e cekildi (musteri).
+ *
+ * Kampanya penceresiyle (bkz. ucretler.ts KAMPANYA_PENCERESI) AYNI SEY
+ * DEGIL: o fiyat indirimi, bu donem kaydi. Su an ikisinin son gunu de
+ * 1 Eylul, ama bu bir RASTLANTI -- alanlar ayri duruyor ve biri
+ * degistiginde otekini degistirmez. Tek alana baglanmasi cazip gelirse:
+ * kurum indirimi uzatip kayit kapisini kapatabilir, o gun ikisi ayrisir.
  */
 export const DONEM_DUYURUSU = {
   baslik: "Eylül dönemi kayıtları başladı",
   /** Son gun DAHIL. */
-  sonKayit: "2026-08-25",
-  sonKayitMetin: "25 Ağustos",
+  sonKayit: "2026-09-01",
+  sonKayitMetin: "1 Eylül",
 } as const;
 
 /**
