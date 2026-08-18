@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { AILELER } from "@/lib/data/gruplar";
 import { atolyeBul } from "@/lib/data/atolyeler";
+import { donemGrubuBul } from "@/lib/data/donem";
 import {
   KAMPANYA_PENCERESI,
   ERKEN_KAYIT_ORANI,
@@ -38,15 +39,30 @@ export async function GET(istek: NextRequest) {
     Slug BEYAZ LISTEDEN geciyor. Liste olmadan adres cubuguna yazilan her
     metin veritabanina duser ve sayac cop dolar.
 
-    Iki tur slug kabul ediliyor:
+    Uc tur slug kabul ediliyor:
+      donem=<kart slug'i>    /bilgi sayfasindaki donem kartlari
       grup=<aile slug'i>     ucret kartlari (bebek, okula-hazirlik...)
       atolye=<atolye slug'i> program sayfalari (sarkili-masal... gibi
                              bir aileye bagli olmayanlar dahil)
+
+    `donem` once bakiliyor: donem karti ucret ailesinden daha ince bolunmus
+    olabiliyor. "12-24 Ay Bebek Oyun Grubu"na tiklayan veliye "Bebek Oyun
+    Grubu (6 aylik - 2 yas)" diye baslayan bir mesaj taslagi acilmasi
+    kafa karistirirdi; mesajda kartin kendi adi ve yasi geciyor, SAYAC ise
+    yine ucret ailesine yaziliyor -- yoksa bebek grubunun toplami ikiye
+    bolunur ve eski kayitlarla karsilastirilamazdi.
   */
-  const aile = AILELER.find((a) => a.slug === q.get("grup"));
-  const atolye = aile ? undefined : atolyeBul(q.get("atolye") ?? "");
-  const hedefAdi = aile?.ad ?? atolye?.ad;
-  const hedefYas = aile?.yasEtiket ?? atolye?.yasEtiket;
+  const donem = donemGrubuBul(q.get("donem") ?? "");
+  const aile = donem
+    ? AILELER.find((a) => a.slug === donem.sayacAilesi)
+    : AILELER.find((a) => a.slug === q.get("grup"));
+  const atolye = donem
+    ? (donem.sayacAtolyesi ? atolyeBul(donem.sayacAtolyesi) : undefined)
+    : aile
+      ? undefined
+      : atolyeBul(q.get("atolye") ?? "");
+  const hedefAdi = donem?.ad ?? aile?.ad ?? atolye?.ad;
+  const hedefYas = donem?.yasEtiket ?? aile?.yasEtiket ?? atolye?.yasEtiket;
   const sayacSlug = aile?.slug ?? atolye?.slug;
   const nereden = NEREDEN.includes(
     (q.get("nereden") ?? "") as (typeof NEREDEN)[number],

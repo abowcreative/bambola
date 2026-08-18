@@ -20,6 +20,7 @@ import { Ikon } from "@/components/ui/ikon";
 export function BilgiCagrisi({
   grup,
   atolye,
+  donem,
   nereden = "bilinmiyor",
   metin = "Detaylı bilgi al",
   olcu = "lg",
@@ -30,6 +31,12 @@ export function BilgiCagrisi({
   grup?: string;
   /** Atolye slug'i. Bir aileye bagli olmayan programlar icin. */
   atolye?: string;
+  /**
+   * /bilgi sayfasindaki donem karti slug'i (bkz. data/donem.ts).
+   * Kart ucret ailesinden daha ince bolunmus olabilir ("12-24 Ay Bebek Oyun
+   * Grubu"); mesajda kartin kendi adi gecsin diye ayri bir alan var.
+   */
+  donem?: string;
   nereden?: "bilgi" | "ucretler" | "program" | "bilinmiyor";
   metin?: string;
   olcu?: "sm" | "md" | "lg";
@@ -46,11 +53,13 @@ export function BilgiCagrisi({
   */
   if (!wa) return null;
 
-  const hedef = grup
-    ? `/git/whatsapp?grup=${grup}&nereden=${nereden}`
-    : atolye
-      ? `/git/whatsapp?atolye=${atolye}&nereden=${nereden}`
-      : wa;
+  const hedef = donem
+    ? `/git/whatsapp?donem=${donem}&nereden=${nereden}`
+    : grup
+      ? `/git/whatsapp?grup=${grup}&nereden=${nereden}`
+      : atolye
+        ? `/git/whatsapp?atolye=${atolye}&nereden=${nereden}`
+        : wa;
 
   const disaAcilir = hedef === wa;
 

@@ -10,17 +10,20 @@ import {
   tekSeferUcreti,
 } from "@/lib/data/ucretler";
 import { SORULAR } from "@/lib/data/sss";
-import { slotBul } from "@/lib/data/program";
-import { aileninAtolyesi } from "@/lib/data/atolyeler";
+import {
+  DONEM_GRUPLARI,
+  DONEM_DUYURUSU,
+  donemKaydiAcikMi,
+} from "@/lib/data/donem";
 import { UcretKarti } from "@/components/site/ucret-tablosu";
 import { SssAkordiyon } from "@/components/site/sss-akordiyon";
-import { Sirali } from "@/components/site/bolum";
+import { Sirali, SiraliOge } from "@/components/site/bolum";
 import {
   BilgiCagrisi,
   KayitYakindaNotu,
 } from "@/components/site/bilgi-cagrisi";
-import { Ikon } from "@/components/ui/ikon";
-import { FotoKaydiragi } from "@/components/site/foto-kaydiragi";
+import { DinamikIkon, Ikon } from "@/components/ui/ikon";
+import { FotoMozaik } from "@/components/site/foto-mozaik";
 
 /**
  * Tek sayfada "her sey" -- Instagram otomasyonunun gonderdigi adres.
@@ -45,7 +48,7 @@ import { FotoKaydiragi } from "@/components/site/foto-kaydiragi";
 
 export const metadata = sayfaMetadata({
   baslik: "Gruplar, Saatler ve Ücretler",
-  aciklama: `${MARKA.ad} oyun grupları ve atölyeleri: hangi yaşa hangi grup, gün ve saatler, güncel ücretler ve sık sorulan sorular.`,
+  aciklama: `${MARKA.ad} oyun grupları ve atölyeleri: hangi yaşa hangi grup, hangi günler açık, güncel ücretler ve sık sorulan sorular.`,
   yol: "/bilgi",
   indeks: false,
 });
@@ -105,6 +108,8 @@ function Bolum({
 
 export default function BilgiSayfasi() {
   const kampanyaAcik = kampanyaAcikMi();
+  /* Eylul donemi duyurusu 25 Agustos'tan sonra kendiliginden dusuyor. */
+  const donemKaydiAcik = donemKaydiAcikMi();
   const yuzde = Math.round(ERKEN_KAYIT_ORANI * 100);
 
   return (
@@ -113,9 +118,18 @@ export default function BilgiSayfasi() {
         Gruplar, saatler ve ücretler
       </h1>
       <p className="mt-3 text-lg leading-relaxed text-murekkep-soluk">
-        Aradığınız her şey bu sayfada: çocuğunuzun yaşına uygun gruplar, gün ve
-        saatler, güncel ücretler ve en çok sorulanlar.
+        Aradığınız her şey bu sayfada: çocuğunuzun yaşına uygun gruplar, hangi
+        günler açık, güncel ücretler ve en çok sorulanlar.
       </p>
+
+      {/*
+        Mekan kareleri EN USTTE, kampanya kutusunun bile ustunde.
+        DM'den gelen veli once "burasi neresi" diye bakiyor; onceden kareler
+        sayfanin ortasindaydi ve o soru 4000 piksel sonra cevaplaniyordu.
+      */}
+      <div className="mt-6">
+        <FotoMozaik />
+      </div>
 
       {/*
         Kampanya kutusu: yalniz acikken. Kapandiginda kutu yok oluyor,
@@ -156,83 +170,175 @@ export default function BilgiSayfasi() {
       </nav>
 
       <div className="mt-10">
+        {/*
+          Gruplar DONEM_GRUPLARI'ndan basiliyor, AILELER'den degil
+          (musteri revizesi, 18 Agustos 2026). Gerekcesi data/donem.ts
+          basindaki notta; ozeti: bir kisim grup artik saat yazmiyor ve
+          bebek grubu ucret ailesi bolunmeden ikiye ayriliyor. Asagidaki
+          UCRET bolumu hala AILELER'den okuyor, fiyat tek kaynakta.
+        */}
         <Bolum
           no="01"
           kimlik="gruplar"
           baslik="Hangi yaşa hangi grup?"
-          aciklama="Çocuğunuzun ayını bilmek yeterli; gruplar yaşa göre ayrılıyor."
+          aciklama="Gruplar yaşa göre ayrılıyor. Gün ve saatleri çocuğunuza uyacak şekilde birlikte belirliyoruz."
         >
-          <ul className="space-y-4">
-            {AILELER.map((a) => (
-              <li
-                key={a.slug}
-                className="rounded-kart border-2 border-cizgi bg-white p-5"
+          {/*
+            Iki sutun. Kartlar onceden tam genislikte alt alta diziliyordu ve
+            sayfa max-w-3xl oldugu icin her kartin sagi bos kaliyordu; ustelik
+            bes kart tek sutunda 8000 piksellik sayfayi daha da uzatiyordu.
+            Telefonda tek sutuna dusuyor.
+
+            Hareket sitenin kendi idiomu: Sirali/SiraliOge sirayla yaylanarak
+            girer, kart uzerine gelince kalkar, ikon `oyna` ile titrer
+            (bkz. /oyun-evi/programlar kartlari, globals.css .oyna).
+          */}
+          <Sirali className="grid gap-4 sm:grid-cols-2">
+            {DONEM_GRUPLARI.map((g) => (
+              <SiraliOge
+                key={g.slug}
+                className={g.genis ? "sm:col-span-2" : undefined}
               >
-                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <h3 className="font-baslik text-lg font-bold text-murekkep">
-                    {a.ad}
-                  </h3>
-                  <span className="rounded-full bg-krem-koyu px-2.5 py-0.5 text-xs font-semibold text-murekkep">
-                    {a.yasEtiket}
-                  </span>
-                  <span className="text-sm text-murekkep-soluk">
-                    en fazla {a.maxKisi} çocuk
-                  </span>
-                </div>
-                <p className="mt-2 leading-relaxed text-murekkep-soluk">
-                  {a.ozet}
-                </p>
-                <p className="mt-2 text-sm font-medium text-murekkep">
-                  {a.sure}
-                </p>
-
-                {/* Gun ve saatler: velinin ikinci sorusu bu. */}
-                <ul className="mt-3 space-y-1.5">
-                  {a.sabitKombinasyonlar.map((k) => (
-                    <li
-                      key={k.etiket}
-                      className="flex flex-wrap items-baseline gap-x-2 text-sm"
-                    >
-                      <Ikon.Saat boyut={14} className="text-yesil-koyu" />
-                      <span className="text-murekkep">{k.etiket}</span>
-                      {k.haftaSonu && (
-                        <span className="rounded-full bg-lime-rozet px-2 py-0.5 text-xs font-semibold text-black">
-                          hafta sonu
-                        </span>
-                      )}
+                <div className="group flex h-full flex-col rounded-kart border-2 border-cizgi bg-white p-5 transition-all duration-200 ease-yayli hover:-translate-y-1.5 hover:border-yesil hover:shadow-kart-hover">
+                  <div className="flex items-start gap-3">
+                    <span className="oyna grid size-12 shrink-0 place-items-center rounded-full bg-lime-rozet text-black">
+                      <DinamikIkon ad={g.ikon} boyut={24} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-baslik text-lg font-bold leading-snug text-murekkep">
+                        {g.ad}
+                      </h3>
                       {/*
-                        Slot gercekten var mi: kombinasyon metni elle yazili
-                        ama slot id'leri veriden geliyor. Biri silinirse
-                        satirin yaninda sessizce yanlis saat kalmasin.
+                        Birden fazla yas bandi varsa tek etiket yerine
+                        bantlarin kendisi yaziliyor; "12 ay ve uzeri" velinin
+                        aradigi bandi gizlerdi.
                       */}
-                      {k.slotIdler.some((id) => !slotBul(id)) && (
-                        <span className="text-xs text-murekkep-soluk">
-                          (program güncelleniyor)
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {(g.yasBantlari.length > 0
+                          ? g.yasBantlari
+                          : [g.yasEtiket]
+                        ).map((b) => (
+                          <span
+                            key={b}
+                            className="rounded-full bg-krem-koyu px-2.5 py-0.5 text-xs font-semibold text-murekkep"
+                          >
+                            {b}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
 
-                {/*
-                  AILE slug'i degil ATOLYE slug'i. Program sayfalari atolye
-                  slug'lariyla uretiliyor; buraya `a.slug` yazildigi icin
-                  baglanti 404 donuyordu (musteri bildirdi, 17 Agustos 2026).
-                  Karsiligi olmayan aile icin baglanti HIC basilmiyor:
-                  bos bir adrese goturmek 404'un baska bir hali.
-                */}
-                {aileninAtolyesi(a.slug) && (
-                  <Link
-                    href={`/oyun-evi/programlar/${aileninAtolyesi(a.slug)!.slug}`}
-                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-yesil-koyu hover:underline"
+                  {/*
+                    Durum rozeti kartin kendi satirinda: baslik hizasina
+                    konsaydi dar sutunda basligi asagi itiyordu.
+                    Nokta sabit, yanip sonmuyor -- PLAN Bolum 3 madde 4,
+                    "tarih bilgi verir, geri sayim baski kurar".
+                  */}
+                  {g.durum && (
+                    <p
+                      className={`mt-3 inline-flex self-start items-center gap-2 rounded-full px-3 py-1 text-xs font-bold ${
+                        g.durum.ton === "vurgu"
+                          ? "bg-yesil-koyu text-white"
+                          : "bg-krem-koyu text-murekkep"
+                      }`}
+                    >
+                      <span className="size-1.5 rounded-full bg-current" />
+                      {g.durum.etiket}
+                    </p>
+                  )}
+
+                  {/* flex-1: cagri kartin dibine yapisiyor, boylece yan yana
+                      duran iki kartin dugmeleri ayni hizada. */}
+                  <div
+                    className={`mt-4 flex-1 text-sm ${
+                      g.genis
+                        ? "grid gap-x-8 gap-y-1.5 sm:grid-cols-2"
+                        : "space-y-1.5"
+                    }`}
                   >
-                    Programın ayrıntısı
-                    <Ikon.Ok boyut={14} />
-                  </Link>
-                )}
-              </li>
+                    {g.gunler && (
+                      <p className="flex items-baseline gap-2 text-murekkep">
+                        <Ikon.Takvim
+                          boyut={14}
+                          className="shrink-0 text-yesil-koyu"
+                        />
+                        {g.gunler}
+                      </p>
+                    )}
+                    {/* Saat YALNIZCA veride yaziliysa cikiyor; revizede
+                        yalniz Okula Hazirlik saat tasiyor. */}
+                    {g.saatler.map((s) => (
+                      <p
+                        key={s}
+                        className="flex items-baseline gap-2 text-murekkep"
+                      >
+                        <Ikon.Saat
+                          boyut={14}
+                          className="shrink-0 text-yesil-koyu"
+                        />
+                        {s}
+                      </p>
+                    ))}
+                    {g.secenek && (
+                      <p className="flex items-baseline gap-2 text-murekkep">
+                        <Ikon.Tik
+                          boyut={14}
+                          className="shrink-0 text-yesil-koyu"
+                        />
+                        {g.secenek}
+                      </p>
+                    )}
+                    {/*
+                      Saat yoksa bosluk birakilmiyor: veli "saat neden
+                      yazmiyor" diye dusunmesin, ne yapacagini okusun.
+                    */}
+                    {g.saatler.length === 0 && (
+                      <p className="leading-relaxed text-murekkep-soluk">
+                        {g.gunler ? "Saatleri" : "Gün ve saatleri"}{" "}
+                        WhatsApp&apos;tan paylaşıyoruz; çocuğunuza uyan zamanı
+                        birlikte belirliyoruz.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Donem duyurusu 25 Agustos'tan sonra kendiliginden duser. */}
+                  {g.donemDuyurusu && donemKaydiAcik && (
+                    <p className="mt-4 rounded-yumusak border-2 border-lime-rozet bg-lime-rozet/40 px-3 py-2 text-sm font-semibold leading-snug text-murekkep">
+                      {DONEM_DUYURUSU.baslik}
+                      <span className="block font-medium text-murekkep-soluk">
+                        Son kayıt {DONEM_DUYURUSU.sonKayitMetin}
+                      </span>
+                    </p>
+                  )}
+
+                  <div className="mt-5 border-t border-cizgi pt-4">
+                    <BilgiCagrisi
+                      donem={g.slug}
+                      nereden="bilgi"
+                      metin="Detaylı bilgi için bize ulaşın"
+                      olcu="sm"
+                      className="w-full"
+                    />
+                    {/*
+                      ATOLYE slug'i, aile slug'i degil: program sayfalari
+                      atolye slug'lariyla uretiliyor ve aile slug'i verilirse
+                      404 doner (musteri bildirdi, 17 Agustos 2026).
+                    */}
+                    {g.programSayfasi && (
+                      <Link
+                        href={`/oyun-evi/programlar/${g.programSayfasi}`}
+                        className="mt-3 flex items-center justify-center gap-1.5 text-sm font-semibold text-yesil-koyu hover:underline"
+                      >
+                        Programın ayrıntısı
+                        <Ikon.Ok boyut={14} />
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </SiraliOge>
             ))}
-          </ul>
+          </Sirali>
         </Bolum>
 
         <Bolum
@@ -271,18 +377,12 @@ export default function BilgiSayfasi() {
         </Bolum>
 
         {/*
-          Kurum kareleri: fiyattan sonra, kosullardan once. Veli ucreti
-          okuduktan hemen sonra mekani goruyor. Serit sonsuz akiyor
-          (musteri istegi, 17 Agustos 2026); hareket CSS'te, uzerine
-          gelince duruyor.
+          Kurum kareleri eskiden BURADAYDI (fiyattan sonra, kosullardan
+          once) ve sonsuz kayan bir seritti -- musteri istegi, 17 Agustos
+          2026. 18 Agustos'ta sayfanin en ustune, duran bir mozaige tasindi;
+          gerekcesi components/site/foto-mozaik.tsx basinda. Kayan serit
+          bileseni (FotoKaydiragi) duruyor, geri istenirse yerine konur.
         */}
-      </div>
-
-      <div className="mt-12 -mx-4 sm:-mx-6">
-        <FotoKaydiragi />
-      </div>
-
-      <div>
         <Bolum
           no="03"
           kimlik="kosullar"
