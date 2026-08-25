@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ILETISIM, MARKA } from "@/lib/site";
+import { ILETISIM, KAYIT_FORMU_ACIK, MARKA } from "@/lib/site";
 import { sayfaMetadata } from "@/lib/seo";
 import {
   YasalSayfa,
@@ -34,8 +34,8 @@ export default function KosullarSayfasi() {
         Bu koşullar, Millî Eğitim Bakanlığı izin belgelerinde{" "}
         <strong className="text-murekkep">{MARKA.kurumAdiOyunEvi}</strong> ve{" "}
         <strong className="text-murekkep">{MARKA.kurumAdiAnaokulu}</strong>{" "}
-        adlarıyla kayıtlı kurumların {MARKA.ad} adıyla yürüttüğü web sitesi
-        için geçerlidir. Siteyi kullanarak bu koşulları kabul etmiş olursunuz.
+        adlarıyla kayıtlı kurumların {MARKA.ad} adıyla yürüttüğü web sitesi için
+        geçerlidir. Siteyi kullanarak bu koşulları kabul etmiş olursunuz.
       </p>
 
       <YasalBaslik>Bu sitede satış yapılmaz</YasalBaslik>
@@ -46,12 +46,13 @@ export default function KosullarSayfasi() {
         işlemlerinin tamamı kurumda yüz yüze yürütülür.
       </p>
 
-      <YasalBaslik>Kayıt formu bir sözleşme değildir</YasalBaslik>
+      <YasalBaslik>Kayıt talebi bir sözleşme değildir</YasalBaslik>
       <p className="mt-3">
-        Sitedeki kayıt formu bir{" "}
-        <strong className="text-murekkep">talep</strong> gönderir. Kaydınız,
-        kurum sizinle iletişime geçip yer, grup ve ödeme konusunda anlaşma
-        sağlandığında kesinleşir. Form doldurmak tek başına yer ayırtmaz;
+        {KAYIT_FORMU_ACIK
+          ? "Sitedeki kayıt formu bir talep gönderir."
+          : "Bize WhatsApp veya telefonla ulaşmanız bir talep iletir."}{" "}
+        Kaydınız, kurum sizinle iletişime geçip yer, grup ve ödeme konusunda
+        anlaşma sağlandığında kesinleşir. Talep iletmek tek başına yer ayırtmaz;
         gruplar kontenjanla sınırlıdır.
       </p>
 
@@ -81,8 +82,8 @@ export default function KosullarSayfasi() {
         ]}
       />
       <p className="mt-3">
-        Formun kötüye kullanılmasını önlemek için gönderim sıklığı sınırlanır
-        ve teknik kayıt tutulur. Ayrıntısı{" "}
+        Formun kötüye kullanılmasını önlemek için gönderim sıklığı sınırlanır ve
+        teknik kayıt tutulur. Ayrıntısı{" "}
         <Link
           href="/kvkk"
           className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
@@ -95,16 +96,16 @@ export default function KosullarSayfasi() {
       <YasalBaslik>Sorumluluk</YasalBaslik>
       <p className="mt-3">
         Site bilgilendirme amacıyla yayınlanır. İçeriğin doğru ve güncel olması
-        için özen gösterilir; buna rağmen sitede yer alan bir bilgiye
-        dayanarak alınan kararlardan doğan sonuçlardan kurum sorumlu tutulamaz.
-        Hizmetin kendisine ilişkin haklar ve yükümlülükler, kayıt sırasında
-        imzalanan üyelik sözleşmesinde düzenlenir.
+        için özen gösterilir; buna rağmen sitede yer alan bir bilgiye dayanarak
+        alınan kararlardan doğan sonuçlardan kurum sorumlu tutulamaz. Hizmetin
+        kendisine ilişkin haklar ve yükümlülükler, kayıt sırasında imzalanan
+        üyelik sözleşmesinde düzenlenir.
       </p>
 
       <YasalBaslik>Dışa açılan bağlantılar</YasalBaslik>
       <p className="mt-3">
-        Site; WhatsApp, Instagram ve Google Maps gibi başka hizmetlere
-        bağlantı verir. Bu hizmetlerin içeriği ve gizlilik uygulamaları kurumun
+        Site; WhatsApp, Instagram ve Google Maps gibi başka hizmetlere bağlantı
+        verir. Bu hizmetlerin içeriği ve gizlilik uygulamaları kurumun
         denetiminde değildir.
       </p>
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ILETISIM, MARKA } from "@/lib/site";
+import { ILETISIM, KAYIT_FORMU_ACIK, MARKA } from "@/lib/site";
 import { sayfaMetadata } from "@/lib/seo";
 import {
   YasalSayfa,
@@ -10,7 +10,9 @@ import {
 
 export const metadata = sayfaMetadata({
   baslik: "KVKK Aydınlatma Metni",
-  aciklama: `${MARKA.ad} kayıt formu üzerinden toplanan kişisel verilerin hangi amaçla işlendiği, ne kadar saklandığı ve haklarınız.`,
+  aciklama: KAYIT_FORMU_ACIK
+    ? `${MARKA.ad} kayıt formu üzerinden toplanan kişisel verilerin hangi amaçla işlendiği, ne kadar saklandığı ve haklarınız.`
+    : `${MARKA.ad} sitesi üzerinden şu anda kişisel veri toplanmıyor. Veri sorumlusu, haklarınız ve başvuru yolu.`,
   yol: "/kvkk",
   indeks: false,
 });
@@ -32,6 +34,17 @@ export const metadata = sayfaMetadata({
  *
  * KAPSAM: bu metin YALNIZ KAYIT FORMUNU anlatiyor. Panelde tutulan ogrenci
  * ve veli kayitlari /gizlilik sayfasinda.
+ *
+ * FORM KAPALIYKEN SAYFA KISALIR (KAYIT_FORMU_ACIK).
+ * Form kapaliyken site uzerinden HICBIR kisisel veri toplanmiyor: form
+ * basilmiyor, /api/kayit 503 donuyor, analitik ve izleme cerezi yok,
+ * WhatsApp sayaci kisi tanimlayan hicbir sey yazmiyor (bkz. app/git/whatsapp).
+ * Olmayan bir formun aldigi alanlari tek tek saymak veliye yanlis bilgi
+ * vermek olurdu -- "bu site sunlari topluyor" diye okunur.
+ *
+ * Metin SILINMIYOR, /kayit sayfasindaki kalibin aynisi: KAYIT_FORMU_ACIK
+ * true olunca tam metin oldugu gibi geri geliyor. Form acilirsa burasi
+ * kendiliginden dogru hale gelir, elle bir sey yazmak gerekmez.
  */
 
 const TOPLANAN: [string, string][] = [
@@ -76,14 +89,18 @@ export default function KvkkSayfasi() {
     <YasalSayfa
       yol="/kvkk"
       baslik="KVKK aydınlatma metni"
-      aciklama="Kayıt formunu doldurduğunuzda hangi bilgileri aldığımızı, neden aldığımızı ve ne kadar sakladığımızı burada anlatıyoruz."
+      aciklama={
+        KAYIT_FORMU_ACIK
+          ? "Kayıt formunu doldurduğunuzda hangi bilgileri aldığımızı, neden aldığımızı ve ne kadar sakladığımızı burada anlatıyoruz."
+          : "Şu anda site üzerinden kişisel veri toplanmıyor. Veri sorumlusunun kim olduğunu, haklarınızı ve nasıl başvuracağınızı burada anlatıyoruz."
+      }
       uyari={
         basvuruAdresiYok ? (
           <>
             Başvurularınızı ileteceğiniz e-posta adresi kurumdan geldiğinde bu
             metne eklenecektir. O zamana kadar taleplerinizi telefon veya
-            WhatsApp üzerinden iletebilirsiniz. Metnin içeriği, sitenin
-            gerçekte topladığı verilere göre hazırlanmıştır.
+            WhatsApp üzerinden iletebilirsiniz. Metnin içeriği, sitenin gerçekte
+            topladığı verilere göre hazırlanmıştır.
           </>
         ) : undefined
       }
@@ -93,92 +110,149 @@ export default function KvkkSayfasi() {
         Kişisel verileriniz, veri sorumlusu sıfatıyla, Millî Eğitim
         Bakanlığından aldığı izin belgesinde{" "}
         <strong className="text-murekkep">{MARKA.kurumAdiOyunEvi}</strong>{" "}
-        adıyla kayıtlı kurum tarafından, 6698 sayılı Kişisel Verilerin
-        Korunması Kanunu kapsamında aşağıda açıklanan çerçevede işlenmektedir.
-        Kurum, {MARKA.ad} adıyla tanıtılmaktadır.
+        adıyla kayıtlı kurum tarafından, 6698 sayılı Kişisel Verilerin Korunması
+        Kanunu kapsamında aşağıda açıklanan çerçevede işlenmektedir. Kurum,{" "}
+        {MARKA.ad} adıyla tanıtılmaktadır.
         {ILETISIM.adres ? ` Adres: ${ILETISIM.adres}.` : ""}
       </p>
 
-      <YasalBaslik>Hangi verileri alıyoruz?</YasalBaslik>
-      <p className="mt-3">
-        Yalnızca kayıt formunda doldurduğunuz alanları ve talebi işleme almak
-        için gereken teknik kayıtları alıyoruz. Başka bir kaynaktan veri
-        toplamıyoruz.
-      </p>
-      <YasalTablo satirlar={TOPLANAN} />
-      <p className="mt-4">
-        Çocuğunuz kayıt olduktan sonra kurumun panelinde oluşan kayıtlar
-        (sınıf, yoklama, ödeme) bu metnin kapsamı dışındadır ve{" "}
-        <Link
-          href="/gizlilik"
-          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
-        >
-          gizlilik politikasında
-        </Link>{" "}
-        anlatılır.
-      </p>
+      {!KAYIT_FORMU_ACIK && (
+        <>
+          <YasalBaslik>Şu anda site üzerinden veri toplanmıyor</YasalBaslik>
+          <p className="mt-3">
+            Online kayıt formu şu an kapalı. Siteyi gezerken sizden hiçbir bilgi
+            istenmiyor: doldurulacak bir form yok, üyelik yok, analitik yok,
+            izleme veya reklam çerezi yok.
+          </p>
+          <YasalListe
+            ogeler={[
+              <>
+                &quot;Detaylı bilgi al&quot; düğmesine bastığınızda yalnızca
+                hangi programın seçildiği sayılır. Kim olduğunuza dair hiçbir
+                şey — IP adresi, tarayıcı bilgisi, çerez — kaydedilmez.
+              </>,
+              <>
+                WhatsApp veya telefonla yazdığınızda paylaştığınız bilgiler
+                yalnızca size dönebilmek için kullanılır. WhatsApp üzerinden
+                yazışmada ayrıca WhatsApp&apos;ın kendi gizlilik politikası
+                geçerlidir.
+              </>,
+              <>
+                Çocuğunuz kayıt olduktan sonra kurumun panelinde oluşan kayıtlar
+                (sınıf, yoklama, ödeme) bu metnin kapsamı dışındadır ve gizlilik
+                politikasında anlatılır.
+              </>,
+            ]}
+          />
+          <p className="mt-4">
+            Sitenin kullandığı tarayıcı deposunun tamamı{" "}
+            <Link
+              href="/cerez"
+              className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
+            >
+              çerez politikasında
+            </Link>{" "}
+            tek tek yazılı. Panelde tutulanlar için{" "}
+            <Link
+              href="/gizlilik"
+              className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
+            >
+              gizlilik politikasına
+            </Link>{" "}
+            bakın.
+          </p>
+          <p className="mt-3">
+            Kayıt formu açıldığında bu metin, formun aldığı alanların tamamını
+            tek tek gösterecek şekilde genişleyecektir.
+          </p>
+        </>
+      )}
 
-      <YasalBaslik>Neden işliyoruz?</YasalBaslik>
-      <YasalListe
-        ogeler={[
-          "Kayıt talebinizi değerlendirmek ve size geri dönmek",
-          "Çocuğunuzun yaşına uygun grubu belirlemek ve uygun saatleri sunmak",
-          "Kayıt süreci boyunca sizinle iletişim kurmak",
-          "Formun kötüye kullanılmasını ve otomatik gönderimleri önlemek",
-          "Ayrıca onay verdiyseniz, yeni gruplar ve etkinlikler hakkında bilgilendirme göndermek",
-        ]}
-      />
-      <p className="mt-3">
-        Ticari ileti onayı ayrı bir kutudur ve zorunlu değildir. Onaylamamanız
-        kayıt talebinizi etkilemez. Onayınızı daha sonra dilediğiniz zaman geri
-        alabilirsiniz.
-      </p>
+      {KAYIT_FORMU_ACIK && (
+        <>
+          <YasalBaslik>Hangi verileri alıyoruz?</YasalBaslik>
+          <p className="mt-3">
+            Yalnızca kayıt formunda doldurduğunuz alanları ve talebi işleme
+            almak için gereken teknik kayıtları alıyoruz. Başka bir kaynaktan
+            veri toplamıyoruz.
+          </p>
+          <YasalTablo satirlar={TOPLANAN} />
+          <p className="mt-4">
+            Çocuğunuz kayıt olduktan sonra kurumun panelinde oluşan kayıtlar
+            (sınıf, yoklama, ödeme) bu metnin kapsamı dışındadır ve{" "}
+            <Link
+              href="/gizlilik"
+              className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
+            >
+              gizlilik politikasında
+            </Link>{" "}
+            anlatılır.
+          </p>
 
-      <YasalBaslik>Hukuki sebep</YasalBaslik>
-      <p className="mt-3">
-        Verileriniz, sözleşmenin kurulması için gerekli olması ve meşru menfaat
-        hukuki sebeplerine dayanılarak; ticari ileti gönderimi ise yalnızca açık
-        rızanıza dayanılarak işlenir.
-      </p>
+          <YasalBaslik>Neden işliyoruz?</YasalBaslik>
+          <YasalListe
+            ogeler={[
+              "Kayıt talebinizi değerlendirmek ve size geri dönmek",
+              "Çocuğunuzun yaşına uygun grubu belirlemek ve uygun saatleri sunmak",
+              "Kayıt süreci boyunca sizinle iletişim kurmak",
+              "Formun kötüye kullanılmasını ve otomatik gönderimleri önlemek",
+              "Ayrıca onay verdiyseniz, yeni gruplar ve etkinlikler hakkında bilgilendirme göndermek",
+            ]}
+          />
+          <p className="mt-3">
+            Ticari ileti onayı ayrı bir kutudur ve zorunlu değildir.
+            Onaylamamanız kayıt talebinizi etkilemez. Onayınızı daha sonra
+            dilediğiniz zaman geri alabilirsiniz.
+          </p>
 
-      <YasalBaslik>Kimlerle paylaşıyoruz?</YasalBaslik>
-      <p className="mt-3">
-        Verileriniz pazarlama amacıyla üçüncü kişilere satılmaz veya
-        devredilmez. Yalnızca hizmetin çalışması için kullandığımız barındırma
-        ve e-posta altyapısı sağlayıcıları, veriyi bizim adımıza işleyen
-        taraflar olarak devrededir; hangi sağlayıcıların devrede olduğu{" "}
-        <Link
-          href="/gizlilik"
-          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
-        >
-          gizlilik politikasında
-        </Link>{" "}
-        tek tek yazılı. Yasal olarak talep edilmesi hâlinde yetkili kamu
-        kurumlarıyla paylaşım yapılabilir.
-      </p>
+          <YasalBaslik>Hukuki sebep</YasalBaslik>
+          <p className="mt-3">
+            Verileriniz, sözleşmenin kurulması için gerekli olması ve meşru
+            menfaat hukuki sebeplerine dayanılarak; ticari ileti gönderimi ise
+            yalnızca açık rızanıza dayanılarak işlenir.
+          </p>
 
-      <YasalBaslik>Ne kadar saklıyoruz?</YasalBaslik>
-      <p className="mt-3">
-        Kayda dönüşmeyen talepler, en fazla iki yıl boyunca saklanır ve
-        sonrasında silinir. Kayda dönüşen taleplerde, öğrenci kaydına ilişkin
-        yasal saklama süreleri geçerlidir. Talebiniz üzerine daha erken de
-        silebiliriz.
-      </p>
+          <YasalBaslik>Kimlerle paylaşıyoruz?</YasalBaslik>
+          <p className="mt-3">
+            Verileriniz pazarlama amacıyla üçüncü kişilere satılmaz veya
+            devredilmez. Yalnızca hizmetin çalışması için kullandığımız
+            barındırma ve e-posta altyapısı sağlayıcıları, veriyi bizim adımıza
+            işleyen taraflar olarak devrededir; hangi sağlayıcıların devrede
+            olduğu{" "}
+            <Link
+              href="/gizlilik"
+              className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
+            >
+              gizlilik politikasında
+            </Link>{" "}
+            tek tek yazılı. Yasal olarak talep edilmesi hâlinde yetkili kamu
+            kurumlarıyla paylaşım yapılabilir.
+          </p>
 
-      <YasalBaslik>Çerezler</YasalBaslik>
-      <p className="mt-3">
-        Site, formu doldururken girdiğiniz bilgileri kaybetmemeniz için
-        tarayıcınızın oturum deposunu kullanır. Bu veri sunucuya gönderilmez ve
-        sekmeyi kapattığınızda silinir. Sitede izleme veya reklam çerezi
-        kullanılmaz; ayrıntısı{" "}
-        <Link
-          href="/cerez"
-          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
-        >
-          çerez politikasında
-        </Link>
-        .
-      </p>
+          <YasalBaslik>Ne kadar saklıyoruz?</YasalBaslik>
+          <p className="mt-3">
+            Kayda dönüşmeyen talepler, en fazla iki yıl boyunca saklanır ve
+            sonrasında silinir. Kayda dönüşen taleplerde, öğrenci kaydına
+            ilişkin yasal saklama süreleri geçerlidir. Talebiniz üzerine daha
+            erken de silebiliriz.
+          </p>
+
+          <YasalBaslik>Çerezler</YasalBaslik>
+          <p className="mt-3">
+            Site, formu doldururken girdiğiniz bilgileri kaybetmemeniz için
+            tarayıcınızın oturum deposunu kullanır. Bu veri sunucuya gönderilmez
+            ve sekmeyi kapattığınızda silinir. Sitede izleme veya reklam çerezi
+            kullanılmaz; ayrıntısı{" "}
+            <Link
+              href="/cerez"
+              className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
+            >
+              çerez politikasında
+            </Link>
+            .
+          </p>
+        </>
+      )}
 
       <YasalBaslik>Haklarınız</YasalBaslik>
       <p className="mt-3">
@@ -203,16 +277,18 @@ export default function KvkkSayfasi() {
         sonuçlandırılır.
       </p>
 
-      <p className="mt-10 border-t border-cizgi pt-6 text-sm">
-        Kayıt formuna dönmek için{" "}
-        <Link
-          href="/kayit"
-          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
-        >
-          buraya tıklayın
-        </Link>
-        .
-      </p>
+      {KAYIT_FORMU_ACIK && (
+        <p className="mt-10 border-t border-cizgi pt-6 text-sm">
+          Kayıt formuna dönmek için{" "}
+          <Link
+            href="/kayit"
+            className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
+          >
+            buraya tıklayın
+          </Link>
+          .
+        </p>
+      )}
     </YasalSayfa>
   );
 }

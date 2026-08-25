@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MARKA } from "@/lib/site";
+import { KAYIT_FORMU_ACIK, MARKA } from "@/lib/site";
 import { sayfaMetadata } from "@/lib/seo";
 import {
   YasalSayfa,
@@ -22,7 +22,8 @@ export const metadata = sayfaMetadata({
  * Icerik UYDURULMADI, koddaki gercek durumdan yazildi:
  * - analitik/reklam betigi YOK (app/layout.tsx'te ucuncu taraf betik yok)
  * - yazi tipleri KENDI SUNUCUMUZDA (public/fonts), Google Fonts istegi yok
- * - form taslagi ve WhatsApp balonu sessionStorage kullaniyor
+ * - WhatsApp balonu sessionStorage kullaniyor; form taslagi da kullanirdi
+ *   ama form kapali (KAYIT_FORMU_ACIK), o yuzden satiri listeye girmiyor
  * - Google haritasi TIKLAYINCA yukleniyor (components/site/harita-kutusu.tsx)
  * - panel oturumu Supabase cerezi kullaniyor (yalniz kampus alan adinda)
  *
@@ -30,11 +31,20 @@ export const metadata = sayfaMetadata({
  * bir gun bir analitik eklendiginde sessizce yanlisa dusen tek cumledir.
  */
 
+/*
+  Kayit formu taslagi satiri yalniz form ACIKKEN listeye giriyor. Kapaliyken
+  o depo hic olusmuyor; "sunu tutuyoruz" demek olmayan bir sey icin izin
+  aliyormus gibi gorunurdu.
+*/
 const DEPO: [string, string][] = [
-  [
-    "Kayıt formu taslağı (oturum deposu)",
-    "Formu doldururken yazdıklarınız, sekmeyi yenilerseniz kaybolmasın diye tarayıcınızın oturum deposunda tutulur. Sunucuya gönderilmez, sekmeyi kapattığınızda silinir.",
-  ],
+  ...(KAYIT_FORMU_ACIK
+    ? ([
+        [
+          "Kayıt formu taslağı (oturum deposu)",
+          "Formu doldururken yazdıklarınız, sekmeyi yenilerseniz kaybolmasın diye tarayıcınızın oturum deposunda tutulur. Sunucuya gönderilmez, sekmeyi kapattığınızda silinir.",
+        ],
+      ] as [string, string][])
+    : []),
   [
     "WhatsApp balonunun kapatılması (oturum deposu)",
     "Sağ alttaki mesaj kartını kapattıysanız aynı oturumda tekrar açılmaz. Yalnız “kapatıldı” bilgisi tutulur.",
@@ -45,26 +55,31 @@ const DEPO: [string, string][] = [
   ],
 ];
 
+/** "iki" / "uc": DEPO uzunluguna gore, cunku form kapaliyken bir satir eksik. */
+const SAYI_YAZI = DEPO.length === 3 ? "üç" : "iki";
+const ILK_YAZI = DEPO.length === 3 ? "İlk ikisi" : "İlki";
+
 export default function CerezSayfasi() {
   return (
     <YasalSayfa
       yol="/cerez"
       baslik="Çerez politikası"
-      aciklama="Sitede reklam ve izleme çerezi kullanmıyoruz. Kullandığımız üç şeyin tamamı aşağıda tek tek yazılı."
+      aciklama={`Sitede reklam ve izleme çerezi kullanmıyoruz. Kullandığımız ${SAYI_YAZI} şeyin tamamı aşağıda tek tek yazılı.`}
     >
       <YasalBaslik>Kısa cevap</YasalBaslik>
       <p className="mt-3">
         Sitede <strong className="text-murekkep">analitik yok</strong>, reklam
         veya izleme çerezi yok, sosyal medya izleme piksellerinden hiçbiri yok.
         Sizi sayfalar arasında veya siteler arasında izlemiyoruz. Bu yüzden
-        sitede bir <strong className="text-murekkep">çerez onay bandı da
-        yok</strong>: onay gerektiren bir çerez kullanmıyoruz.
+        sitede bir{" "}
+        <strong className="text-murekkep">çerez onay bandı da yok</strong>: onay
+        gerektiren bir çerez kullanmıyoruz.
       </p>
 
-      <YasalBaslik>Kullandığımız üç şey</YasalBaslik>
+      <YasalBaslik>Kullandığımız {SAYI_YAZI} şey</YasalBaslik>
       <YasalTablo satirlar={DEPO} />
       <p className="mt-4">
-        İlk ikisi teknik olarak çerez bile değil, tarayıcınızın{" "}
+        {ILK_YAZI} teknik olarak çerez bile değil, tarayıcınızın{" "}
         <em>oturum deposu</em>. Aradaki fark şu: çerez her istekte sunucuya
         gönderilir, oturum deposu gönderilmez ve sekmeyi kapattığınızda
         kaybolur.
@@ -75,23 +90,22 @@ export default function CerezSayfasi() {
         İletişim sayfasındaki harita Google Maps&apos;ten geliyor ve Google
         kendi çerezlerini yazıyor. Bu yüzden harita sayfa açılınca{" "}
         <strong className="text-murekkep">yüklenmiyor</strong>: yerinde bir
-        “Haritayı göster” düğmesi duruyor. Siz o düğmeye basmadıkça Google&apos;a
-        hiçbir istek gitmiyor, hiçbir çerez yazılmıyor.
+        “Haritayı göster” düğmesi duruyor. Siz o düğmeye basmadıkça
+        Google&apos;a hiçbir istek gitmiyor, hiçbir çerez yazılmıyor.
       </p>
       <p className="mt-3">
         Haritayı açmak istemezseniz hiçbir şey kaybetmiyorsunuz: adres yazılı
-        duruyor ve “Yol tarifi al” bağlantısı haritayı sizin kendi
-        uygulamanızda açıyor.
+        duruyor ve “Yol tarifi al” bağlantısı haritayı sizin kendi uygulamanızda
+        açıyor.
       </p>
 
       <YasalBaslik>Yazı tipleri ve görseller</YasalBaslik>
       <p className="mt-3">
         Yazı tipleri Google Fonts kaynaklı ama site derlenirken indirilip{" "}
-        <strong className="text-murekkep">kendi sunucumuzdan</strong>{" "}
-        sunuluyor; sayfayı açtığınızda Google&apos;a yazı tipi isteği gitmiyor.
-        Fotoğraflar da kendi sunucumuzda. Yani sayfayı açmak, harita
-        düğmesine basmadığınız sürece bizim dışımızda hiçbir adrese istek
-        atmıyor.
+        <strong className="text-murekkep">kendi sunucumuzdan</strong> sunuluyor;
+        sayfayı açtığınızda Google&apos;a yazı tipi isteği gitmiyor. Fotoğraflar
+        da kendi sunucumuzda. Yani sayfayı açmak, harita düğmesine basmadığınız
+        sürece bizim dışımızda hiçbir adrese istek atmıyor.
       </p>
 
       <YasalBaslik>Dışa açılan bağlantılar</YasalBaslik>
@@ -102,18 +116,18 @@ export default function CerezSayfasi() {
 
       <YasalBaslik>Program sayacı</YasalBaslik>
       <p className="mt-3">
-        Ücret kartlarındaki &quot;Detaylı bilgi al&quot; düğmesine
-        bastığınızda, <strong className="text-murekkep">hangi programın</strong>{" "}
-        seçildiği sayısal olarak kaydedilir. Kurum böylece hangi gruba ilgi
-        olduğunu görüyor.
+        Ücret kartlarındaki &quot;Detaylı bilgi al&quot; düğmesine bastığınızda,{" "}
+        <strong className="text-murekkep">hangi programın</strong> seçildiği
+        sayısal olarak kaydedilir. Kurum böylece hangi gruba ilgi olduğunu
+        görüyor.
       </p>
       <p className="mt-3">
-        Bu kayıt <strong className="text-murekkep">kişiye bağlı değildir</strong>
-        : IP adresiniz, tarayıcı bilgileriniz ve herhangi bir kimlik
-        tutulmuyor, çerez yazılmıyor. Kaydedilen tek şey &quot;şu tarihte, şu
-        sayfadan, şu programa tıklandı&quot;. İki farklı kişinin tıklaması ile
-        aynı kişinin iki kez tıklaması birbirinden ayırt edilemez; bu bilinçli
-        bir tercih.
+        Bu kayıt{" "}
+        <strong className="text-murekkep">kişiye bağlı değildir</strong>: IP
+        adresiniz, tarayıcı bilgileriniz ve herhangi bir kimlik tutulmuyor,
+        çerez yazılmıyor. Kaydedilen tek şey &quot;şu tarihte, şu sayfadan, şu
+        programa tıklandı&quot;. İki farklı kişinin tıklaması ile aynı kişinin
+        iki kez tıklaması birbirinden ayırt edilemez; bu bilinçli bir tercih.
       </p>
 
       <YasalBaslik>Nasıl temizlerim?</YasalBaslik>
@@ -134,7 +148,7 @@ export default function CerezSayfasi() {
         >
           gizlilik politikasında
         </Link>
-        , kayıt formundaki alanların tamamı{" "}
+, veri sorumlusunun kim olduğu ve haklarınız{" "}
         <Link
           href="/kvkk"
           className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"

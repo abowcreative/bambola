@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ILETISIM, MARKA } from "@/lib/site";
+import { ILETISIM, KAYIT_FORMU_ACIK, MARKA } from "@/lib/site";
 import { sayfaMetadata } from "@/lib/seo";
 import {
   YasalSayfa,
@@ -79,9 +79,9 @@ export default function GizlilikSayfasi() {
       uyari={
         eksik ? (
           <>
-            Bu metnin başvuru adresi kurumdan gelen bilgilerle
-            tamamlanacaktır. İçeriği, sitenin ve panelin gerçekte ne yaptığına
-            göre hazırlanmıştır.
+            Bu metnin başvuru adresi kurumdan gelen bilgilerle tamamlanacaktır.
+            İçeriği, sitenin ve panelin gerçekte ne yaptığına göre
+            hazırlanmıştır.
           </>
         ) : undefined
       }
@@ -100,9 +100,9 @@ export default function GizlilikSayfasi() {
         ogeler={[
           "Sitede reklam ve izleme çerezi yok, analitik kurulu değil. Sizi sayfalar arasında izlemiyoruz.",
           <>
-            Tek ölçüm şu: &quot;Detaylı bilgi al&quot; düğmesine
-            basıldığında hangi programın seçildiği sayılıyor. Kişiye dair
-            hiçbir bilgi tutulmadan — ayrıntısı{" "}
+            Tek ölçüm şu: &quot;Detaylı bilgi al&quot; düğmesine basıldığında
+            hangi programın seçildiği sayılıyor. Kişiye dair hiçbir bilgi
+            tutulmadan — ayrıntısı{" "}
             <Link
               href="/cerez"
               className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
@@ -111,27 +111,46 @@ export default function GizlilikSayfasi() {
             </Link>
             .
           </>,
-          "Yalnız formda yazdığınız bilgileri ve kayıt sürecinin gerektirdiği bilgileri tutuyoruz.",
+          KAYIT_FORMU_ACIK
+            ? "Yalnız formda yazdığınız bilgileri ve kayıt sürecinin gerektirdiği bilgileri tutuyoruz."
+            : "Online kayıt formu şu an kapalı; site üzerinden bize hiçbir bilgi göndermiyorsunuz.",
           "Verinizi pazarlama amacıyla kimseye satmıyoruz, devretmiyoruz.",
           "Çocuğa ait bilgiler yalnız kurumun yetkili çalışanlarının göreceği şekilde saklanıyor.",
         ]}
       />
 
       <YasalBaslik>Web sitesinde ne topluyoruz?</YasalBaslik>
-      <p className="mt-3">
-        Siteyi yalnız gezerken sizden hiçbir bilgi istemiyoruz. Kayıt formunu
-        doldurduğunuzda aldığımız alanların tamamı ve her birinin niçin
-        alındığı{" "}
-        <Link
-          href="/kvkk"
-          className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
-        >
-          KVKK aydınlatma metninde
-        </Link>{" "}
-        tek tek yazılı. IP adresinizin kendisi saklanmaz; yalnız geri
-        döndürülemez şifrelenmiş özeti, formun kötüye kullanılmasını önlemek
-        için tutulur.
-      </p>
+      {KAYIT_FORMU_ACIK ? (
+        <p className="mt-3">
+          Siteyi yalnız gezerken sizden hiçbir bilgi istemiyoruz. Kayıt formunu
+          doldurduğunuzda aldığımız alanların tamamı ve her birinin niçin
+          alındığı{" "}
+          <Link
+            href="/kvkk"
+            className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
+          >
+            KVKK aydınlatma metninde
+          </Link>{" "}
+          tek tek yazılı. IP adresinizin kendisi saklanmaz; yalnız geri
+          döndürülemez şifrelenmiş özeti, formun kötüye kullanılmasını önlemek
+          için tutulur.
+        </p>
+      ) : (
+        <p className="mt-3">
+          Hiçbir şey. Online kayıt formu şu an kapalı, sitede doldurulacak başka
+          bir form da yok; siteyi gezerken sizden hiçbir bilgi istenmiyor ve
+          bize hiçbir bilgi ulaşmıyor. Bize WhatsApp veya telefonla
+          ulaştığınızda paylaştığınız bilgiler yalnızca size dönebilmek için
+          kullanılır. Ayrıntısı{" "}
+          <Link
+            href="/kvkk"
+            className="font-medium text-[var(--kol-koyu)] underline underline-offset-2"
+          >
+            KVKK aydınlatma metninde
+          </Link>
+          .
+        </p>
+      )}
 
       <YasalBaslik>Panelde ne tutuluyor?</YasalBaslik>
       <p className="mt-3">
@@ -140,18 +159,17 @@ export default function GizlilikSayfasi() {
       </p>
       <YasalTablo satirlar={PANELDE} />
       <p className="mt-4">
-        Panele yalnız kurumun hesap açtığı kişiler girer ve herkes yalnız
-        kendi işini görecek kadarını görür: öğretmen kendi sınıfını, veli
-        kendi çocuğunu. Bu sınırlar arayüzde değil, veritabanı düzeyinde
-        tanımlıdır; adres çubuğuna başka bir adres yazmak sınırı aşmaya
-        yetmez.
+        Panele yalnız kurumun hesap açtığı kişiler girer ve herkes yalnız kendi
+        işini görecek kadarını görür: öğretmen kendi sınıfını, veli kendi
+        çocuğunu. Bu sınırlar arayüzde değil, veritabanı düzeyinde tanımlıdır;
+        adres çubuğuna başka bir adres yazmak sınırı aşmaya yetmez.
       </p>
 
       <YasalBaslik>Veri nerede duruyor?</YasalBaslik>
       <YasalTablo satirlar={NEREDE} />
       <p className="mt-4">
-        Bu sağlayıcılar veriyi bizim adımıza işleyen taraflardır; kendi
-        amaçları için kullanmalarına izin verilmez.
+        Bu sağlayıcılar veriyi bizim adımıza işleyen taraflardır; kendi amaçları
+        için kullanmalarına izin verilmez.
       </p>
 
       <YasalBaslik>Ne kadar saklıyoruz?</YasalBaslik>
@@ -168,10 +186,10 @@ export default function GizlilikSayfasi() {
       <p className="mt-3">
         Çocuğa ait bilgileri yalnız velisinin bildirdiği kadarıyla ve yalnız
         hizmeti yürütmek için tutuyoruz. Alerji ve sağlık notu gibi bilgiler,
-        çocuğun güvenliği için o çocukla ilgilenen öğretmenin görebileceği
-        yerde durur; bunun dışında hiçbir amaçla kullanılmaz. Çocuk
-        fotoğrafları, velinin ayrıca yazılı izni olmadan sitede veya sosyal
-        medyada yayınlanmaz.
+        çocuğun güvenliği için o çocukla ilgilenen öğretmenin görebileceği yerde
+        durur; bunun dışında hiçbir amaçla kullanılmaz. Çocuk fotoğrafları,
+        velinin ayrıca yazılı izni olmadan sitede veya sosyal medyada
+        yayınlanmaz.
       </p>
 
       <YasalBaslik>Güvenlik</YasalBaslik>
@@ -199,9 +217,9 @@ export default function GizlilikSayfasi() {
 
       <YasalBaslik>Bu metin değişirse</YasalBaslik>
       <p className="mt-3">
-        Politika değiştiğinde güncel hâli bu adreste yayınlanır. Kayıt
-        sürecini etkileyen bir değişiklik olursa, kaydı süren velilere ayrıca
-        bilgi verilir.
+        Politika değiştiğinde güncel hâli bu adreste yayınlanır. Kayıt sürecini
+        etkileyen bir değişiklik olursa, kaydı süren velilere ayrıca bilgi
+        verilir.
       </p>
     </YasalSayfa>
   );

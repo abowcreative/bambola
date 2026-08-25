@@ -14,7 +14,7 @@ export const YASAL_SAYFALAR = [
   {
     ad: "KVKK aydınlatma metni",
     yol: "/kvkk",
-    ozet: "Kayıt formundaki verilerin hangi amaçla işlendiği ve haklarınız",
+    ozet: "Veri sorumlusu, verilerin nasıl işlendiği ve haklarınız",
   },
   {
     ad: "Gizlilik politikası",
