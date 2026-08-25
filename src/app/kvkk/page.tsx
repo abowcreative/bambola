@@ -20,8 +20,12 @@ export const metadata = sayfaMetadata({
  *
  * Icerigi sitenin gercekte ne topladigina gore yazildi, uydurma yok:
  * toplanan alanlar /api/kayit ve supabase/migrations/0001_basvurular.sql ile
- * birebir ortusuyor. Ancak veri sorumlusunun tam unvani, adresi, vergi
- * bilgileri ve basvuru kanali teyit bekliyor (PLAN.md Bolum 14 madde 9).
+ * birebir ortusuyor.
+ *
+ * VERI SORUMLUSU KIMLIGI: kurum, MEB izin belgesindeki adiyla ve acik adresle
+ * taniniyor. Ticaret unvani, MERSIS ve vergi bilgileri BILEREK yazilmiyor;
+ * sebebi lib/site.ts basindaki notta (site bilgilendirme amacli, uzerinden
+ * satis yok). Eksik kalan tek sey basvuru e-postasi.
  *
  * Yayina cikmadan once kurumun hukuk danismani okumali. Eksik alanlar
  * ILETISIM uzerinden geliyor; doldurulmadigi surece sayfa bunu acikca yazar.
@@ -66,7 +70,7 @@ const HAKLAR = [
 ];
 
 export default function KvkkSayfasi() {
-  const eksikBilgi = !ILETISIM.adres || !ILETISIM.eposta;
+  const basvuruAdresiYok = !ILETISIM.eposta;
 
   return (
     <YasalSayfa
@@ -74,10 +78,11 @@ export default function KvkkSayfasi() {
       baslik="KVKK aydınlatma metni"
       aciklama="Kayıt formunu doldurduğunuzda hangi bilgileri aldığımızı, neden aldığımızı ve ne kadar sakladığımızı burada anlatıyoruz."
       uyari={
-        eksikBilgi ? (
+        basvuruAdresiYok ? (
           <>
-            Bu metnin veri sorumlusu künyesi (tam unvan, adres, başvuru adresi)
-            kurumdan gelen bilgilerle tamamlanacaktır. Metnin içeriği sitenin
+            Başvurularınızı ileteceğiniz e-posta adresi kurumdan geldiğinde bu
+            metne eklenecektir. O zamana kadar taleplerinizi telefon veya
+            WhatsApp üzerinden iletebilirsiniz. Metnin içeriği, sitenin
             gerçekte topladığı verilere göre hazırlanmıştır.
           </>
         ) : undefined
@@ -85,10 +90,12 @@ export default function KvkkSayfasi() {
     >
       <YasalBaslik>Veri sorumlusu</YasalBaslik>
       <p className="mt-3">
-        Kişisel verileriniz, veri sorumlusu sıfatıyla{" "}
-        <strong className="text-murekkep">{MARKA.tuzelAdOyunEvi}</strong>{" "}
-        tarafından, 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında
-        aşağıda açıklanan çerçevede işlenmektedir.
+        Kişisel verileriniz, veri sorumlusu sıfatıyla, Millî Eğitim
+        Bakanlığından aldığı izin belgesinde{" "}
+        <strong className="text-murekkep">{MARKA.kurumAdiOyunEvi}</strong>{" "}
+        adıyla kayıtlı kurum tarafından, 6698 sayılı Kişisel Verilerin
+        Korunması Kanunu kapsamında aşağıda açıklanan çerçevede işlenmektedir.
+        Kurum, {MARKA.ad} adıyla tanıtılmaktadır.
         {ILETISIM.adres ? ` Adres: ${ILETISIM.adres}.` : ""}
       </p>
 

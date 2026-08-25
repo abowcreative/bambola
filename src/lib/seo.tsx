@@ -72,7 +72,13 @@ type Sema = Record<string, unknown>;
 
 /**
  * Organization + LocalBusiness. PLAN.md Bolum 5.
- * Tuzel ad legalName alaninda gecer (Bolum 2, Marka mimarisi).
+ *
+ * `legalName` BILEREK YOK. O alan sicildeki ticaret unvanini ister; site
+ * unvani hicbir yerde yazmiyor (sebebi lib/site.ts basindaki notta). Onceden
+ * oraya MEB kurum adi yaziliyordu -- kurum adi ile ticaret unvani ayri
+ * seyler, arama motoruna yanlis bilgi gidiyordu. Kurum adi `name` icinde
+ * zaten geciyor, kaybolan bir sey yok.
+ *
  * Teyit edilmemis alan (adres, telefon) hic yazilmaz; bos deger yazmak
  * yanlis bilgi yaymaktan beterdir.
  */
@@ -84,12 +90,15 @@ export function kurumSemasi(): Sema {
     /*
       `name` Google Business Profile kaydindaki adla ayni olmali: arama
       motoru sitedeki kurumla oradaki kaydi bu alandan eslestiriyor. Kisa
-      marka adi ("Bambola") ve logodaki Ingilizce alt baslik alternateName
-      icinde duruyor, ikisi de kaybolmuyor.
+      marka adi ("Bambola") alternateName icinde duruyor, kaybolmuyor.
+
+      "Kids Zone & Party House" 25 Agustos 2026'da buradan cikti. Musteri
+      10 Agustos'ta ifadenin kullanilmamasini istemisti; alanda durmasinin
+      tek gerekcesi amblemin halkasinda yaziyor olmasiydi. Halka yazisi
+      resmi kurum adiyla degisince o gerekce de ortadan kalkti.
     */
     name: ILETISIM.googleAdi ?? MARKA.ad,
-    legalName: MARKA.tuzelAdOyunEvi,
-    alternateName: [MARKA.ad, MARKA.altBaslik],
+    alternateName: [MARKA.ad],
     url: SITE_URL,
     logo: `${SITE_URL}/marka/bambola-logo.png`,
     // Google yerel sonuclarinda `image` gercek mekan fotografi bekliyor;

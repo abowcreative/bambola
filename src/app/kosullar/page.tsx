@@ -31,11 +31,19 @@ export default function KosullarSayfasi() {
       aciklama="Bu sitedeki bilgilerin kapsamı, kayıt talebinin ne anlama geldiği ve içerik hakları."
     >
       <p>
-        Bu koşullar, {MARKA.ad} adıyla{" "}
-        <strong className="text-murekkep">{MARKA.tuzelAdOyunEvi}</strong> ve{" "}
-        <strong className="text-murekkep">{MARKA.tuzelAdAnaokulu}</strong>{" "}
-        tarafından işletilen web sitesi için geçerlidir. Siteyi kullanarak bu
-        koşulları kabul etmiş olursunuz.
+        Bu koşullar, Millî Eğitim Bakanlığı izin belgelerinde{" "}
+        <strong className="text-murekkep">{MARKA.kurumAdiOyunEvi}</strong> ve{" "}
+        <strong className="text-murekkep">{MARKA.kurumAdiAnaokulu}</strong>{" "}
+        adlarıyla kayıtlı kurumların {MARKA.ad} adıyla yürüttüğü web sitesi
+        için geçerlidir. Siteyi kullanarak bu koşulları kabul etmiş olursunuz.
+      </p>
+
+      <YasalBaslik>Bu sitede satış yapılmaz</YasalBaslik>
+      <p className="mt-3">
+        Site yalnızca bilgilendirme amacıyla yayınlanır. Üzerinden ürün veya
+        hizmet satışı yapılmaz, çevrim içi ödeme alınmaz ve sözleşme kurulmaz.
+        Ücretler yalnızca bilgi olarak yayınlanır. Kayıt, ödeme ve sözleşme
+        işlemlerinin tamamı kurumda yüz yüze yürütülür.
       </p>
 
       <YasalBaslik>Kayıt formu bir sözleşme değildir</YasalBaslik>

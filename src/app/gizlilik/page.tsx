@@ -87,11 +87,11 @@ export default function GizlilikSayfasi() {
       }
     >
       <p>
-        Bu politika{" "}
-        <strong className="text-murekkep">{MARKA.tuzelAdOyunEvi}</strong> ve{" "}
-        <strong className="text-murekkep">{MARKA.tuzelAdAnaokulu}</strong>{" "}
-        tarafından işletilen {MARKA.ad} web sitesi ve yönetim paneli için
-        geçerlidir.
+        Bu politika, Millî Eğitim Bakanlığı izin belgelerinde{" "}
+        <strong className="text-murekkep">{MARKA.kurumAdiOyunEvi}</strong> ve{" "}
+        <strong className="text-murekkep">{MARKA.kurumAdiAnaokulu}</strong>{" "}
+        adlarıyla kayıtlı kurumların {MARKA.ad} adıyla yürüttüğü web sitesi ve
+        yönetim paneli için geçerlidir.
         {ILETISIM.adres ? ` Adres: ${ILETISIM.adres}.` : ""}
       </p>
 

@@ -64,8 +64,14 @@ export default async function AyarlarSayfasi() {
           <dl>
             <Satir etiket="Ticari ad" deger={MARKA.ad} />
             <Satir etiket="NAP adı" deger={napAdi()} />
-            <Satir etiket="Tüzel ad (oyun evi)" deger={MARKA.tuzelAdOyunEvi} />
-            <Satir etiket="Tüzel ad (anaokulu)" deger={MARKA.tuzelAdAnaokulu} />
+            <Satir
+              etiket="MEB kurum adı (oyun evi)"
+              deger={MARKA.kurumAdiOyunEvi}
+            />
+            <Satir
+              etiket="MEB kurum adı (anaokulu)"
+              deger={MARKA.kurumAdiAnaokulu}
+            />
             <Satir etiket="MEB ifadesi" deger={MEB_IFADESI} />
             <Satir etiket="Site adresi" deger={SITE_URL} />
           </dl>

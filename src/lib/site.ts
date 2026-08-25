@@ -1,13 +1,26 @@
 /**
  * Kurumsal sabitler ve marka adlari.
  *
- * PLAN.md Bolum 2 (Marka mimarisi): Bambola ticari marka, Kibar tuzel kimlik.
- * Ticari ad H1'lerde ve site metninde, tuzel ad footer NAP'inda, KVKK metninde
- * ve schema legalName alaninda gecer.
+ * UC AYRI AD VAR, KARISTIRILMASIN:
+ *  1. Ticari marka -- "Bambola". H1'lerde, site metninde, domainde.
+ *  2. MEB kurum adlari -- "Kibar Cocuk Etkinlik ve Oyun Merkezi" ve
+ *     "Kibar Cocuklar Anaokulu". Izin belgesinde ve tabelada yazan adlar.
+ *     Footer NAP'inda, yasal metinlerde ve tanitimda bunlar gecer.
+ *  3. Ticaret unvani -- sirketin sicildeki unvani. SITE BUNU YAZMIYOR.
+ *
+ * TICARET UNVANI NEDEN YOK (musteri karari, 25 Agustos 2026):
+ * Site bilgilendirme amacli. Uzerinden satis yapilmiyor, cevrim ici odeme
+ * alinmiyor, sozlesme kurulmuyor. 6563 sayili Elektronik Ticaret Kanunu'nun
+ * tanitici bilgi yukumlulugu bu yuzden devreye girmiyor; TTK 39/2 kunyesi
+ * (unvan, MERSIS, sermaye, mudur adlari) de sitede yayimlanmiyor.
+ *
+ * BU KARAR DEGISIRSE: kayit formu gercek kayda ya da odemeye acilirsa site
+ * elektronik ticaret kapsamina girer, kunye zorunlu hale gelir ve yasal
+ * metinlerin tamami yeniden okunmali.
  *
  * TEYIT BEKLEYENLER (PLAN.md Bolum 14, madde 9 ve 13):
- * Adres, telefon, WhatsApp, Instagram ve calisma saatleri GELDI. Eksik
- * kalanlar: e-posta ve vergi bilgileri (KVKK metni icin).
+ * Adres, telefon, WhatsApp, Instagram ve calisma saatleri GELDI. Eksik kalan:
+ * KVKK basvurulari icin e-posta adresi.
  * Eksikler null birakiliyor. null olan bir iletisim kanali icin site hicbir
  * yerde cagri yapmaz (Bolum 3, madde 5: "kap olmadan cagri yapilmaz").
  */
@@ -17,21 +30,15 @@ export const MARKA = {
   /** Ticari marka. Basliklarda, metinde, domainde bu gecer. */
   ad: "Bambola",
   /**
-   * Yesil logonun halkasindaki Ingilizce alt baslik.
+   * MEB izin belgesindeki kurum adi, oyun evi. 10 Agustos 2026'da musteri
+   * kesinlestirdi: "Oyun Merkezi". Amblemin halkasindaki yazi da bu.
    *
-   * DIKKAT: Musteri 10 Agustos 2026'da bu ifadenin kullanilmamasini istedi.
-   * Fiyat listesi ve musteriye giden belgelerde YAZILMAZ; yerine amblem ve
-   * resmi ad kullanilir. Logonun kendi icinde gectigi icin burada duruyor,
-   * baslik olarak basilmaz.
+   * DIKKAT, BU TICARET UNVANI DEGIL. Sirketin unvani ayri bir sey ve site
+   * onu hicbir yerde yazmiyor; sebebi dosyanin basindaki notta.
    */
-  altBaslik: "Kids Zone & Party House",
-  /**
-   * Resmi ad. 10 Agustos 2026'da musteri kesinlestirdi: "Oyun Merkezi".
-   * Mor logonun halkasindaki yazi da bunu dogruluyor.
-   */
-  tuzelAdOyunEvi: "Kibar Çocuk Etkinlik ve Oyun Merkezi",
-  /** Tuzel kimlik, anaokulu. */
-  tuzelAdAnaokulu: "Kibar Çocuklar Anaokulu",
+  kurumAdiOyunEvi: "Kibar Çocuk Etkinlik ve Oyun Merkezi",
+  /** MEB izin belgesindeki kurum adi, anaokulu. Ticaret unvani degil. */
+  kurumAdiAnaokulu: "Kibar Çocuklar Anaokulu",
   ilce: "Çankaya",
   sehir: "Ankara",
 } as const;
@@ -228,16 +235,16 @@ export function saatSatirlari(): { gunler: string; saat: string }[] {
  * Footer NAP'inda ve schema `name` alaninda gecen isletme adi.
  *
  * PLAN.md Bolum 14 madde 9, musteri karari (16 Agustos 2026): Google
- * kaydindaki ad ONDE, tuzel ad parantez icinde. Ikisi birden yaziliyor cunku
- * her biri baska bir yerde zorunlu -- Google kaydi yerel SEO icin, tuzel ad
+ * kaydindaki ad ONDE, kurum adi parantez icinde. Ikisi birden yaziliyor cunku
+ * her biri baska bir yerde zorunlu -- Google kaydi yerel SEO icin, kurum adi
  * KVKK metni ve MEB ruhsati icin. Yalniz birini yazmak digerini kirar.
  *
  * Google kaydi henuz yoksa (googleAdi null) tuzel ada dusuyor: parantez
  * icinde tek bir ad gostermek anlamsiz olurdu.
  */
 export function napAdi(): string {
-  if (!ILETISIM.googleAdi) return MARKA.tuzelAdOyunEvi;
-  return `${ILETISIM.googleAdi} (${MARKA.tuzelAdOyunEvi})`;
+  if (!ILETISIM.googleAdi) return MARKA.kurumAdiOyunEvi;
+  return `${ILETISIM.googleAdi} (${MARKA.kurumAdiOyunEvi})`;
 }
 
 /**

@@ -171,7 +171,7 @@ export default function AnaSayfa() {
               >
                 <MarkaLogosu
                   boyut={120}
-                  alt={`${MARKA.ad} ${MARKA.altBaslik}`}
+                  alt={`${MARKA.ad} logosu`}
                   className="size-full"
                 />
               </span>

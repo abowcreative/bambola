@@ -62,7 +62,7 @@ export default function AnaokuluSayfasi() {
           {
             "@context": "https://schema.org",
             "@type": "Preschool",
-            name: MARKA.tuzelAdAnaokulu,
+            name: MARKA.kurumAdiAnaokulu,
             alternateName: `${MARKA.ad} Anaokulu`,
             url: `${SITE_URL}/anaokulu`,
             parentOrganization: { "@id": `${SITE_URL}/#kurum` },

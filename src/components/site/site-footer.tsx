@@ -185,8 +185,8 @@ export function SiteFooter() {
         {/* --- 3. serit: telif ve yasal metinler --- */}
         <div className="flex flex-col gap-4 border-t border-cizgi py-6 text-xs text-murekkep-soluk lg:flex-row lg:items-center lg:justify-between">
           <p>
-            {yil} {MARKA.ad}. {MARKA.tuzelAdOyunEvi} ve {MARKA.tuzelAdAnaokulu}{" "}
-            markasıdır.
+            {yil} {MARKA.ad}. {MARKA.kurumAdiOyunEvi} ve{" "}
+            {MARKA.kurumAdiAnaokulu} kurumlarının tanıtım adıdır.
           </p>
           {/* Yasal metinlerin tamami tek kaynaktan, bkz. lib/yasal.ts */}
           <nav aria-label="Yasal metinler">

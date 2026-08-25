@@ -70,7 +70,7 @@ const govde = `
   <header class="ust">
     <div class="amblem"><img src="${AMBLEM_SRC}" alt="${kacis(MARKA.ad)}"></div>
     <div class="ust-sol">
-      <p class="kurum">${kacis(MARKA.tuzelAdOyunEvi)}</p>
+      <p class="kurum">${kacis(MARKA.kurumAdiOyunEvi)}</p>
       <h1>${kacis(UYELIK_BASLIK)}</h1>
       ${
         MEB_IFADESI

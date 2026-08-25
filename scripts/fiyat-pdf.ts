@@ -313,7 +313,7 @@ function ustBlok(baslik: string, altBaslik: string) {
       <img src="${AMBLEM_SRC}" alt="${kacis(MARKA.ad)}">
     </div>
     <div class="ust-sol">
-      <p class="kurum">${kacis(MARKA.tuzelAdOyunEvi)}</p>
+      <p class="kurum">${kacis(MARKA.kurumAdiOyunEvi)}</p>
       <h1>${kacis(baslik)}</h1>
       <p class="alt-baslik">${kacis(altBaslik)}</p>
       ${
@@ -342,7 +342,7 @@ function ustBlok(baslik: string, altBaslik: string) {
 function devamBasligi(no: number, toplam: number, altBaslik: string) {
   return `  <header class="ust-devam">
     <div class="ud-amblem"><img src="${AMBLEM_SRC}" alt=""></div>
-    <p class="ud-ad">${kacis(MARKA.tuzelAdOyunEvi)}</p>
+    <p class="ud-ad">${kacis(MARKA.kurumAdiOyunEvi)}</p>
     <p class="ud-sayfa">${kacis(altBaslik)} · Sayfa ${no} / ${toplam}</p>
   </header>`;
 }

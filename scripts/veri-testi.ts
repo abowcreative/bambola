@@ -589,8 +589,8 @@ dogru(
   `NAP adi Google kaydindaki adi tasimiyor: ${nap}`,
 );
 dogru(
-  nap.includes(MARKA.tuzelAdOyunEvi),
-  `NAP adi tuzel adi tasimiyor: ${nap}`,
+  nap.includes(MARKA.kurumAdiOyunEvi),
+  `NAP adi MEB kurum adini tasimiyor: ${nap}`,
 );
 
 // Google kart baglantisi: CID'in ikinci parcasi ondaliga cevrilebilmeli.
