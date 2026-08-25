@@ -1,23 +1,23 @@
 import Image from "next/image";
-import logoKaynagi from "@/assets/bambola-kids-zone.svg";
+import logoKaynagi from "@/assets/bambola-logo.png";
 
 /**
  * Tek logo bileseni. Sitedeki her logo buradan gecer.
  *
- * NEDEN STATIK ICE AKTARIM:
- * Logo once `public/marka/...svg` yolundan sabit URL ile sunuluyordu. O
- * dosyanin ilk surumu bozuktu (aria-label icindeki & karakteri XML olarak
- * kacislanmamisti, dosya gecersiz XML oldugu icin tarayici cizmiyordu).
- * Dosya duzeltildi ama URL ayni kaldigi icin tarayicilar onbellekteki bozuk
- * kopyayi gostermeye devam etti.
+ * KAYNAK: `bambola-final-logo.pdf`, 25 Agustos 2026'da musterinin verdigi
+ * resmi amblem. Dosya `npm run logo` ile PNG'ye cevriliyor, elle
+ * duzenlenmiyor; ayrintilar `scripts/logo-uret.ts` basindaki notta.
  *
- * Statik ice aktarimda Next dosyaya icerik damgasi basiyor
- * (/_next/static/media/bambola-kids-zone.<hash>.svg). Dosya her degistiginde
- * URL de degisiyor, yani onbellek sorunu bir daha yasanmiyor. Ayrica
- * genislik ve yukseklik dosyadan okunuyor, elle yazilmiyor.
+ * NEDEN PNG, SVG DEGIL: Kaynak PDF'in ici raster (tek bir 1024x1024 CMYK
+ * JPEG + saydamlik maskesi). Icinde vektor yok, dolayisiyla cikarilabilecek
+ * bir yol da yok. Onceki yesil amblem SVG'ydi ama o amblem artik
+ * kullanilmiyor: halkasinda "Kids Zone & Party House" yaziyordu ve musteri
+ * 10 Agustos 2026'da o ifadenin kullanilmamasini istemisti.
  *
- * `unoptimized`: SVG zaten vektor. Next'in goruntu iyilestiricisi SVG'yi
- * guvenlik gerekcesiyle reddediyor ve zaten kazanc saglamazdi.
+ * NEDEN STATIK ICE AKTARIM: Next dosyaya icerik damgasi basiyor
+ * (/_next/static/media/bambola-logo.<hash>.png). Amblem degistiginde URL de
+ * degisiyor, tarayici onbellekteki eski kopyayi gostermiyor. Genislik ve
+ * yukseklik de dosyadan okunuyor, elle yazilmiyor.
  */
 export function MarkaLogosu({
   boyut = 56,
@@ -39,7 +39,6 @@ export function MarkaLogosu({
       width={boyut}
       height={boyut}
       priority={oncelikli}
-      unoptimized
       className={className}
     />
   );

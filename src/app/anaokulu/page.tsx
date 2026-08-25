@@ -10,7 +10,7 @@ import { MekanSeridi } from "@/components/site/mekan-seridi";
 
 export const metadata = sayfaMetadata({
   baslik: `${MARKA.ilce} Anaokulu, Bu Sene Açılıyor`,
-  aciklama: `${MARKA.ilce}, ${MARKA.sehir}'da anaokulu. 1,5 yaştan 6 yaşa tek çatı altında, 8 kat, 160 kişilik kapasite. Ön kayıt formu açık.`,
+  aciklama: `${MARKA.ilce}, ${MARKA.sehir}'da anaokulu. 2 yaştan 6 yaşa tek çatı altında, 8 kat, 160 kişilik kapasite. Ön kayıt formu açık.`,
   yol: "/anaokulu",
 });
 
@@ -33,7 +33,7 @@ const OLGULAR = [
   },
   {
     ikon: "Kalp",
-    baslik: "1,5 - 6 yaş tek çatı",
+    baslik: "2 - 6 yaş tek çatı",
     metin: "Çocuk aynı binada büyüyor, okul değiştirmiyor.",
   },
   {
@@ -80,7 +80,7 @@ export default function AnaokuluSayfasi() {
       <SayfaBasligi
         ustBaslik="Anaokulu"
         baslik="Anaokulumuz bu sene açılıyor"
-        aciklama="Oyun evinde başlayan çocuk, yaşı gelince aynı çatının altında devam ediyor. 1,5 yaştan 6 yaşa kadar tek bir yer."
+        aciklama="Oyun evinde başlayan çocuk, yaşı gelince aynı çatının altında devam ediyor. 2 yaştan 6 yaşa kadar tek bir yer."
         cocuklar={
           <BilgiCagrisi metin="Anaokulu için bilgi al" olcu="lg" />
         }

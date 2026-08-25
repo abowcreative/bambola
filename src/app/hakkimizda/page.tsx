@@ -35,7 +35,7 @@ const FROBEL = [
   { sol: "Bahçe", sag: "Giriş katı bahçesi" },
   { sol: "Hediyeler", sag: "Atölye katları" },
   { sol: "Meşguliyetler", sag: "El işi ve sanat atölyeleri" },
-  { sol: "Birlik", sag: "1,5 - 6 yaş tek çatı altında" },
+  { sol: "Birlik", sag: "2 - 6 yaş tek çatı altında" },
 ];
 
 export default function HakkimizdaSayfasi() {

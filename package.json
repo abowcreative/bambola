@@ -20,7 +20,8 @@
     "favicon": "tsx scripts/favicon-uret.ts",
     "bas": "tsx scripts/bas.ts",
     "belge": "npm run belge:pdf && npm run belge:sosyal && npm run bas",
-    "ogrenci:ice-aktar": "tsx scripts/ogrenci-ice-aktar.ts"
+    "ogrenci:ice-aktar": "tsx scripts/ogrenci-ice-aktar.ts",
+    "logo": "tsx scripts/logo-uret.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

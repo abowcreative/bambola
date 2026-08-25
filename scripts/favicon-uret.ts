@@ -5,15 +5,18 @@
  * NEDEN VAR: `src/app/favicon.ico` create-next-app'in varsayilan dosyasiydi
  * (25.931 bayt, Next.js ikonu). Iki sitede de markanin ikonu gorunmuyordu.
  *
- * Logo oldugu gibi kullanilmiyor. Iki sebep:
- *  1. Halkadaki "KIDS ZONE & PARTY HOUSE" yazisi 16 pikselde okunmuyor,
- *     bulanik bir seride donusuyor.
- *  2. Musteri o ifadenin kullanilmamasini istedi (PLAN.md Bolum 14 madde 8);
- *     favicon her sekmede gorunen bir yer ve orada durmasi dogru degil.
+ * Amblem oldugu gibi kullanilmiyor: halkadaki "KIBAR COCUK ETKINLIK VE OYUN
+ * MERKEZI" yazisi 16 pikselde okunmuyor, bulanik bir seride donusuyor.
  *
- * Uretilen: yesil daire + ince lime cerceve + ortalanmis piktogram.
- * 16 piksel icin cerceveSIZ ve figuru daha buyuk ayri bir surum var; o
- * boyutta cerceve capin ucte birini yiyip figure yer birakmiyor.
+ * Uretilen: mor daire + siyah halka + ortalanmis beyaz piktogram; yani
+ * 25 Agustos 2026da gelen resmi amblemin (bambola-final-logo.pdf, bkz.
+ * scripts/logo-uret.ts) kucuk boyuta indirgenmis hali. 16 piksel icin
+ * halkaSIZ ve figuru daha buyuk ayri bir surum var; o boyutta halka capin
+ * ucte birini yiyip figure yer birakmiyor.
+ *
+ * PIKTOGRAM NEREDEN GELIYOR: Resmi amblemin PDFi raster, icinden yol
+ * cikmiyor. Ayni anne-cocuk figuru eski yesil amblemin SVGsinde vektor
+ * olarak duruyor; ikon yalniz o yolu aliyor, renkleri resmi amblemden.
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -26,13 +29,14 @@ const CHROME = [
   "/usr/bin/google-chrome",
 ].find((y) => existsSync(y));
 
+/** Piktogram yolunun vektor kaynagi. Yalniz yollar[2] kullaniliyor. */
 const KAYNAK = "marka/bambola-kids-zone.svg";
 const APP = "src/app";
 const PUBLIC_MARKA = "public/marka";
 
-/** Marka renkleri. src/app/globals.css ile ayni degerler. */
-const LIME = "#bdf270";
-const YESIL = "#588f27";
+/** Resmi amblemin renkleri, bambola-final-logo.pdf uzerinden olculdu. */
+const SIYAH = "#000000";
+const MOR = "#49073d";
 
 type Yol = { d: string };
 
@@ -51,10 +55,10 @@ async function main() {
 
   const yollar = yollariOku();
   /*
-    Logodaki yol sirasi: 0 lime halka, 1 ic yesil daire, 2 piktogram,
-    3 halka yazisi, 4-10 alt wordmark. Yalniz ilk uc kullaniliyor.
-    Logo degisirse bu sira dogrulanmali; asagidaki kontrol en azindan
-    dosyanin beklenen yapida oldugunu sinar.
+    Kaynak SVGdeki yol sirasi: 0 dis halka, 1 ic daire, 2 piktogram,
+    3 halka yazisi, 4-10 alt wordmark. Yalniz piktogram (2) kullaniliyor,
+    renkler resmi amblemden geliyor. Kaynak degisirse bu sira dogrulanmali;
+    asagidaki kontrol en azindan dosyanin beklenen yapida oldugunu sinar.
   */
   if (yollar.length < 3) {
     console.error("\nLogo beklenen yapida degil: en az uc yol gerekiyor.\n");
@@ -88,8 +92,8 @@ async function main() {
   }
 
   /**
-   * @param cerceve lime cercevenin kalinligi (1000 birimlik tuvalde).
-   *   0 = cerceve yok, kucuk boyutlar icin.
+   * @param cerceve siyah halkanin kalinligi (1000 birimlik tuvalde).
+   *   0 = halka yok, kucuk boyutlar icin.
    * @param figurBoy figurun uzun kenari.
    */
   function ikon(cerceve: number, figurBoy: number): string {
@@ -97,7 +101,7 @@ async function main() {
     const icR = r - cerceve;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
   <title>Bambola</title>
-${cerceve > 0 ? `  <circle cx="500" cy="500" r="${r}" fill="${LIME}"/>\n` : ""}  <circle cx="500" cy="500" r="${icR}" fill="${YESIL}"/>
+${cerceve > 0 ? `  <circle cx="500" cy="500" r="${r}" fill="${SIYAH}"/>\n` : ""}  <circle cx="500" cy="500" r="${icR}" fill="${MOR}"/>
 ${figurKatmani(figurBoy)}
 </svg>
 `;
@@ -105,11 +109,12 @@ ${figurKatmani(figurBoy)}
 
   /*
     Iki surum:
-    - genis: 32 piksel ve ustu. Ince lime cerceve markayi hatirlatiyor.
-    - kucuk: 16 piksel. Cerceve yok, figur daha buyuk; o boyutta cerceve
-      capin ucte birini yiyip figure yer birakmiyor.
+    - genis: 32 piksel ve ustu. Siyah halka amblemin kendi oranina yakin
+      tutuluyor; resmi amblemde halka dis yaricapin besde biri kadar.
+    - kucuk: 16 piksel. Halka yok, figur daha buyuk; o boyutta halka capin
+      ucte birini yiyip figure yer birakmiyor.
   */
-  const genis = ikon(30, 620);
+  const genis = ikon(80, 560);
   const kucuk = ikon(0, 760);
 
   mkdirSync(APP, { recursive: true });
@@ -143,12 +148,13 @@ ${figurKatmani(figurBoy)}
 
   /*
     apple-icon: iOS ana ekran ikonu. Saydam degil, DOLU olmali; iOS
-    saydamligi siyaha ceviriyor. Bu yuzden zemin lime dolduruluyor.
+    saydamligi siyaha ceviriyor. Zemin, amblemin halkasiyla ayni siyah;
+    ustune mor disk oturuyor.
   */
   const elmaSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
-  <rect width="1000" height="1000" fill="${LIME}"/>
-  <circle cx="500" cy="500" r="440" fill="${YESIL}"/>
-${figurKatmani(560)}
+  <rect width="1000" height="1000" fill="${SIYAH}"/>
+  <circle cx="500" cy="500" r="400" fill="${MOR}"/>
+${figurKatmani(500)}
 </svg>
 `;
   writeFileSync(`${APP}/apple-icon.png`, await png(elmaSvg, 180));

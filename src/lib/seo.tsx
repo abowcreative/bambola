@@ -91,7 +91,7 @@ export function kurumSemasi(): Sema {
     legalName: MARKA.tuzelAdOyunEvi,
     alternateName: [MARKA.ad, MARKA.altBaslik],
     url: SITE_URL,
-    logo: `${SITE_URL}/marka/bambola-kids-zone.png`,
+    logo: `${SITE_URL}/marka/bambola-logo.png`,
     // Google yerel sonuclarinda `image` gercek mekan fotografi bekliyor;
     // logo koymak alani doldurur ama ise yaramaz. Sirasi bilincli: ilk kare
     // sonuc kartinda cikan karedir.
