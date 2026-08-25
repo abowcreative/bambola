@@ -292,14 +292,15 @@ ${fiyatSatirlari(a)}
  * Amblem: YESIL vektor logo. Marka rengi yesil, kurumun kendi afisleri de
  * yesil; mor amblem sayfayi markadan kopariyordu.
  *
- * Musterinin "Kids Zone & Party House kalksin" istegi, en ustteki YAZILI
- * satir icindi. O satir kaldirildi, yerine resmi ad yaziliyor:
- * "Kibar Cocuk Etkinlik ve Oyun Merkezi". Ifade yalnizca amblemin kendi
- * halkasinda, kurumun kendi logosunun parcasi olarak kaliyor.
+ * Musterinin "Kids Zone & Party House kalksin" istegi once yalnizca en
+ * ustteki YAZILI satir icin uygulanmisti; ifade amblemin kendi halkasinda
+ * duruyordu. 25 Agustos 2026'da oradan da kalkti: halka yazisi resmi
+ * amblemdekiyle degistirildi, artik "KIBAR COCUK ETKINLIK VE OYUN MERKEZI"
+ * yaziyor (bkz. scripts/logo-uret.ts).
  */
 const AMBLEM_SRC =
   "data:image/svg+xml;base64," +
-  readFileSync("src/assets/bambola-kids-zone.svg").toString("base64");
+  readFileSync("src/assets/bambola-logo.svg").toString("base64");
 
 /**
  * Ust blok. 10 Agustos 2026 musteri karari:

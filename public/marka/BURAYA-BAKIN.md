@@ -9,11 +9,12 @@ Yalniz site disindan erisilmesi gereken seyler burada durur:
 - `kibar-anaokulu.png`, `kibar-oyun-merkezi.png` : Kibar tuzel kimlik logolari.
   Kaynak PDF'te raster oldugu icin en fazla 128px kullanilir.
 
-**Sitenin icinde gorunen logo burada DEGIL.** O `src/assets/bambola-logo.png`
+**Sitenin icinde gorunen logo burada DEGIL.** O `src/assets/bambola-logo.svg`
 dosyasindan geliyor ve `src/components/site/marka-logosu.tsx` uzerinden
 kullaniliyor. Sebep: statik ice aktarimda Next dosyaya icerik damgasi basiyor,
 dosya degisince URL de degisiyor ve tarayici eski kopyayi gostermiyor.
 
-**Iki PNG de elle duzenlenmez.** Ikisini de `npm run logo` uretiyor; kaynak
-depo kokundeki `bambola-final-logo.pdf`. Amblem degisirse o PDF degistirilip
-`npm run logo` ve ardindan `npm run favicon` calistirilir.
+**Hicbiri elle duzenlenmez.** Amblem `npm run logo` ile uretiliyor: yesil
+vektorun (`src/assets/bambola-kids-zone.svg`) halka yazisi, depo kokundeki
+`bambola-final-logo.pdf` icindeki resmi amblemden izlenip degistiriliyor.
+Amblem degisirse once `npm run logo`, sonra `npm run favicon`.

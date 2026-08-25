@@ -1,54 +1,63 @@
 /**
- * Marka amblemini kaynak PDF'ten cikarip sitenin kullandigi PNG'leri uretir.
+ * Marka amblemini uretir: yesil logonun halka yazisi, musterinin verdigi
+ * resmi amblemdeki yaziyla degistirilir.
  * Calistirma: npm run logo
  *
- * NEDEN VAR: Musteri 25 Agustos 2026'da resmi amblemi
- * `bambola-final-logo.pdf` olarak verdi ve sitedeki butun logolarin bu
- * olmasini istedi. Onceki yesil "Kids Zone & Party House" amblemi kalkti;
- * zaten 10 Agustos'ta o ifadenin kullanilmamasi istenmisti (PLAN.md Bolum 14
- * madde 8) ve ifade tam da o amblemin halkasinda yaziyordu.
+ * NEDEN VAR: Musteri 25 Agustos 2026'da `bambola-final-logo.pdf` gonderdi.
+ * Istenen sey amblemin komple degismesi DEGIL: kurumsal renk (yesil) aynen
+ * kalacak, yalniz ust halkadaki yazi degisecek. Eski yazi "KIDS ZONE &
+ * PARTY HOUSE" idi ve 10 Agustos 2026'da o ifadenin kullanilmamasi
+ * istenmisti (PLAN.md Bolum 14 madde 8); yerine resmi ad geliyor:
+ * "KIBAR COCUK ETKINLIK VE OYUN MERKEZI".
  *
- * PDF'in ICI RASTER. Icinde tek bir 1024x1024 CMYK JPEG (nesne 12) ve onun
- * saydamlik maskesi (nesne 13, DeviceGray + Flate + PNG ongorucu 15) var.
- * Vektor yok, dolayisiyla SVG'ye cevrilemiyor; elde edilebilecek en iyi sey
- * 1024 pikselde temiz bir RGBA PNG.
+ * NEDEN KOPYALA-YAPISTIR DEGIL: Resmi amblemin PDF'i RASTER. Icinde tek bir
+ * 1024x1024 CMYK JPEG (nesne 12) ve saydamlik maskesi (nesne 13, DeviceGray
+ * + Flate + PNG ongorucu 15) var, tek bir vektor yol yok. Buna karsilik
+ * elimizdeki yesil amblem gercek vektor (CorelDRAW ciktisi, LOGO
+ * BAMBOLA.pdf'ten cikarilmisti). Dolayisiyla yol su: yesil vektorun her
+ * seyini koru, yalniz halka yazisi yolunu resmi amblemden izlenmis
+ * vektorle degistir.
  *
- * MASKENIN MANTIGI (ilk bakista ters gorunur):
- * Maske, halkayi ve ic diski OPAK; halka yazisini, figuru ve "BAMBOLA"
- * wordmark'ini SAYDAM birakiyor. Yani cizim, zeminin gorunmesi icin
- * OYULMUS. PDF sayfasi arkaya beyaz basiyor, amblem oyle tasarlanmis:
- * siyah halkada beyaz yazi, mor diskte beyaz figur.
+ * ISE YARAMASININ SEBEBI: iki amblemin halka geometrisi neredeyse birebir
+ * ayni. 1000 birimlik tuvalde yesil halka 414.7 - 497.6, resmi amblemin
+ * halkasi 415.5 - 500.3. Yani izlenen yazi hicbir esnetme olmadan, duz bir
+ * olcek degisimiyle yesil amblemin bandina oturuyor.
  *
- * Bu yuzden dosyayi oldugu gibi disari yazmak olmuyor -- oyuklar sayfanin
- * zeminini gosterirdi ve amblem her bolumde baska renge burunurdu. Onun
- * yerine:
- *   1. Kenardan tasma-doldurma ile "disk disi" bolge bulunuyor.
- *   2. Disk disi saydam kaliyor (amblem yuvarlak kesiliyor).
- *   3. Disk icindeki oyuklar BEYAZA kapatiliyor.
- * Sonuc: her zeminde ayni gorunen, kenari yumusak gecisli yuvarlak amblem.
+ * MASKENIN MANTIGI (ilk bakista ters gorunur): Maske halkayi ve ic diski
+ * OPAK, yaziyi ve figuru SAYDAM birakiyor -- cizim, zeminin gorunmesi icin
+ * OYULMUS. Yani halka bandindaki saydam pikseller tam olarak aradigimiz
+ * yazinin kendisi.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { inflateSync } from "node:zlib";
 import sharp from "sharp";
+import { Potrace } from "potrace";
 
-const KAYNAK = "bambola-final-logo.pdf";
-const SITE_HEDEF = "src/assets/bambola-logo.png";
-const KAMU_HEDEF = "public/marka/bambola-logo.png";
+const PDF = "bambola-final-logo.pdf";
+/** Yesil amblemin vektoru. Halka yazisi disinda her sey buradan geliyor. */
+const TABAN = "src/assets/bambola-kids-zone.svg";
+const SVG_HEDEF = "src/assets/bambola-logo.svg";
+const PNG_HEDEF = "public/marka/bambola-logo.png";
+
+const YENI_YAZI = "Kibar Çocuk Etkinlik ve Oyun Merkezi";
 
 /** PDF icindeki goruntu nesnesi ve saydamlik maskesi. */
-const JPEG_NESNE = 12;
 const MASKE_NESNE = 13;
 const EN = 1024;
-const BOY = 1024;
+/** Izleme cozunurlugu. 1024'te yazi ~68 piksel; 2x buyutmek kenarlari
+ *  yumusatiyor, 4x'in getirdigi ek kesinlik yol verisini iki katina
+ *  cikarmaktan baska ise yaramiyor. */
+const IZ_OLCU = 2048;
+/** Yesil amblemin tuval olcusu. */
+const TUVAL = 1000;
 
 /** `<n> 0 obj` ile baslayan nesnenin ham akisini dondurur. */
 function akis(pdf: Buffer, metin: string, no: number): Buffer {
   const bas = metin.indexOf(`\n${no} 0 obj`);
   if (bas < 0) throw new Error(`PDF nesnesi yok: ${no}`);
   const akisBas = metin.indexOf("stream", bas);
-  const sozluk = metin.slice(bas, akisBas);
-  const uzunluk = /\/Length (\d+)/.exec(sozluk);
+  const uzunluk = /\/Length (\d+)/.exec(metin.slice(bas, akisBas));
   if (!uzunluk) throw new Error(`Nesne ${no} icin /Length okunamadi`);
   // "stream" anahtar sozcugunden sonra CRLF ya da LF gelir, ikisi de atlanir.
   let p = akisBas + "stream".length;
@@ -59,14 +68,14 @@ function akis(pdf: Buffer, metin: string, no: number): Buffer {
 
 /**
  * PNG ongorucusunu (Predictor 15) geri alir. Tek kanal, 8 bit, `EN` sutun.
- * PDF cozucusu bu isi kendi yapardi; burada elle yapiliyor cunku depoda tam
- * bir PDF cozucusu yok ve gereken tek sey bu.
+ * Tam bir PDF cozucusu bu isi kendi yapardi; depoda oyle bir sey yok ve
+ * gereken tek sey bu.
  */
 function ongorucuyuCoz(ham: Buffer): Buffer {
-  const cikti = Buffer.alloc(EN * BOY);
+  const cikti = Buffer.alloc(EN * EN);
   let oku = 0;
   let onceki = Buffer.alloc(EN);
-  for (let y = 0; y < BOY; y++) {
+  for (let y = 0; y < EN; y++) {
     const tur = ham[oku++];
     const satir = Buffer.from(ham.subarray(oku, oku + EN));
     oku += EN;
@@ -107,91 +116,137 @@ function ongorucuyuCoz(ham: Buffer): Buffer {
 }
 
 /**
- * Kenarlardan iceri dogru tasma-doldurma. Yalniz maskesi `esik`in altinda
- * kalan pikseller geziliyor, boylece disk disi bolge (ve kenarindaki
- * yumusak gecis) isaretleniyor. Diskin ICINDEKI oyuklar kenara bagli
- * olmadigi icin isaretlenmiyor -- ayrimi yapan sey bu.
+ * Halka bandinin ic ve dis yaricapi. Elle yazilmiyor: dis yaricap maskenin
+ * opak kaldigi en uzak nokta, ic yaricap ise halkanin (siyah) bittigi yer.
+ * Amblem degisip oranlari kayarsa bu olcum kendini duzeltir.
  */
-function diskDisi(maske: Buffer, esik = 250): Uint8Array {
-  const disi = new Uint8Array(EN * BOY);
-  const yigin: number[] = [];
-  const bak = (i: number) => {
-    if (!disi[i] && maske[i] < esik) {
-      disi[i] = 1;
-      yigin.push(i);
-    }
-  };
-  for (let x = 0; x < EN; x++) {
-    bak(x);
-    bak((BOY - 1) * EN + x);
-  }
-  for (let y = 0; y < BOY; y++) {
-    bak(y * EN);
-    bak(y * EN + EN - 1);
-  }
-  while (yigin.length) {
-    const i = yigin.pop() as number;
-    const x = i % EN;
-    const y = (i / EN) | 0;
-    if (x > 0) bak(i - 1);
-    if (x < EN - 1) bak(i + 1);
-    if (y > 0) bak(i - EN);
-    if (y < BOY - 1) bak(i + EN);
-  }
-  return disi;
-}
-
-async function main() {
-  if (!existsSync(KAYNAK)) {
-    console.error(`\nKaynak amblem yok: ${KAYNAK}\n`);
-    process.exit(1);
-  }
-
-  const pdf = readFileSync(KAYNAK);
-  // latin1: bayt <-> karakter birebir, arama yaparken hicbir bayt bozulmuyor.
-  const metin = pdf.toString("latin1");
-
-  const maske = ongorucuyuCoz(inflateSync(akis(pdf, metin, MASKE_NESNE)));
-  const disi = diskDisi(maske);
-
-  // sharp CMYK JPEG'i cozup sRGB'ye ceviriyor; PDF'teki profil GRACoL 2013.
-  const { data: rgb } = await sharp(akis(pdf, metin, JPEG_NESNE))
+async function halkaBandi(pdf: Buffer, metin: string, maske: Buffer) {
+  const { data: rgb } = await sharp(akis(pdf, metin, 12))
     .toColourspace("srgb")
     .removeAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
 
-  const rgba = Buffer.alloc(EN * BOY * 4);
-  for (let i = 0; i < EN * BOY; i++) {
-    const a = maske[i];
-    const k = i * 3;
-    const h = i * 4;
-    // Oyuklari beyazla kapatmak = ambleme beyaz zemin uzerinde bakmak.
-    // Kenardaki ara degerler de dogru karisiyor, testere disi olusmuyor.
-    rgba[h] = Math.round((rgb[k] * a + 255 * (255 - a)) / 255);
-    rgba[h + 1] = Math.round((rgb[k + 1] * a + 255 * (255 - a)) / 255);
-    rgba[h + 2] = Math.round((rgb[k + 2] * a + 255 * (255 - a)) / 255);
-    rgba[h + 3] = disi[i] ? a : 255;
+  const merkez = EN / 2;
+  let dis = 0;
+  let icDolgu = 0;
+  for (let y = 0; y < EN; y++) {
+    for (let x = 0; x < EN; x++) {
+      const i = y * EN + x;
+      if (maske[i] < 128) continue;
+      const r = Math.hypot(x + 0.5 - merkez, y + 0.5 - merkez);
+      if (r > dis) dis = r;
+      const k = i * 3;
+      // Halka siyah, ic disk mor. Parlaklik ikisini ayirmaya yetiyor.
+      const parlaklik = rgb[k] + rgb[k + 1] + rgb[k + 2];
+      if (parlaklik >= 120 && r > icDolgu) icDolgu = r;
+    }
+  }
+  return { dis, ic: icDolgu };
+}
+
+/** Halka bandindaki oyuklari (yaziyi) beyaz, gerisini siyah bir maskeye alir. */
+function yaziMaskesi(maske: Buffer, ic: number, dis: number): Buffer {
+  const merkez = EN / 2;
+  const g = Buffer.alloc(EN * EN);
+  for (let y = 0; y < EN; y++) {
+    for (let x = 0; x < EN; x++) {
+      const i = y * EN + x;
+      const r = Math.hypot(x + 0.5 - merkez, y + 0.5 - merkez);
+      // Iki kenardan da 3 birim pay: disk sinirindaki ve dis kenardaki
+      // yumusak gecis pikselleri yaziya karismasin.
+      g[i] = r > ic + 3 && r < dis - 3 ? 255 - maske[i] : 0;
+    }
+  }
+  return g;
+}
+
+async function izle(png: Buffer): Promise<string> {
+  const p = new Potrace({
+    threshold: 128,
+    // Yazi, siyah zemin uzerinde beyaz duruyor.
+    blackOnWhite: false,
+    // "I" harflerinin noktalari IZ_OLCU'de ~30 piksel; 4 onlari elemez.
+    turdSize: 4,
+    alphaMax: 1.0,
+    optCurve: true,
+    optTolerance: 0.6,
+  });
+  await new Promise<void>((coz, at) =>
+    p.loadImage(png, (e) => (e ? at(e) : coz())),
+  );
+  const svg = p.getSVG();
+  const d = / d="([^"]*)"/.exec(svg);
+  if (!d) throw new Error("Potrace yol uretmedi");
+  // Izleme tuvalinden amblem tuvaline: duz olcek, esnetme yok.
+  const k = TUVAL / IZ_OLCU;
+  return d[1].replace(/-?\d+\.?\d*/g, (s) =>
+    String(Math.round(Number(s) * k * 100) / 100),
+  );
+}
+
+async function main() {
+  for (const y of [PDF, TABAN]) {
+    if (!existsSync(y)) {
+      console.error(`\nKaynak yok: ${y}\n`);
+      process.exit(1);
+    }
   }
 
-  const kaynak = () =>
-    sharp(rgba, { raw: { width: EN, height: BOY, channels: 4 } });
+  const pdf = readFileSync(PDF);
+  // latin1: bayt <-> karakter birebir, arama yaparken hicbir bayt bozulmuyor.
+  const metin = pdf.toString("latin1");
+  const maske = ongorucuyuCoz(inflateSync(akis(pdf, metin, MASKE_NESNE)));
 
-  mkdirSync("src/assets", { recursive: true });
+  const { ic, dis } = await halkaBandi(pdf, metin, maske);
+  console.log(
+    `  halka bandi: ${ic.toFixed(1)} - ${dis.toFixed(1)} (${EN} birimlik tuvalde)`,
+  );
+
+  const png = await sharp(yaziMaskesi(maske, ic, dis), {
+    raw: { width: EN, height: EN, channels: 1 },
+  })
+    .resize(IZ_OLCU, IZ_OLCU, { kernel: "lanczos3" })
+    .png()
+    .toBuffer();
+
+  const yaziYolu = await izle(png);
+
+  /*
+    Taban SVG'deki yol sirasi: 0 lime halka, 1 ic yesil daire, 2 piktogram,
+    3 HALKA YAZISI, 4-10 alt wordmark harfleri. Yalniz 3 degisiyor.
+    Sira degisirse asagidaki kontrol uyarir.
+  */
+  const taban = readFileSync(TABAN, "utf8");
+  const yollar = [...taban.matchAll(/<path\b[^>]*\sd="([^"]*)"[^>]*>/g)];
+  if (yollar.length !== 11) {
+    console.error(`\nTaban logo beklenen yapida degil: ${yollar.length} yol\n`);
+    process.exit(1);
+  }
+
+  let svg = taban.replace(
+    yollar[3][0],
+    // fill-rule: Potrace deligi (harflerin gozunu) dis konturla ayni yonde
+    // ciziyor; evenodd olmadan "O" ve "C" dolu birer leke olarak cikiyor.
+    `<path fill="#ffffff" fill-rule="evenodd" d="${yaziYolu}"/>`,
+  );
+  svg = svg.replace(
+    /aria-label="[^"]*"/,
+    `aria-label="Bambola, ${YENI_YAZI}"`,
+  );
+
   mkdirSync("public/marka", { recursive: true });
-
-  const site = await kaynak().png({ compressionLevel: 9 }).toBuffer();
-  writeFileSync(SITE_HEDEF, site);
-  console.log(`  + ${SITE_HEDEF} (${EN}x${BOY} · ${site.length} bayt)`);
+  writeFileSync(SVG_HEDEF, svg);
+  console.log(`  + ${SVG_HEDEF} (${svg.length} bayt)`);
 
   // schema.org `logo` ve sosyal paylasim icin: mutlak URL'den servis edilir,
   // 512 piksel her tuketici icin fazlasiyla yeter.
-  const kamu = await kaynak()
+  const kamu = await sharp(Buffer.from(svg), { density: 300 })
     .resize(512, 512)
     .png({ compressionLevel: 9 })
     .toBuffer();
-  writeFileSync(KAMU_HEDEF, kamu);
-  console.log(`  + ${KAMU_HEDEF} (512x512 · ${kamu.length} bayt)`);
+  writeFileSync(PNG_HEDEF, kamu);
+  console.log(`  + ${PNG_HEDEF} (512x512 · ${kamu.length} bayt)`);
   console.log("");
 }
 

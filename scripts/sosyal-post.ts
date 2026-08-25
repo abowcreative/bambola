@@ -20,7 +20,7 @@ const kacis = (s: string) =>
 
 const AMBLEM =
   "data:image/svg+xml;base64," +
-  readFileSync("src/assets/bambola-kids-zone.svg").toString("base64");
+  readFileSync("src/assets/bambola-logo.svg").toString("base64");
 
 const IKON: Record<string, string> = {
   rozet: "M12 2.5 20 5.5v6c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10v-6zM8.6 11.8l2.4 2.4 4.6-4.6",
