@@ -3,12 +3,13 @@ import { rolZorunlu } from "@/lib/kampus/oturum";
 import { cocuklarim, ogrencininYoklamasi } from "@/lib/kampus/yoklama";
 import {
   YOKLAMA_ETIKET,
-  YOKLAMA_RENGI,
   type YoklamaDurumu,
 } from "@/lib/kampus/yoklama-tipleri";
+import { YOKLAMA_TONU } from "@/lib/kampus/tonlar";
 import { ogrencininKayitlari } from "@/lib/kampus/ogrenciler";
 import { ogrenciAdi } from "@/lib/kampus/ogrenci-tipleri";
-import { Kabuk, SayfaBasi, Kutu, BosDurum } from "@/components/kampus/kabuk";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
+import { Bildirim, BosDurum, Rozet, Sayac } from "@/components/kampus/ui";
 import { atolyeBul } from "@/lib/data/atolyeler";
 import { GUN_ADI } from "@/lib/data/types";
 import type { Gun } from "@/lib/data/types";
@@ -39,6 +40,7 @@ export default async function CocugumSayfasi() {
         <SayfaBasi baslik="Çocuğum" />
         <BosDurum
           baslik="Bağlı çocuk kaydı yok"
+          ikon={<Ikon.Bebek boyut={22} />}
           aciklama="Hesabınız henüz bir öğrenci kaydına bağlanmamış. Kurum yöneticisine başvurun."
         />
       </Kabuk>
@@ -68,41 +70,48 @@ export default async function CocugumSayfasi() {
           ).length;
 
           return (
-            <div key={cocuk.id} className="space-y-4">
-              <div className="flex flex-wrap items-center gap-3">
-                <h2 className="font-baslik text-xl font-bold text-murekkep">
+            <div key={cocuk.id} className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h2 className="font-baslik text-lg font-bold text-murekkep">
                   {ogrenciAdi(cocuk)}
                 </h2>
-                <span className="text-sm text-murekkep-soluk">
+                <span className="text-sm text-panel-soluk">
                   {yasMetni(ayHesapla(cocuk.dogum_tarihi))}
                 </span>
               </div>
 
               {cocuk.alerji && (
-                <div className="rounded-kart border-2 border-yesil bg-lime-rozet/25 px-4 py-3">
-                  <p className="flex items-center gap-2 text-sm text-murekkep">
-                    <Ikon.Kalp boyut={15} />
-                    <span>
-                      <strong>Kayıtlı alerji:</strong> {cocuk.alerji}
-                    </span>
-                  </p>
-                </div>
+                <Bildirim ton="uyari" ikon={<Ikon.Kalp boyut={15} />}>
+                  <strong>Kayıtlı alerji:</strong> {cocuk.alerji}
+                </Bildirim>
               )}
 
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Sayac etiket="Aktif grup" deger={aktif.length} />
+                <Sayac
+                  etiket="Katılım"
+                  deger={
+                    yoklama.length > 0 ? `${gelen}/${yoklama.length}` : "—"
+                  }
+                  ton={yoklama.length > 0 ? "basari" : "notr"}
+                />
+                <Sayac
+                  etiket="Devamsızlık"
+                  deger={yoklama.filter((y) => y.durum === "gelmedi").length}
+                />
+              </div>
+
               <div className="grid gap-4 lg:grid-cols-2">
-                <Kutu baslik="Programı">
+                <Kutu baslik="Programı" dolgusuz>
                   {aktif.length === 0 ? (
-                    <p className="py-4 text-sm text-murekkep-soluk">
+                    <p className="px-4 py-6 text-center text-sm text-panel-soluk">
                       Henüz bir gruba kayıtlı değil.
                     </p>
                   ) : (
-                    <ul className="space-y-2">
+                    <ul className="divide-y divide-panel-cizgi">
                       {aktif.map((k) => (
-                        <li
-                          key={k.id}
-                          className="rounded-kart border-2 border-cizgi px-4 py-3"
-                        >
-                          <p className="font-baslik text-sm font-bold text-murekkep">
+                        <li key={k.id} className="px-4 py-2.5">
+                          <p className="text-sm font-semibold text-murekkep">
                             {k.sinif?.atolye_slug
                               ? (atolyeBul(
                                   k.sinif.atolye_slug as Parameters<
@@ -111,7 +120,7 @@ export default async function CocugumSayfasi() {
                                 )?.ad ?? k.sinif.ad)
                               : (k.sinif?.ad ?? "—")}
                           </p>
-                          <p className="mt-0.5 text-xs text-murekkep-soluk">
+                          <p className="mt-0.5 text-xs text-panel-soluk">
                             {k.sinif?.gun && GUN_ADI[k.sinif.gun as Gun]}{" "}
                             {k.sinif?.bas} - {k.sinif?.bit}
                             {k.sinif?.ogretmen_ad &&
@@ -127,24 +136,25 @@ export default async function CocugumSayfasi() {
                   baslik="Devam durumu"
                   yanCocuk={
                     yoklama.length > 0 ? (
-                      <span className="text-sm text-murekkep-soluk">
+                      <span className="text-xs text-panel-silik">
                         {gelen}/{yoklama.length} katılım
                       </span>
                     ) : undefined
                   }
+                  dolgusuz
                 >
                   {yoklama.length === 0 ? (
-                    <p className="py-4 text-sm text-murekkep-soluk">
+                    <p className="px-4 py-6 text-center text-sm text-panel-soluk">
                       Henüz yoklama kaydı yok.
                     </p>
                   ) : (
-                    <ul className="space-y-1.5">
+                    <ul className="divide-y divide-panel-cizgi">
                       {yoklama.slice(0, 12).map((y) => (
                         <li
                           key={y.id}
-                          className="flex flex-wrap items-center gap-x-3 text-sm"
+                          className="flex flex-wrap items-center gap-x-3 px-4 py-2 text-sm"
                         >
-                          <span className="w-24 shrink-0 tabular-nums text-murekkep-soluk">
+                          <span className="w-14 shrink-0 text-xs tabular-nums text-panel-silik">
                             {y.dersler?.tarih
                               ? new Date(y.dersler.tarih).toLocaleDateString(
                                   "tr-TR",
@@ -161,11 +171,9 @@ export default async function CocugumSayfasi() {
                                 )?.kisaAd ?? "—")
                               : "—"}
                           </span>
-                          <span
-                            className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${YOKLAMA_RENGI[y.durum as YoklamaDurumu]}`}
-                          >
+                          <Rozet ton={YOKLAMA_TONU[y.durum] ?? "notr"}>
                             {YOKLAMA_ETIKET[y.durum as YoklamaDurumu]}
-                          </span>
+                          </Rozet>
                         </li>
                       ))}
                     </ul>
@@ -177,12 +185,12 @@ export default async function CocugumSayfasi() {
         })}
       </div>
 
-      <Kutu className="mt-6">
-        <p className="text-sm leading-relaxed text-murekkep-soluk">
+      <Kutu className="mt-5">
+        <p className="text-sm leading-relaxed text-panel-soluk">
           Duyuruları{" "}
           <Link
             href="/kampus/duyurular"
-            className="font-semibold text-yesil-koyu hover:underline"
+            className="font-semibold text-yesil-derin hover:underline"
           >
             Duyurular
           </Link>{" "}

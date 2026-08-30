@@ -2,16 +2,32 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { duyuruEkle } from "@/lib/kampus/yoklama-islemleri";
+import {
+  duyuruEkle,
+  duyuruGuncelle,
+  duyuruSil,
+} from "@/lib/kampus/yoklama-islemleri";
 import { HEDEF_ETIKET } from "@/lib/kampus/yoklama-tipleri";
-import { Buton } from "@/components/ui/buton";
+import { Ikon } from "@/components/ui/ikon";
+import { ALAN, AlanKutusu, Bildirim, Dugme, IkonDugme } from "./ui";
+import { Firildak, Kip, SilDugmesi } from "./ui-istemci";
 
-const ALAN =
-  "w-full rounded-yumusak border-2 border-cizgi bg-white px-3.5 py-2 text-sm " +
-  "text-murekkep outline-none transition-colors placeholder:text-murekkep-soluk/60 " +
-  "focus:border-yesil disabled:opacity-60";
+/**
+ * Duyuru yazma ve duzenleme.
+ *
+ * Yeni duyuru TASLAK olarak aciliyor; yayina almak ayri bir adim
+ * (`YayinAnahtari`). Yazilmakta olan bir metnin veliye dusmesi geri
+ * alinamaz.
+ */
 
 const HEDEFLER = ["hepsi", "ogretmen", "veli"] as const;
+
+export type DuyuruKunyesi = {
+  id: string;
+  baslik: string;
+  metin: string;
+  hedef: string;
+};
 
 export function DuyuruFormu() {
   const yonlendirici = useRouter();
@@ -38,13 +54,7 @@ export function DuyuruFormu() {
 
   return (
     <form onSubmit={gonder} className="space-y-3">
-      <div>
-        <label
-          htmlFor="d-baslik"
-          className="mb-1 block text-sm text-murekkep-soluk"
-        >
-          Başlık
-        </label>
+      <AlanKutusu etiket="Başlık" htmlFor="d-baslik" gerekli>
         <input
           id="d-baslik"
           required
@@ -54,15 +64,9 @@ export function DuyuruFormu() {
           className={ALAN}
           placeholder="Cumartesi atölyesi iptal"
         />
-      </div>
+      </AlanKutusu>
 
-      <div>
-        <label
-          htmlFor="d-hedef"
-          className="mb-1 block text-sm text-murekkep-soluk"
-        >
-          Kimler görecek
-        </label>
+      <AlanKutusu etiket="Kimler görecek" htmlFor="d-hedef">
         <select
           id="d-hedef"
           value={hedef}
@@ -76,15 +80,9 @@ export function DuyuruFormu() {
             </option>
           ))}
         </select>
-      </div>
+      </AlanKutusu>
 
-      <div>
-        <label
-          htmlFor="d-metin"
-          className="mb-1 block text-sm text-murekkep-soluk"
-        >
-          Metin
-        </label>
+      <AlanKutusu etiket="Metin" htmlFor="d-metin" gerekli>
         <textarea
           id="d-metin"
           required
@@ -94,26 +92,129 @@ export function DuyuruFormu() {
           disabled={bekliyor}
           className={`${ALAN} resize-y`}
         />
-      </div>
+      </AlanKutusu>
 
-      {hata && (
-        <p role="alert" className="text-sm text-murekkep">
-          {hata}
-        </p>
-      )}
+      {hata && <Bildirim ton="tehlike">{hata}</Bildirim>}
 
-      <Buton
+      <Dugme
         type="submit"
-        olcu="sm"
+        gorunum="birincil"
         disabled={bekliyor || !baslik.trim() || !metin.trim()}
         className="w-full"
       >
-        {bekliyor ? "Kaydediliyor..." : "Taslak olarak kaydet"}
-      </Buton>
+        {bekliyor && <Firildak />}
+        {bekliyor ? "Kaydediliyor…" : "Taslak olarak kaydet"}
+      </Dugme>
 
-      <p className="text-xs leading-relaxed text-murekkep-soluk">
+      <p className="text-xs leading-relaxed text-panel-silik">
         Duyuru taslak olarak kaydedilir. Yayına almak ayrı bir adım.
       </p>
     </form>
+  );
+}
+
+/** Var olan duyuruyu duzenler; ayni kipte silme de var. */
+export function DuyuruDuzenle({ duyuru }: { duyuru: DuyuruKunyesi }) {
+  const yonlendirici = useRouter();
+  const [acik, setAcik] = useState(false);
+  const [baslik, setBaslik] = useState(duyuru.baslik);
+  const [metin, setMetin] = useState(duyuru.metin);
+  const [hedef, setHedef] = useState(duyuru.hedef);
+  const [hata, setHata] = useState<string | null>(null);
+  const [bekliyor, basla] = useTransition();
+
+  function gonder(olay: React.FormEvent) {
+    olay.preventDefault();
+    setHata(null);
+    basla(async () => {
+      const sonuc = await duyuruGuncelle(duyuru.id, { baslik, metin, hedef });
+      if (sonuc.ok) {
+        setAcik(false);
+        yonlendirici.refresh();
+      } else {
+        setHata(sonuc.hata);
+      }
+    });
+  }
+
+  return (
+    <>
+      <IkonDugme baslik="Duyuruyu düzenle" onClick={() => setAcik(true)}>
+        <Ikon.Not boyut={15} />
+      </IkonDugme>
+
+      <Kip
+        acik={acik}
+        kapat={() => setAcik(false)}
+        genislik="34rem"
+        baslik="Duyuruyu düzenle"
+        aciklama="Yayındaki bir duyuruyu düzenlerseniz değişiklik anında görünür."
+      >
+        <form onSubmit={gonder} className="space-y-3">
+          <AlanKutusu etiket="Başlık" htmlFor="dd-baslik" gerekli>
+            <input
+              id="dd-baslik"
+              required
+              value={baslik}
+              onChange={(e) => setBaslik(e.target.value)}
+              disabled={bekliyor}
+              className={ALAN}
+            />
+          </AlanKutusu>
+
+          <AlanKutusu etiket="Kimler görecek" htmlFor="dd-hedef">
+            <select
+              id="dd-hedef"
+              value={hedef}
+              onChange={(e) => setHedef(e.target.value)}
+              disabled={bekliyor}
+              className={ALAN}
+            >
+              {HEDEFLER.map((h) => (
+                <option key={h} value={h}>
+                  {HEDEF_ETIKET[h]}
+                </option>
+              ))}
+            </select>
+          </AlanKutusu>
+
+          <AlanKutusu etiket="Metin" htmlFor="dd-metin" gerekli>
+            <textarea
+              id="dd-metin"
+              required
+              rows={6}
+              value={metin}
+              onChange={(e) => setMetin(e.target.value)}
+              disabled={bekliyor}
+              className={`${ALAN} resize-y`}
+            />
+          </AlanKutusu>
+
+          {hata && <Bildirim ton="tehlike">{hata}</Bildirim>}
+
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-panel-cizgi pt-4">
+            <SilDugmesi
+              etiket="Sil"
+              onayEtiketi="Kalıcı olarak sil"
+              islem={() => duyuruSil(duyuru.id)}
+              tamamlandi={() => setAcik(false)}
+            />
+            <span className="flex gap-2">
+              <Dugme
+                type="button"
+                onClick={() => setAcik(false)}
+                disabled={bekliyor}
+              >
+                Vazgeç
+              </Dugme>
+              <Dugme type="submit" gorunum="birincil" disabled={bekliyor}>
+                {bekliyor && <Firildak />}
+                Kaydet
+              </Dugme>
+            </span>
+          </div>
+        </form>
+      </Kip>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 import { rolZorunlu } from "@/lib/kampus/oturum";
-import { Kabuk, SayfaBasi, Kutu, Sayac } from "@/components/kampus/kabuk";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
+import { Ilerleme, Rozet, Sayac } from "@/components/kampus/ui";
 import { SLOTLAR, gunSlotlari, PAZAR_NOTU } from "@/lib/data/program";
 import { atolyeBul } from "@/lib/data/atolyeler";
 import { GUNLER, GUN_ADI, DIL_ETIKET } from "@/lib/data/types";
@@ -45,23 +46,24 @@ export default async function TakvimSayfasi() {
         />
       </div>
 
-      <div className="mt-6 grid gap-4 xl:grid-cols-2">
+      <div className="mt-4 grid gap-3 xl:grid-cols-2">
         {gunler.map(({ gun, slotlar }) => (
           <Kutu
             key={gun}
+            dolgusuz
             baslik={GUN_ADI[gun]}
             yanCocuk={
-              <span className="text-sm text-murekkep-soluk">
+              <span className="text-xs text-panel-silik">
                 {slotlar.length > 0 ? `${slotlar.length} seans` : "kapalı"}
               </span>
             }
           >
             {slotlar.length === 0 ? (
-              <p className="py-4 text-sm text-murekkep-soluk">
+              <p className="px-4 py-5 text-center text-sm text-panel-soluk">
                 Grup programı yok.
               </p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="divide-y divide-panel-cizgi">
                 {slotlar.map((s) => {
                   const benim =
                     oturum.ogretmenAd != null &&
@@ -69,25 +71,28 @@ export default async function TakvimSayfasi() {
                   return (
                     <li
                       key={s.id}
-                      className={`flex flex-wrap items-start gap-x-4 gap-y-1 rounded-kart border-2 px-4 py-3 ${
-                        benim ? "border-yesil bg-lime-rozet/20" : "border-cizgi"
+                      className={`flex flex-wrap items-start gap-x-4 gap-y-1 px-4 py-2.5 ${
+                        benim ? "bg-lime-rozet/15" : ""
                       }`}
                     >
-                      <span className="shrink-0 font-baslik text-sm font-bold tabular-nums text-yesil-koyu">
+                      <span className="w-24 shrink-0 font-baslik text-sm font-bold tabular-nums text-yesil-derin">
                         {s.bas} - {s.bit}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block font-baslik text-sm font-bold text-murekkep">
-                          {atolyeBul(s.atolyeSlug)?.ad ?? s.atolyeSlug}
+                        <span className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-semibold text-murekkep">
+                            {atolyeBul(s.atolyeSlug)?.ad ?? s.atolyeSlug}
+                          </span>
+                          {benim && <Rozet ton="vurgu">sizin</Rozet>}
                         </span>
-                        <span className="mt-0.5 block text-xs text-murekkep-soluk">
+                        <span className="mt-0.5 block text-xs text-panel-soluk">
                           {s.yas.etiket}
                           {s.yas.ebeveynsiz && " · ebeveynsiz"}
                           {s.dil !== "tr" && ` · ${DIL_ETIKET[s.dil]}`}
                           {s.tekSeferMumkun && " · tek katılım açık"}
                         </span>
                       </span>
-                      <span className="shrink-0 text-xs text-murekkep-soluk">
+                      <span className="shrink-0 text-xs text-panel-silik">
                         {s.ogretmenler.length > 0
                           ? s.ogretmenler.join(", ")
                           : "—"}
@@ -109,13 +114,13 @@ export default async function TakvimSayfasi() {
                 {o.ad}
               </span>
               {/* Cubuk en yogun ogretmene gore olceklendi. */}
-              <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-krem-koyu">
-                <span
-                  className="block h-full rounded-full bg-yesil"
-                  style={{ width: `${(o.sayi / (yuk[0]?.sayi || 1)) * 100}%` }}
-                />
-              </span>
-              <span className="w-16 shrink-0 text-right text-sm tabular-nums text-murekkep-soluk">
+              <Ilerleme
+                deger={o.sayi}
+                toplam={yuk[0]?.sayi || 1}
+                ton="basari"
+                className="flex-1"
+              />
+              <span className="w-16 shrink-0 text-right text-xs tabular-nums text-panel-soluk">
                 {o.sayi} seans
               </span>
             </li>
@@ -123,7 +128,7 @@ export default async function TakvimSayfasi() {
         </ul>
       </Kutu>
 
-      <p className="mt-4 text-sm leading-relaxed text-murekkep-soluk">
+      <p className="mt-3 text-xs leading-relaxed text-panel-silik">
         {PAZAR_NOTU} Öğle arası her gün 12.30 - 13.30 arasındadır.
       </p>
     </Kabuk>

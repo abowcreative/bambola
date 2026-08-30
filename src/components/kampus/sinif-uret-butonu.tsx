@@ -3,8 +3,9 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { siniflariProgramdanUret } from "@/lib/kampus/ogrenci-islemleri";
-import { Buton } from "@/components/ui/buton";
 import { Ikon } from "@/components/ui/ikon";
+import { Bildirim, Dugme } from "./ui";
+import { Firildak, Kip } from "./ui-istemci";
 
 /**
  * Haftalik programdan sinif uretir.
@@ -15,7 +16,7 @@ import { Ikon } from "@/components/ui/ikon";
  */
 export function SinifUretButonu({ donem }: { donem: string }) {
   const yonlendirici = useRouter();
-  const [onay, setOnay] = useState(false);
+  const [acik, setAcik] = useState(false);
   const [hata, setHata] = useState<string | null>(null);
   const [bekliyor, basla] = useTransition();
 
@@ -24,7 +25,7 @@ export function SinifUretButonu({ donem }: { donem: string }) {
     basla(async () => {
       const sonuc = await siniflariProgramdanUret(donem);
       if (sonuc.ok) {
-        setOnay(false);
+        setAcik(false);
         yonlendirici.refresh();
       } else {
         setHata(sonuc.hata);
@@ -32,48 +33,49 @@ export function SinifUretButonu({ donem }: { donem: string }) {
     });
   }
 
-  if (!onay) {
-    return (
-      <div>
-        <Buton type="button" olcu="sm" onClick={() => setOnay(true)}>
-          <Ikon.Takvim boyut={16} />
-          Programdan sınıfları aç
-        </Buton>
-        {hata && (
-          <p role="alert" className="mt-2 text-sm text-murekkep">
-            {hata}
-          </p>
-        )}
-      </div>
-    );
-  }
-
   return (
-    <div className="rounded-kart border-2 border-yesil bg-white p-4">
-      <p className="text-sm leading-relaxed text-murekkep">
-        Haftalık programdaki her seans için <strong>{donem}</strong> dönemine
-        bir sınıf açılacak. Öğretmen programdaki öğretmen olur, kontenjan 12
-        olur; sonradan değiştirilebilir.
-      </p>
-      <div className="mt-3 flex gap-2">
-        <Buton type="button" olcu="sm" onClick={uret} disabled={bekliyor}>
-          {bekliyor ? "Açılıyor..." : "Evet, aç"}
-        </Buton>
-        <Buton
-          type="button"
-          olcu="sm"
-          gorunum="cizgili"
-          onClick={() => setOnay(false)}
-          disabled={bekliyor}
-        >
-          Vazgeç
-        </Buton>
-      </div>
-      {hata && (
-        <p role="alert" className="mt-2 text-sm text-murekkep">
-          {hata}
+    <>
+      <Dugme type="button" onClick={() => setAcik(true)}>
+        <Ikon.Takvim boyut={15} />
+        Programdan sınıfları aç
+      </Dugme>
+
+      <Kip
+        acik={acik}
+        kapat={() => setAcik(false)}
+        genislik="30rem"
+        baslik="Dönem sınıflarını aç"
+      >
+        <p className="text-sm leading-relaxed text-murekkep">
+          Haftalık programdaki her seans için <strong>{donem}</strong> dönemine
+          bir sınıf açılacak. Öğretmen programdaki öğretmen olur, kontenjan 12
+          olur; ikisi de sonradan değiştirilebilir.
         </p>
-      )}
-    </div>
+        <p className="mt-2 text-xs leading-relaxed text-panel-soluk">
+          Zaten açılmış seanslar atlanır, ikinci kez sınıf oluşmaz.
+        </p>
+
+        {hata && (
+          <div className="mt-3">
+            <Bildirim ton="tehlike">{hata}</Bildirim>
+          </div>
+        )}
+
+        <div className="mt-4 flex justify-end gap-2 border-t border-panel-cizgi pt-4">
+          <Dugme type="button" onClick={() => setAcik(false)} disabled={bekliyor}>
+            Vazgeç
+          </Dugme>
+          <Dugme
+            type="button"
+            gorunum="birincil"
+            onClick={uret}
+            disabled={bekliyor}
+          >
+            {bekliyor && <Firildak />}
+            {bekliyor ? "Açılıyor…" : "Evet, aç"}
+          </Dugme>
+        </div>
+      </Kip>
+    </>
   );
 }

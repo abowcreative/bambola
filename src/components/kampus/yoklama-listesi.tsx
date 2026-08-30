@@ -4,15 +4,23 @@ import { useState, useTransition } from "react";
 import { yoklamaIsaretle } from "@/lib/kampus/yoklama-islemleri";
 import {
   YOKLAMA_ETIKET,
-  YOKLAMA_RENGI,
   type YoklamaDurumu,
   type YoklamaKaydi,
 } from "@/lib/kampus/yoklama-tipleri";
 import { ogrenciAdi, type Ogrenci } from "@/lib/kampus/ogrenci-tipleri";
 import { yasMetni, ayHesapla } from "@/lib/yas";
 import { Ikon } from "@/components/ui/ikon";
+import { Dugme, Rozet } from "./ui";
 
 const SIRA: YoklamaDurumu[] = ["geldi", "gelmedi", "izinli", "telafi"];
+
+/** Secili durumun dolu hali. Rozet tonlariyla ayni anlam, daha guclu zemin. */
+const SECILI: Record<YoklamaDurumu, string> = {
+  geldi: "bg-basari text-white",
+  gelmedi: "bg-tehlike text-white",
+  izinli: "bg-bilgi text-white",
+  telafi: "bg-uyari text-white",
+};
 
 /**
  * Yoklama isaretleme.
@@ -67,39 +75,53 @@ export function YoklamaListesi({
 
   return (
     <div>
-      {isaretsiz > 0 && (
-        <button
-          type="button"
-          onClick={hepsiGeldi}
-          className="mb-4 inline-flex items-center gap-1.5 rounded-full border-2 border-cizgi bg-white px-4 py-1.5 font-baslik text-sm font-semibold text-murekkep transition-colors hover:border-yesil"
-        >
-          <Ikon.Tik boyut={15} />
-          İşaretlenmeyen {isaretsiz} kişiyi &quot;geldi&quot; yap
-        </button>
-      )}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-panel-soluk">
+          {liste.length - isaretsiz}/{liste.length} işaretlendi
+        </p>
+        {isaretsiz > 0 && (
+          <Dugme type="button" olcu="sm" onClick={hepsiGeldi}>
+            <Ikon.Tik boyut={14} />
+            Kalan {isaretsiz} kişiyi “geldi” yap
+          </Dugme>
+        )}
+      </div>
 
-      <ul className="space-y-2">
+      <ul className="divide-y divide-panel-cizgi border-y border-panel-cizgi">
         {liste.map(({ ogrenci }) => {
           const secili = isaretler[ogrenci.id];
           return (
             <li
               key={ogrenci.id}
-              className={`rounded-kart border-2 px-4 py-3 ${
-                secili ? "border-cizgi" : "border-dashed border-cizgi"
+              className={`px-1 py-2.5 transition-colors ${
+                secili ? "" : "bg-uyari-zemin/40"
               }`}
             >
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 <span className="min-w-0 flex-1">
-                  <span className="block font-baslik text-sm font-bold text-murekkep">
+                  <span className="block text-sm font-semibold text-murekkep">
                     {ogrenciAdi(ogrenci)}
                   </span>
-                  <span className="mt-0.5 block text-xs text-murekkep-soluk">
+                  <span className="mt-0.5 block text-xs text-panel-soluk">
                     {yasMetni(ayHesapla(ogrenci.dogum_tarihi))}
-                    {ogrenci.alerji && ` · alerji: ${ogrenci.alerji}`}
+                    {ogrenci.alerji && (
+                      <>
+                        {" · "}
+                        <Rozet ton="uyari" className="align-middle">
+                          alerji: {ogrenci.alerji}
+                        </Rozet>
+                      </>
+                    )}
                   </span>
                 </span>
 
-                <span className="flex shrink-0 flex-wrap gap-1.5">
+                {/* Dort secenek tek serit: yoklama otuz satirda otuz kez
+                    tekrar ediyor, her satirda ayni yerde durmasi lazim. */}
+                <span
+                  role="group"
+                  aria-label={`${ogrenciAdi(ogrenci)} yoklaması`}
+                  className="flex shrink-0 overflow-hidden rounded-panel-sm border border-panel-cizgi-guclu"
+                >
                   {SIRA.map((d) => {
                     const aktif = secili === d;
                     return (
@@ -108,10 +130,10 @@ export function YoklamaListesi({
                         type="button"
                         onClick={() => isaretle(ogrenci.id, d)}
                         aria-pressed={aktif}
-                        className={`rounded-full px-3 py-1 font-baslik text-xs font-bold transition-colors ${
+                        className={`border-r border-panel-cizgi px-2.5 py-1.5 font-baslik text-xs font-bold transition-colors last:border-r-0 ${
                           aktif
-                            ? YOKLAMA_RENGI[d]
-                            : "border-2 border-cizgi bg-white text-murekkep-soluk hover:border-yesil hover:text-murekkep"
+                            ? SECILI[d]
+                            : "bg-panel-yuzey text-panel-soluk hover:bg-panel-yuzey-alt hover:text-murekkep"
                         }`}
                       >
                         {YOKLAMA_ETIKET[d]}
@@ -122,7 +144,7 @@ export function YoklamaListesi({
               </div>
 
               {hatalar[ogrenci.id] && (
-                <p role="alert" className="mt-1.5 text-xs text-murekkep">
+                <p role="alert" className="mt-1.5 text-xs text-tehlike">
                   {hatalar[ogrenci.id]}
                 </p>
               )}
@@ -130,6 +152,10 @@ export function YoklamaListesi({
           );
         })}
       </ul>
+
+      <p className="mt-3 text-xs text-panel-silik">
+        İşaretler anında kaydedilir; ayrı bir kaydetme adımı yok.
+      </p>
     </div>
   );
 }

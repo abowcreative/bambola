@@ -1,12 +1,12 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 /* Tipler `ogrenci-tipleri` icinden: `ogrenciler` server-only ve buradan
    import edilse butun veri erisim katmani tarayici paketine girerdi. */
 import { OGRENCI_DURUM_ETIKET } from "@/lib/kampus/ogrenci-tipleri";
 import type { OgrenciDurumu } from "@/lib/kampus/ogrenci-tipleri";
-import { Ikon } from "@/components/ui/ikon";
+import { SekmeSeridi } from "./ui";
+import { AramaKutusu } from "./ui-istemci";
 
 const SEKMELER: (OgrenciDurumu | "hepsi")[] = [
   "aktif",
@@ -21,70 +21,50 @@ const ETIKET: Record<OgrenciDurumu | "hepsi", string> = {
   hepsi: "Hepsi",
 };
 
-/** Durum sekmeleri ve arama. Basvurulardaki suzgecle ayni davranis. */
+/**
+ * Durum sekmeleri ve arama.
+ *
+ * Suzgec ADRES CUBUGUNDA tutuluyor: bir ogrenciye girip geri donuldugunde
+ * ayni liste geliyor ve ekran baglanti olarak paylasilabiliyor.
+ */
 export function OgrenciSuzgeci({
   durum,
   ara,
+  sayilar,
 }: {
   durum: OgrenciDurumu | "hepsi";
   ara: string;
+  sayilar: Record<OgrenciDurumu | "hepsi", number>;
 }) {
-  const yonlendirici = useRouter();
   const parametreler = useSearchParams();
-  const [metin, setMetin] = useState(ara);
-  const [, basla] = useTransition();
 
-  function git(degisiklik: Record<string, string>) {
+  function yol(yeniDurum: string): string {
     const y = new URLSearchParams(parametreler.toString());
-    for (const [k, v] of Object.entries(degisiklik)) {
-      if (!v || v === "aktif") y.delete(k);
-      else y.set(k, v);
-    }
-    basla(() => yonlendirici.push(`/kampus/ogrenciler?${y.toString()}`));
+    // "aktif" varsayilan: adres cubugunda gereksiz parametre birakmiyor.
+    if (yeniDurum === "aktif") y.delete("durum");
+    else y.set("durum", yeniDurum);
+    const sorgu = y.toString();
+    return sorgu ? `/kampus/ogrenciler?${sorgu}` : "/kampus/ogrenciler";
   }
 
-  useEffect(() => {
-    if (metin === ara) return;
-    const z = setTimeout(() => git({ ara: metin }), 350);
-    return () => clearTimeout(z);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [metin]);
-
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
-        {SEKMELER.map((s) => {
-          const aktif = durum === s;
-          return (
-            <button
-              key={s}
-              type="button"
-              onClick={() => git({ durum: s })}
-              className={`rounded-full border-2 px-4 py-1.5 font-baslik text-sm font-semibold transition-colors ${
-                aktif
-                  ? "border-yesil-koyu bg-yesil-koyu text-white"
-                  : "border-cizgi bg-white text-murekkep-soluk hover:border-yesil hover:text-murekkep"
-              }`}
-            >
-              {ETIKET[s]}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="relative max-w-xs">
-        <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-murekkep-soluk">
-          <Ikon.Mercek boyut={17} />
-        </span>
-        <input
-          type="search"
-          value={metin}
-          onChange={(e) => setMetin(e.target.value)}
-          placeholder="Ad veya soyad"
-          aria-label="Öğrencilerde ara"
-          className="w-full rounded-full border-2 border-cizgi bg-white py-2 pl-10 pr-4 text-sm text-murekkep outline-none focus:border-yesil"
-        />
-      </div>
+    <div className="flex flex-wrap items-center gap-3">
+      <SekmeSeridi
+        sekmeler={SEKMELER.map((s) => ({
+          anahtar: s,
+          etiket: ETIKET[s],
+          yol: yol(s),
+          sayi: sayilar[s],
+          aktif: durum === s,
+        }))}
+      />
+      <AramaKutusu
+        yol="/kampus/ogrenciler"
+        deger={ara}
+        yerTutucu="Ad veya soyad"
+        etiket="Öğrencilerde ara"
+        className="min-w-0 flex-1 sm:max-w-64"
+      />
     </div>
   );
 }

@@ -3,6 +3,8 @@
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { dersAc } from "@/lib/kampus/yoklama-islemleri";
+import { Dugme } from "./ui";
+import { Firildak } from "./ui-istemci";
 
 /** O gun icin dersi acar ve yoklama ekranina goturur. */
 export function DersAcButonu({
@@ -30,16 +32,12 @@ export function DersAcButonu({
 
   return (
     <span className="shrink-0">
-      <button
-        type="button"
-        onClick={ac}
-        disabled={bekliyor}
-        className="rounded-full border-2 border-cizgi bg-white px-4 py-1.5 font-baslik text-sm font-semibold text-murekkep transition-colors hover:border-yesil disabled:opacity-60"
-      >
-        {bekliyor ? "Açılıyor..." : "Dersi aç"}
-      </button>
+      <Dugme type="button" olcu="sm" onClick={ac} disabled={bekliyor}>
+        {bekliyor && <Firildak />}
+        {bekliyor ? "Açılıyor…" : "Dersi aç"}
+      </Dugme>
       {hata && (
-        <span role="alert" className="mt-1 block text-xs text-murekkep">
+        <span role="alert" className="mt-1 block text-xs text-tehlike">
           {hata}
         </span>
       )}

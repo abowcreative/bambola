@@ -1,14 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { menuKaydet } from "@/lib/kampus/yoklama-islemleri";
+import { useRouter } from "next/navigation";
+import { menuKaydet, menuSil } from "@/lib/kampus/yoklama-islemleri";
 import type { Menu } from "@/lib/kampus/yoklama-tipleri";
-import { Buton } from "@/components/ui/buton";
-
-const ALAN =
-  "w-full rounded-yumusak border-2 border-cizgi bg-white px-3 py-1.5 text-sm " +
-  "text-murekkep outline-none transition-colors placeholder:text-murekkep-soluk/60 " +
-  "focus:border-yesil disabled:opacity-60";
+import { Ikon } from "@/components/ui/ikon";
+import { ALAN, Etiket, Dugme } from "./ui";
+import { Firildak, SilDugmesi } from "./ui-istemci";
 
 /**
  * Bir gunun menusu. Uc alan tek dugmeyle kaydediliyor: gunun menusu bir
@@ -21,6 +19,7 @@ export function MenuAlani({
   tarih: string;
   menu: Menu | null;
 }) {
+  const yonlendirici = useRouter();
   const [kahvalti, setKahvalti] = useState(menu?.kahvalti ?? "");
   const [ogle, setOgle] = useState(menu?.ogle ?? "");
   const [araOgun, setAraOgun] = useState(menu?.ara_ogun ?? "");
@@ -33,8 +32,12 @@ export function MenuAlani({
     setKaydedildi(false);
     basla(async () => {
       const sonuc = await menuKaydet({ tarih, kahvalti, ogle, araOgun });
-      if (sonuc.ok) setKaydedildi(true);
-      else setHata(sonuc.hata);
+      if (sonuc.ok) {
+        setKaydedildi(true);
+        yonlendirici.refresh();
+      } else {
+        setHata(sonuc.hata);
+      }
     });
   }
 
@@ -43,67 +46,68 @@ export function MenuAlani({
     ogle !== (menu?.ogle ?? "") ||
     araOgun !== (menu?.ara_ogun ?? "");
 
+  const satirlar = [
+    { ad: "Kahvaltı", deger: kahvalti, yaz: setKahvalti, id: `k-${tarih}` },
+    { ad: "Öğle", deger: ogle, yaz: setOgle, id: `o-${tarih}` },
+    { ad: "Ara öğün", deger: araOgun, yaz: setAraOgun, id: `a-${tarih}` },
+  ];
+
   return (
     <div className="space-y-2.5">
-      <div>
-        <label className="mb-1 block text-xs text-murekkep-soluk">
-          Kahvaltı
+      {satirlar.map((s) => (
+        <div key={s.id}>
+          <Etiket htmlFor={s.id}>{s.ad}</Etiket>
           <input
-            value={kahvalti}
+            id={s.id}
+            value={s.deger}
             onChange={(e) => {
-              setKahvalti(e.target.value);
+              s.yaz(e.target.value);
               setKaydedildi(false);
             }}
             disabled={bekliyor}
-            className={`${ALAN} mt-1`}
+            className={ALAN}
           />
-        </label>
-      </div>
-      <div>
-        <label className="mb-1 block text-xs text-murekkep-soluk">
-          Öğle
-          <input
-            value={ogle}
-            onChange={(e) => {
-              setOgle(e.target.value);
-              setKaydedildi(false);
-            }}
-            disabled={bekliyor}
-            className={`${ALAN} mt-1`}
-          />
-        </label>
-      </div>
-      <div>
-        <label className="mb-1 block text-xs text-murekkep-soluk">
-          Ara öğün
-          <input
-            value={araOgun}
-            onChange={(e) => {
-              setAraOgun(e.target.value);
-              setKaydedildi(false);
-            }}
-            disabled={bekliyor}
-            className={`${ALAN} mt-1`}
-          />
-        </label>
-      </div>
+        </div>
+      ))}
 
-      <div className="flex items-center gap-3">
-        <Buton
-          type="button"
-          olcu="sm"
-          onClick={kaydet}
-          disabled={bekliyor || !degisti}
-        >
-          {bekliyor ? "Kaydediliyor..." : "Kaydet"}
-        </Buton>
-        {kaydedildi && !bekliyor && (
-          <span className="text-sm text-yesil-koyu">Kaydedildi</span>
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+        <span className="flex items-center gap-2">
+          <Dugme
+            type="button"
+            gorunum="birincil"
+            olcu="sm"
+            onClick={kaydet}
+            disabled={bekliyor || !degisti}
+          >
+            {bekliyor && <Firildak />}
+            {bekliyor ? "Kaydediliyor…" : "Kaydet"}
+          </Dugme>
+          {kaydedildi && !bekliyor && (
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-basari">
+              <Ikon.Tik boyut={13} />
+              Kaydedildi
+            </span>
+          )}
+        </span>
+
+        {/* Menu kaydi varsa temizleme secenegi: uc alani tek tek bosaltip
+            kaydetmek yerine satiri kaldiriyor. */}
+        {menu && (
+          <SilDugmesi
+            etiket="Menüyü temizle"
+            onayEtiketi="Onayla"
+            islem={() => menuSil(tarih)}
+            tamamlandi={() => {
+              setKahvalti("");
+              setOgle("");
+              setAraOgun("");
+            }}
+          />
         )}
       </div>
 
       {hata && (
-        <p role="alert" className="text-sm text-murekkep">
+        <p role="alert" className="text-xs font-medium text-tehlike">
           {hata}
         </p>
       )}

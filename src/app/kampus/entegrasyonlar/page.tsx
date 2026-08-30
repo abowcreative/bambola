@@ -1,5 +1,6 @@
 import { adminZorunlu } from "@/lib/kampus/oturum";
 import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
+import { Rozet, type Ton } from "@/components/kampus/ui";
 import { ILETISIM, SITE_URL } from "@/lib/site";
 import { Ikon } from "@/components/ui/ikon";
 
@@ -17,10 +18,12 @@ type Entegrasyon = {
   deger?: string | null;
 };
 
-const ETIKET: Record<Durum, { yazi: string; sinif: string }> = {
-  bagli: { yazi: "Bağlı", sinif: "bg-lime-rozet text-black" },
-  eksik: { yazi: "Eksik", sinif: "bg-krem-koyu text-murekkep" },
-  planlanan: { yazi: "Planlanan", sinif: "bg-cizgi text-murekkep-soluk" },
+const ETIKET: Record<Durum, { yazi: string; ton: Ton }> = {
+  // "Eksik" gercekten eksik olan bir sey: anahtari girilmemis, calismiyor.
+  // Amber tonu bunu okumadan gosteriyor; "planlanan" ise sessiz kaliyor.
+  bagli: { yazi: "Bağlı", ton: "basari" },
+  eksik: { yazi: "Eksik", ton: "uyari" },
+  planlanan: { yazi: "Planlanan", ton: "sessiz" },
 };
 
 /**
@@ -107,33 +110,29 @@ export default async function EntegrasyonlarSayfasi() {
         aciklama={`${bagli} / ${liste.length} bağlantı çalışıyor.`}
       />
 
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {liste.map((e) => (
           <Kutu key={e.ad}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h2 className="font-baslik text-base font-bold text-murekkep">
+                <h2 className="font-baslik text-sm font-bold text-murekkep">
                   {e.ad}
                 </h2>
-                <p className="mt-1 text-sm leading-relaxed text-murekkep-soluk">
+                <p className="mt-1 text-xs leading-relaxed text-panel-soluk">
                   {e.ozet}
                 </p>
               </div>
-              <span
-                className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${ETIKET[e.durum].sinif}`}
-              >
-                {ETIKET[e.durum].yazi}
-              </span>
+              <Rozet ton={ETIKET[e.durum].ton}>{ETIKET[e.durum].yazi}</Rozet>
             </div>
 
             {e.durum === "bagli" && e.deger && (
-              <p className="mt-3 truncate rounded-kart bg-krem px-3 py-2 font-mono text-xs text-murekkep-soluk">
+              <p className="mt-3 truncate rounded-panel-sm border border-panel-cizgi bg-panel-yuzey-alt px-2.5 py-1.5 font-mono text-xs text-panel-soluk">
                 {e.deger}
               </p>
             )}
 
             {e.durum !== "bagli" && e.gereken && (
-              <p className="mt-3 flex gap-2 text-xs leading-relaxed text-murekkep-soluk">
+              <p className="mt-3 flex gap-2 text-xs leading-relaxed text-panel-silik">
                 <Ikon.Ampul boyut={14} className="mt-0.5 shrink-0" />
                 Gereken: {e.gereken}
               </p>
@@ -142,7 +141,7 @@ export default async function EntegrasyonlarSayfasi() {
         ))}
       </div>
 
-      <p className="mt-4 text-xs leading-relaxed text-murekkep-soluk">
+      <p className="mt-3 text-xs leading-relaxed text-panel-silik">
         Durumlar ortam değişkenlerine bakılarak belirleniyor, elle
         işaretlenmiyor. Anahtarların değerleri burada gösterilmez.
       </p>

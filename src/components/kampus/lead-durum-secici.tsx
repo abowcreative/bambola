@@ -6,6 +6,7 @@ import {
   LEAD_DURUM_ETIKET,
   type LeadDurumu,
 } from "@/lib/kampus/yoklama-tipleri";
+import { ALAN } from "./ui";
 
 /** Lead durumunu degistirir. Secim aninda kaydediliyor. */
 export function LeadDurumSecici({
@@ -39,7 +40,7 @@ export function LeadDurumSecici({
         onChange={(e) => degistir(e.target.value as LeadDurumu)}
         disabled={bekliyor}
         aria-label="Lead durumu"
-        className="rounded-full border-2 border-cizgi bg-white px-3 py-1 text-xs font-semibold text-murekkep outline-none focus:border-yesil disabled:opacity-60"
+        className={`${ALAN} h-8 w-32 py-0 text-xs font-semibold`}
       >
         {(Object.keys(LEAD_DURUM_ETIKET) as LeadDurumu[]).map((d) => (
           <option key={d} value={d}>
@@ -48,7 +49,7 @@ export function LeadDurumSecici({
         ))}
       </select>
       {hata && (
-        <span role="alert" className="mt-1 block text-xs text-murekkep">
+        <span role="alert" className="mt-1 block text-xs text-tehlike">
           {hata}
         </span>
       )}

@@ -25,14 +25,6 @@ export const YOKLAMA_ETIKET: Record<YoklamaDurumu, string> = {
   telafi: "Telafi",
 };
 
-/** Yoklama rozet renkleri. Gelmedi dikkat cekmeli. */
-export const YOKLAMA_RENGI: Record<YoklamaDurumu, string> = {
-  geldi: "bg-lime-rozet text-black",
-  gelmedi: "bg-yesil-koyu text-white",
-  izinli: "bg-krem-koyu text-murekkep",
-  telafi: "bg-cizgi text-murekkep",
-};
-
 export const LEAD_DURUM_ETIKET: Record<LeadDurumu, string> = {
   yeni: "Yeni",
   gorusuldu: "Görüşüldü",

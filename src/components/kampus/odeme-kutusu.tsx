@@ -2,22 +2,238 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { odemeEkle, odemeSil } from "@/lib/kampus/yoklama-islemleri";
+import {
+  odemeEkle,
+  odemeGuncelle,
+  odemeSil,
+} from "@/lib/kampus/yoklama-islemleri";
 import {
   YONTEM_ETIKET,
   bakiyeHesapla,
   type Odeme,
 } from "@/lib/kampus/yoklama-tipleri";
-import { Buton } from "@/components/ui/buton";
 import { Ikon } from "@/components/ui/ikon";
-
-const ALAN =
-  "w-full rounded-yumusak border-2 border-cizgi bg-white px-3 py-1.5 text-sm " +
-  "text-murekkep outline-none transition-colors focus:border-yesil disabled:opacity-60";
+import { ALAN, AlanKutusu, Bildirim, Dugme, IkonDugme, Rozet } from "./ui";
+import { Firildak, Kip, SilDugmesi } from "./ui-istemci";
 
 /** Basit TL bicimi. Sunucu tarafiyla ayni gorunum. */
 const tl = (n: number) =>
   `₺${n.toLocaleString("tr-TR", { maximumFractionDigits: 0 })}`;
+
+const kisaTarih = (t: string) =>
+  new Date(t).toLocaleDateString("tr-TR", {
+    day: "2-digit",
+    month: "2-digit",
+  });
+
+type Alanlar = {
+  tur: "borc" | "tahsilat";
+  tutar: string;
+  tarih: string;
+  vade: string;
+  yontem: string;
+  aciklama: string;
+};
+
+/**
+ * Borc/tahsilat alanlari. Ekleme formu ve duzeltme kipi ayni alanlari
+ * kullaniyor; iki ayri kopya tutmak, birinde yapilan degisikligin otekine
+ * gecmemesi demekti.
+ */
+function HareketAlanlari({
+  onek,
+  d,
+  setD,
+  bekliyor,
+}: {
+  onek: string;
+  d: Alanlar;
+  setD: (f: (s: Alanlar) => Alanlar) => void;
+  bekliyor: boolean;
+}) {
+  return (
+    <>
+      <div className="flex overflow-hidden rounded-panel-sm border border-panel-cizgi-guclu">
+        {(["tahsilat", "borc"] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setD((s) => ({ ...s, tur: t }))}
+            aria-pressed={d.tur === t}
+            disabled={bekliyor}
+            className={`flex-1 border-r border-panel-cizgi px-3 py-1.5 font-baslik text-sm font-semibold transition-colors last:border-r-0 ${
+              d.tur === t
+                ? t === "tahsilat"
+                  ? "bg-basari text-white"
+                  : "bg-uyari text-white"
+                : "bg-panel-yuzey text-panel-soluk hover:bg-panel-yuzey-alt hover:text-murekkep"
+            }`}
+          >
+            {t === "tahsilat" ? "Tahsilat" : "Borç"}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <AlanKutusu etiket="Tutar (TL)" htmlFor={`${onek}-tutar`} gerekli>
+          <input
+            id={`${onek}-tutar`}
+            type="number"
+            min={1}
+            step={1}
+            required
+            value={d.tutar}
+            onChange={(e) => setD((s) => ({ ...s, tutar: e.target.value }))}
+            disabled={bekliyor}
+            className={`${ALAN} tabular-nums`}
+          />
+        </AlanKutusu>
+        <AlanKutusu etiket="Tarih" htmlFor={`${onek}-tarih`} gerekli>
+          <input
+            id={`${onek}-tarih`}
+            type="date"
+            required
+            value={d.tarih}
+            onChange={(e) => setD((s) => ({ ...s, tarih: e.target.value }))}
+            disabled={bekliyor}
+            className={ALAN}
+          />
+        </AlanKutusu>
+      </div>
+
+      {d.tur === "borc" ? (
+        <AlanKutusu
+          etiket="Vade"
+          htmlFor={`${onek}-vade`}
+          ipucu="Vadesi geçen borç tahsilat listesinde kırmızı çıkar."
+        >
+          <input
+            id={`${onek}-vade`}
+            type="date"
+            value={d.vade}
+            onChange={(e) => setD((s) => ({ ...s, vade: e.target.value }))}
+            disabled={bekliyor}
+            className={ALAN}
+          />
+        </AlanKutusu>
+      ) : (
+        <AlanKutusu etiket="Yöntem" htmlFor={`${onek}-yontem`}>
+          <select
+            id={`${onek}-yontem`}
+            value={d.yontem}
+            onChange={(e) => setD((s) => ({ ...s, yontem: e.target.value }))}
+            disabled={bekliyor}
+            className={ALAN}
+          >
+            {Object.entries(YONTEM_ETIKET).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </AlanKutusu>
+      )}
+
+      <AlanKutusu etiket="Açıklama" htmlFor={`${onek}-aciklama`}>
+        <input
+          id={`${onek}-aciklama`}
+          value={d.aciklama}
+          onChange={(e) => setD((s) => ({ ...s, aciklama: e.target.value }))}
+          disabled={bekliyor}
+          className={ALAN}
+          placeholder={
+            d.tur === "borc" ? "Eylül ayda 8 katılım" : "Eylül tahsilatı"
+          }
+        />
+      </AlanKutusu>
+    </>
+  );
+}
+
+/** Tek bir hareketi duzeltir. Yanlis girilmis tutar geri alinabilsin. */
+function HareketDuzelt({
+  ogrenciId,
+  hareket,
+}: {
+  ogrenciId: string;
+  hareket: Odeme;
+}) {
+  const yonlendirici = useRouter();
+  const [acik, setAcik] = useState(false);
+  const [hata, setHata] = useState<string | null>(null);
+  const [bekliyor, basla] = useTransition();
+
+  const [d, setD] = useState<Alanlar>({
+    tur: hareket.tur as "borc" | "tahsilat",
+    tutar: String(hareket.tutar),
+    tarih: hareket.tarih,
+    vade: hareket.vade ?? "",
+    yontem: hareket.yontem ?? "nakit",
+    aciklama: hareket.aciklama ?? "",
+  });
+
+  function gonder(olay: React.FormEvent) {
+    olay.preventDefault();
+    setHata(null);
+    basla(async () => {
+      const sonuc = await odemeGuncelle(hareket.id, { ogrenciId, ...d });
+      if (sonuc.ok) {
+        setAcik(false);
+        yonlendirici.refresh();
+      } else {
+        setHata(sonuc.hata);
+      }
+    });
+  }
+
+  return (
+    <>
+      <IkonDugme baslik="Hareketi düzelt" onClick={() => setAcik(true)}>
+        <Ikon.Not boyut={14} />
+      </IkonDugme>
+
+      <Kip
+        acik={acik}
+        kapat={() => setAcik(false)}
+        genislik="30rem"
+        baslik="Cari hareketi düzelt"
+      >
+        <form onSubmit={gonder} className="space-y-3">
+          <HareketAlanlari
+            onek={`hd-${hareket.id}`}
+            d={d}
+            setD={setD}
+            bekliyor={bekliyor}
+          />
+
+          {hata && <Bildirim ton="tehlike">{hata}</Bildirim>}
+
+          <div className="flex items-center justify-between gap-2 border-t border-panel-cizgi pt-4">
+            <SilDugmesi
+              etiket="Sil"
+              onayEtiketi="Kalıcı olarak sil"
+              islem={() => odemeSil(hareket.id)}
+              tamamlandi={() => setAcik(false)}
+            />
+            <span className="flex gap-2">
+              <Dugme
+                type="button"
+                onClick={() => setAcik(false)}
+                disabled={bekliyor}
+              >
+                Vazgeç
+              </Dugme>
+              <Dugme type="submit" gorunum="birincil" disabled={bekliyor}>
+                {bekliyor && <Firildak />}
+                Kaydet
+              </Dugme>
+            </span>
+          </div>
+        </form>
+      </Kip>
+    </>
+  );
+}
 
 /**
  * Ogrencinin cari hareketleri ve yeni kayit.
@@ -35,12 +251,14 @@ export function OdemeKutusu({
   const yonlendirici = useRouter();
   const bugun = new Date().toLocaleDateString("en-CA");
 
-  const [tur, setTur] = useState<"borc" | "tahsilat">("tahsilat");
-  const [tutar, setTutar] = useState("");
-  const [tarih, setTarih] = useState(bugun);
-  const [vade, setVade] = useState("");
-  const [yontem, setYontem] = useState("nakit");
-  const [aciklama, setAciklama] = useState("");
+  const [d, setD] = useState<Alanlar>({
+    tur: "tahsilat",
+    tutar: "",
+    tarih: bugun,
+    vade: "",
+    yontem: "nakit",
+    aciklama: "",
+  });
   const [hata, setHata] = useState<string | null>(null);
   const [bekliyor, basla] = useTransition();
 
@@ -50,19 +268,9 @@ export function OdemeKutusu({
     olay.preventDefault();
     setHata(null);
     basla(async () => {
-      const sonuc = await odemeEkle({
-        ogrenciId,
-        tur,
-        tutar,
-        tarih,
-        vade: tur === "borc" ? vade : undefined,
-        yontem: tur === "tahsilat" ? yontem : undefined,
-        aciklama,
-      });
+      const sonuc = await odemeEkle({ ogrenciId, ...d });
       if (sonuc.ok) {
-        setTutar("");
-        setAciklama("");
-        setVade("");
+        setD((s) => ({ ...s, tutar: "", aciklama: "", vade: "" }));
         yonlendirici.refresh();
       } else {
         setHata(sonuc.hata);
@@ -70,187 +278,74 @@ export function OdemeKutusu({
     });
   }
 
-  function sil(id: string) {
-    basla(async () => {
-      const sonuc = await odemeSil(id);
-      if (sonuc.ok) yonlendirici.refresh();
-      else setHata(sonuc.hata);
-    });
-  }
-
   return (
     <div className="space-y-4">
-      <dl className="grid grid-cols-3 gap-3 text-sm">
-        <div>
-          <dt className="text-xs text-murekkep-soluk">Tahakkuk</dt>
-          <dd className="font-baslik font-bold tabular-nums text-murekkep">
-            {tl(borc)}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs text-murekkep-soluk">Tahsilat</dt>
-          <dd className="font-baslik font-bold tabular-nums text-murekkep">
-            {tl(tahsilat)}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs text-murekkep-soluk">Bakiye</dt>
-          <dd
-            className={`font-baslik font-bold tabular-nums ${
-              bakiye > 0 ? "text-murekkep" : "text-yesil-koyu"
-            }`}
+      <dl className="grid grid-cols-3 gap-3">
+        {(
+          [
+            ["Tahakkuk", tl(borc), "text-murekkep"],
+            ["Tahsilat", tl(tahsilat), "text-basari"],
+            [
+              "Bakiye",
+              tl(bakiye),
+              bakiye > 0 ? "text-uyari" : "text-panel-soluk",
+            ],
+          ] as const
+        ).map(([etiket, deger, renk]) => (
+          <div
+            key={etiket}
+            className="rounded-panel-sm border border-panel-cizgi bg-panel-yuzey-alt px-3 py-2"
           >
-            {tl(bakiye)}
-          </dd>
-        </div>
+            <dt className="text-xs font-medium text-panel-soluk">{etiket}</dt>
+            <dd
+              className={`mt-0.5 font-baslik text-base font-bold tabular-nums ${renk}`}
+            >
+              {deger}
+            </dd>
+          </div>
+        ))}
       </dl>
 
       {hareketler.length > 0 && (
-        <ul className="divide-y divide-cizgi border-y border-cizgi">
+        <ul className="divide-y divide-panel-cizgi border-y border-panel-cizgi">
           {hareketler.map((h) => (
             <li
               key={h.id}
-              className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm"
+              className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2"
             >
-              <span className="w-20 shrink-0 tabular-nums text-xs text-murekkep-soluk">
-                {new Date(h.tarih).toLocaleDateString("tr-TR", {
-                  day: "2-digit",
-                  month: "2-digit",
-                })}
+              <span className="w-12 shrink-0 tabular-nums text-xs text-panel-silik">
+                {kisaTarih(h.tarih)}
               </span>
-              <span
-                className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${
-                  h.tur === "borc"
-                    ? "bg-krem-koyu text-murekkep"
-                    : "bg-lime-rozet text-black"
-                }`}
-              >
+              <Rozet ton={h.tur === "borc" ? "uyari" : "basari"}>
                 {h.tur === "borc" ? "Borç" : "Tahsilat"}
+              </Rozet>
+              <span className="min-w-0 flex-1 truncate text-xs text-panel-soluk">
+                {h.aciklama ?? (h.yontem ? YONTEM_ETIKET[h.yontem] : "") ?? ""}
+                {h.vade && ` · vade ${kisaTarih(h.vade)}`}
               </span>
-              <span className="min-w-0 flex-1 truncate text-xs text-murekkep-soluk">
-                {h.aciklama ??
-                  (h.yontem ? YONTEM_ETIKET[h.yontem] : "") ??
-                  ""}
-                {h.vade &&
-                  ` · vade ${new Date(h.vade).toLocaleDateString("tr-TR")}`}
-              </span>
-              <span className="shrink-0 font-medium tabular-nums text-murekkep">
+              <span className="shrink-0 text-sm font-semibold tabular-nums text-murekkep">
                 {tl(h.tutar)}
               </span>
-              <button
-                type="button"
-                onClick={() => sil(h.id)}
-                disabled={bekliyor}
-                aria-label="Hareketi sil"
-                className="shrink-0 text-murekkep-soluk transition-colors hover:text-murekkep disabled:opacity-50"
-              >
-                <Ikon.Kapat boyut={14} />
-              </button>
+              <HareketDuzelt ogrenciId={ogrenciId} hareket={h} />
             </li>
           ))}
         </ul>
       )}
 
-      <form onSubmit={gonder} className="space-y-2.5">
-        <div className="flex gap-1.5">
-          {(["tahsilat", "borc"] as const).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTur(t)}
-              aria-pressed={tur === t}
-              className={`rounded-full px-3.5 py-1.5 font-baslik text-sm font-semibold transition-colors ${
-                tur === t
-                  ? "bg-yesil-koyu text-white"
-                  : "border-2 border-cizgi bg-white text-murekkep-soluk hover:border-yesil"
-              }`}
-            >
-              {t === "tahsilat" ? "Tahsilat" : "Borç"}
-            </button>
-          ))}
-        </div>
+      <form onSubmit={gonder} className="space-y-3">
+        <HareketAlanlari onek="oe" d={d} setD={setD} bekliyor={bekliyor} />
 
-        <div className="grid gap-2.5 sm:grid-cols-2">
-          <label className="block text-xs text-murekkep-soluk">
-            Tutar (TL)
-            <input
-              type="number"
-              min={1}
-              step={1}
-              required
-              value={tutar}
-              onChange={(e) => setTutar(e.target.value)}
-              disabled={bekliyor}
-              className={`${ALAN} mt-1`}
-            />
-          </label>
-          <label className="block text-xs text-murekkep-soluk">
-            Tarih
-            <input
-              type="date"
-              required
-              value={tarih}
-              onChange={(e) => setTarih(e.target.value)}
-              disabled={bekliyor}
-              className={`${ALAN} mt-1`}
-            />
-          </label>
-        </div>
+        {hata && <Bildirim ton="tehlike">{hata}</Bildirim>}
 
-        {tur === "borc" ? (
-          <label className="block text-xs text-murekkep-soluk">
-            Vade (isteğe bağlı)
-            <input
-              type="date"
-              value={vade}
-              onChange={(e) => setVade(e.target.value)}
-              disabled={bekliyor}
-              className={`${ALAN} mt-1`}
-            />
-          </label>
-        ) : (
-          <label className="block text-xs text-murekkep-soluk">
-            Yöntem
-            <select
-              value={yontem}
-              onChange={(e) => setYontem(e.target.value)}
-              disabled={bekliyor}
-              className={`${ALAN} mt-1`}
-            >
-              {Object.entries(YONTEM_ETIKET).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-
-        <label className="block text-xs text-murekkep-soluk">
-          Açıklama
-          <input
-            value={aciklama}
-            onChange={(e) => setAciklama(e.target.value)}
-            disabled={bekliyor}
-            className={`${ALAN} mt-1`}
-            placeholder={tur === "borc" ? "Eylül ayda 8 katılım" : "Eylül tahsilatı"}
-          />
-        </label>
-
-        {hata && (
-          <p role="alert" className="text-sm text-murekkep">
-            {hata}
-          </p>
-        )}
-
-        <Buton
+        <Dugme
           type="submit"
-          olcu="sm"
-          disabled={bekliyor || !tutar}
+          gorunum="birincil"
+          disabled={bekliyor || !d.tutar}
           className="w-full"
         >
-          {bekliyor ? "Kaydediliyor..." : "Hareket ekle"}
-        </Buton>
+          {bekliyor && <Firildak />}
+          {bekliyor ? "Kaydediliyor…" : "Hareket ekle"}
+        </Dugme>
       </form>
     </div>
   );

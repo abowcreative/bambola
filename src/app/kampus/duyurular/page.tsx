@@ -1,18 +1,69 @@
 import { oturumZorunlu } from "@/lib/kampus/oturum";
 import { duyurulariGetir } from "@/lib/kampus/yoklama";
 import { HEDEF_ETIKET } from "@/lib/kampus/yoklama-tipleri";
-import {
-  Kabuk,
-  SayfaBasi,
-  Kutu,
-  BosDurum,
-} from "@/components/kampus/kabuk";
-import { DuyuruFormu } from "@/components/kampus/duyuru-formu";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
+import { BosDurum, Rozet } from "@/components/kampus/ui";
+import { DuyuruFormu, DuyuruDuzenle } from "@/components/kampus/duyuru-formu";
 import { YayinAnahtari } from "@/components/kampus/yayin-anahtari";
 import { tarihYaz } from "@/components/kampus/basvuru-satiri";
+import { Ikon } from "@/components/ui/ikon";
 
 export const metadata = { title: "Duyurular", robots: { index: false } };
 export const dynamic = "force-dynamic";
+
+type Duyuru = {
+  id: string;
+  baslik: string;
+  metin: string;
+  hedef: string;
+  yayinda: boolean;
+  olusturan: string | null;
+  created_at: string;
+};
+
+/** Tek duyuru karti. Yayin ve taslak listesinde ayni yapi kullaniliyor. */
+function DuyuruKarti({
+  duyuru,
+  yonetici,
+  taslak,
+}: {
+  duyuru: Duyuru;
+  yonetici: boolean;
+  taslak: boolean;
+}) {
+  return (
+    <li
+      className={`rounded-panel border px-4 py-3 ${
+        taslak
+          ? "border-dashed border-panel-cizgi-guclu bg-panel-yuzey-alt"
+          : "border-panel-cizgi bg-panel-yuzey"
+      }`}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <h3 className="font-baslik text-sm font-bold text-murekkep">
+          {duyuru.baslik}
+        </h3>
+        <Rozet ton={taslak ? "sessiz" : "bilgi"}>
+          {HEDEF_ETIKET[duyuru.hedef]}
+        </Rozet>
+      </div>
+      <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-panel-soluk">
+        {duyuru.metin}
+      </p>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-xs text-panel-silik">
+          {duyuru.olusturan ?? "—"} · {tarihYaz(duyuru.created_at)}
+        </span>
+        {yonetici && (
+          <span className="flex items-center gap-1.5">
+            <DuyuruDuzenle duyuru={duyuru} />
+            <YayinAnahtari id={duyuru.id} yayinda={duyuru.yayinda} />
+          </span>
+        )}
+      </div>
+    </li>
+  );
+}
 
 /**
  * Duyurular.
@@ -25,7 +76,8 @@ export const dynamic = "force-dynamic";
  */
 export default async function DuyurularSayfasi() {
   const oturum = await oturumZorunlu();
-  const liste = await duyurulariGetir();
+  const liste = (await duyurulariGetir()) as Duyuru[];
+  const yonetici = oturum.rol === "admin";
 
   const yayinda = liste.filter((d) => d.yayinda);
   const taslak = liste.filter((d) => !d.yayinda);
@@ -35,19 +87,20 @@ export default async function DuyurularSayfasi() {
       <SayfaBasi
         baslik="Duyurular"
         aciklama={
-          oturum.rol === "admin"
+          yonetici
             ? "Öğretmenlere ve velilere görünen bildirimler."
             : "Kurumdan gelen bildirimler."
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-        <div className="space-y-5">
+      <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+        <div className="min-w-0 space-y-4">
           {liste.length === 0 ? (
             <BosDurum
               baslik="Duyuru yok"
+              ikon={<Ikon.Muzik boyut={22} />}
               aciklama={
-                oturum.rol === "admin"
+                yonetici
                   ? "Sağdaki formdan bir duyuru yazabilirsiniz."
                   : "Şu an görüntülenecek bir duyuru bulunmuyor."
               }
@@ -55,67 +108,40 @@ export default async function DuyurularSayfasi() {
           ) : (
             <>
               {yayinda.length > 0 && (
-                <Kutu baslik="Yayında">
-                  <ul className="space-y-3">
+                <Kutu
+                  baslik="Yayında"
+                  yanCocuk={
+                    <span className="text-xs text-panel-silik">
+                      {yayinda.length}
+                    </span>
+                  }
+                >
+                  <ul className="space-y-2.5">
                     {yayinda.map((d) => (
-                      <li
+                      <DuyuruKarti
                         key={d.id}
-                        className="rounded-kart border-2 border-cizgi px-4 py-3"
-                      >
-                        <div className="flex flex-wrap items-start justify-between gap-2">
-                          <h3 className="font-baslik text-sm font-bold text-murekkep">
-                            {d.baslik}
-                          </h3>
-                          <span className="shrink-0 rounded-full bg-krem-koyu px-2.5 py-0.5 text-xs font-semibold text-murekkep">
-                            {HEDEF_ETIKET[d.hedef]}
-                          </span>
-                        </div>
-                        <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-murekkep-soluk">
-                          {d.metin}
-                        </p>
-                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                          <span className="text-xs text-murekkep-soluk">
-                            {d.olusturan ?? "—"} · {tarihYaz(d.created_at)}
-                          </span>
-                          {oturum.rol === "admin" && (
-                            <YayinAnahtari id={d.id} yayinda={d.yayinda} />
-                          )}
-                        </div>
-                      </li>
+                        duyuru={d}
+                        yonetici={yonetici}
+                        taslak={false}
+                      />
                     ))}
                   </ul>
                 </Kutu>
               )}
 
-              {oturum.rol === "admin" && taslak.length > 0 && (
-                <Kutu baslik="Taslaklar">
-                  <p className="-mt-2 mb-3 text-xs text-murekkep-soluk">
-                    Taslaklar yalnız yöneticilere görünür.
-                  </p>
-                  <ul className="space-y-3">
+              {yonetici && taslak.length > 0 && (
+                <Kutu
+                  baslik="Taslaklar"
+                  aciklama="Taslaklar yalnız yöneticilere görünür."
+                >
+                  <ul className="space-y-2.5">
                     {taslak.map((d) => (
-                      <li
+                      <DuyuruKarti
                         key={d.id}
-                        className="rounded-kart border-2 border-dashed border-cizgi px-4 py-3"
-                      >
-                        <div className="flex flex-wrap items-start justify-between gap-2">
-                          <h3 className="font-baslik text-sm font-bold text-murekkep">
-                            {d.baslik}
-                          </h3>
-                          <span className="shrink-0 rounded-full bg-krem-koyu px-2.5 py-0.5 text-xs font-semibold text-murekkep">
-                            {HEDEF_ETIKET[d.hedef]}
-                          </span>
-                        </div>
-                        <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-murekkep-soluk">
-                          {d.metin}
-                        </p>
-                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                          <span className="text-xs text-murekkep-soluk">
-                            {tarihYaz(d.created_at)}
-                          </span>
-                          <YayinAnahtari id={d.id} yayinda={d.yayinda} />
-                        </div>
-                      </li>
+                        duyuru={d}
+                        yonetici
+                        taslak
+                      />
                     ))}
                   </ul>
                 </Kutu>
@@ -124,18 +150,16 @@ export default async function DuyurularSayfasi() {
           )}
         </div>
 
-        {oturum.rol === "admin" && (
-          <div className="space-y-5">
+        {yonetici && (
+          <div className="space-y-4">
             <Kutu baslik="Yeni duyuru">
               <DuyuruFormu />
             </Kutu>
-            <Kutu>
-              <p className="text-xs leading-relaxed text-murekkep-soluk">
-                Duyurular <strong>panelde</strong> görünür; e-posta veya SMS
-                göndermez. Gönderim için Resend kurulumu ve velilerin ticari
-                ileti izinleri gerekiyor.
-              </p>
-            </Kutu>
+            <p className="text-xs leading-relaxed text-panel-silik">
+              Duyurular <strong>panelde</strong> görünür; e-posta veya SMS
+              göndermez. Gönderim için Resend kurulumu ve velilerin ticari
+              ileti izinleri gerekiyor.
+            </p>
           </div>
         )}
       </div>

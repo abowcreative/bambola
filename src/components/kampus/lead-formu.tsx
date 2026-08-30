@@ -2,14 +2,23 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { leadEkle } from "@/lib/kampus/yoklama-islemleri";
+import {
+  leadEkle,
+  leadGuncelle,
+  leadSil,
+} from "@/lib/kampus/yoklama-islemleri";
 import { LEAD_KAYNAK_ETIKET } from "@/lib/kampus/yoklama-tipleri";
-import { Buton } from "@/components/ui/buton";
+import { Ikon } from "@/components/ui/ikon";
+import { ALAN, AlanKutusu, Bildirim, Dugme, IkonDugme } from "./ui";
+import { Firildak, Kip, SilDugmesi } from "./ui-istemci";
 
-const ALAN =
-  "w-full rounded-yumusak border-2 border-cizgi bg-white px-3.5 py-2 text-sm " +
-  "text-murekkep outline-none transition-colors placeholder:text-murekkep-soluk/60 " +
-  "focus:border-yesil disabled:opacity-60";
+/**
+ * Lead girisi ve duzenlemesi.
+ *
+ * Yalniz ad zorunlu: Instagram'dan gelen bir mesajda cogu zaman elde bir
+ * isim oluyor. Zorunlu alan sayisini artirmak, kaydin hic girilmemesine
+ * yol acar.
+ */
 
 const KAYNAKLAR = [
   "instagram",
@@ -20,95 +29,77 @@ const KAYNAKLAR = [
   "diger",
 ] as const;
 
-/**
- * Hizli lead girisi.
- *
- * Yalniz ad zorunlu: Instagram'dan gelen bir mesajda cogu zaman elde bir
- * isim oluyor. Zorunlu alan sayisini artirmak, kaydin hic girilmemesine
- * yol acar.
- */
-export function LeadFormu() {
-  const yonlendirici = useRouter();
-  const [adSoyad, setAdSoyad] = useState("");
-  const [telefon, setTelefon] = useState("");
-  const [kaynak, setKaynak] = useState<string>("instagram");
-  const [cocukAdi, setCocukAdi] = useState("");
-  const [program, setProgram] = useState("");
-  const [notlar, setNotlar] = useState("");
-  const [hata, setHata] = useState<string | null>(null);
-  const [bekliyor, basla] = useTransition();
+export type LeadKunyesi = {
+  id: string;
+  ad_soyad: string;
+  telefon: string | null;
+  kaynak: string;
+  cocuk_adi: string | null;
+  ilgilendigi_program: string | null;
+  notlar: string | null;
+  ogrenci_id: string | null;
+};
 
-  function gonder(olay: React.FormEvent) {
-    olay.preventDefault();
-    setHata(null);
+type Alanlar = {
+  adSoyad: string;
+  telefon: string;
+  kaynak: string;
+  cocukAdi: string;
+  ilgilendigiProgram: string;
+  notlar: string;
+};
 
-    basla(async () => {
-      const sonuc = await leadEkle({
-        adSoyad,
-        telefon,
-        kaynak,
-        cocukAdi,
-        ilgilendigiProgram: program,
-        notlar,
-      });
-      if (sonuc.ok) {
-        setAdSoyad("");
-        setTelefon("");
-        setCocukAdi("");
-        setProgram("");
-        setNotlar("");
-        yonlendirici.refresh();
-      } else {
-        setHata(sonuc.hata);
-      }
-    });
-  }
+const BOS: Alanlar = {
+  adSoyad: "",
+  telefon: "",
+  kaynak: "instagram",
+  cocukAdi: "",
+  ilgilendigiProgram: "",
+  notlar: "",
+};
 
+/** Ekleme ve duzenleme formunun ortak alanlari. */
+function LeadAlanlari({
+  onek,
+  d,
+  yaz,
+  bekliyor,
+}: {
+  onek: string;
+  d: Alanlar;
+  yaz: (alan: keyof Alanlar) => (e: { target: { value: string } }) => void;
+  bekliyor: boolean;
+}) {
   return (
-    <form onSubmit={gonder} className="space-y-3">
-      <div>
-        <label htmlFor="lead-ad" className="mb-1 block text-sm text-murekkep-soluk">
-          Ad soyad
-        </label>
+    <>
+      <AlanKutusu etiket="Ad soyad" htmlFor={`${onek}-ad`} gerekli>
         <input
-          id="lead-ad"
+          id={`${onek}-ad`}
           required
-          value={adSoyad}
-          onChange={(e) => setAdSoyad(e.target.value)}
+          value={d.adSoyad}
+          onChange={yaz("adSoyad")}
           disabled={bekliyor}
           className={ALAN}
           placeholder="Ayşe Yılmaz"
         />
-      </div>
+      </AlanKutusu>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label
-            htmlFor="lead-tel"
-            className="mb-1 block text-sm text-murekkep-soluk"
-          >
-            Telefon
-          </label>
+        <AlanKutusu etiket="Telefon" htmlFor={`${onek}-tel`}>
           <input
-            id="lead-tel"
-            value={telefon}
-            onChange={(e) => setTelefon(e.target.value)}
+            id={`${onek}-tel`}
+            value={d.telefon}
+            onChange={yaz("telefon")}
             disabled={bekliyor}
             className={ALAN}
-            placeholder="0532 ..."
+            placeholder="0532 …"
           />
-        </div>
-        <div>
-          <label
-            htmlFor="lead-kaynak"
-            className="mb-1 block text-sm text-murekkep-soluk"
-          >
-            Nereden
-          </label>
+        </AlanKutusu>
+        <AlanKutusu etiket="Nereden" htmlFor={`${onek}-kaynak`}>
           <select
-            id="lead-kaynak"
-            value={kaynak}
-            onChange={(e) => setKaynak(e.target.value)}
+            id={`${onek}-kaynak`}
+            value={d.kaynak}
+            onChange={yaz("kaynak")}
             disabled={bekliyor}
             className={ALAN}
           >
@@ -118,75 +109,175 @@ export function LeadFormu() {
               </option>
             ))}
           </select>
-        </div>
+        </AlanKutusu>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label
-            htmlFor="lead-cocuk"
-            className="mb-1 block text-sm text-murekkep-soluk"
-          >
-            Çocuğun adı
-          </label>
+        <AlanKutusu etiket="Çocuğun adı" htmlFor={`${onek}-cocuk`}>
           <input
-            id="lead-cocuk"
-            value={cocukAdi}
-            onChange={(e) => setCocukAdi(e.target.value)}
+            id={`${onek}-cocuk`}
+            value={d.cocukAdi}
+            onChange={yaz("cocukAdi")}
             disabled={bekliyor}
             className={ALAN}
           />
-        </div>
-        <div>
-          <label
-            htmlFor="lead-program"
-            className="mb-1 block text-sm text-murekkep-soluk"
-          >
-            İlgilendiği
-          </label>
+        </AlanKutusu>
+        <AlanKutusu etiket="İlgilendiği" htmlFor={`${onek}-program`}>
           <input
-            id="lead-program"
-            value={program}
-            onChange={(e) => setProgram(e.target.value)}
+            id={`${onek}-program`}
+            value={d.ilgilendigiProgram}
+            onChange={yaz("ilgilendigiProgram")}
             disabled={bekliyor}
             className={ALAN}
             placeholder="Okula hazırlık"
           />
-        </div>
+        </AlanKutusu>
       </div>
 
-      <div>
-        <label
-          htmlFor="lead-not"
-          className="mb-1 block text-sm text-murekkep-soluk"
-        >
-          Not
-        </label>
+      <AlanKutusu etiket="Not" htmlFor={`${onek}-not`}>
         <textarea
-          id="lead-not"
+          id={`${onek}-not`}
           rows={2}
-          value={notlar}
-          onChange={(e) => setNotlar(e.target.value)}
+          value={d.notlar}
+          onChange={yaz("notlar")}
           disabled={bekliyor}
           className={`${ALAN} resize-y`}
           placeholder="Instagram'dan yazdı, eylülde başlamak istiyor."
         />
-      </div>
+      </AlanKutusu>
+    </>
+  );
+}
 
-      {hata && (
-        <p role="alert" className="text-sm text-murekkep">
-          {hata}
-        </p>
-      )}
+/* --------------------------------------------------------------- ekleme */
 
-      <Buton
+export function LeadFormu() {
+  const yonlendirici = useRouter();
+  const [d, setD] = useState<Alanlar>(BOS);
+  const [hata, setHata] = useState<string | null>(null);
+  const [bekliyor, basla] = useTransition();
+
+  const yaz =
+    (alan: keyof Alanlar) => (e: { target: { value: string } }) =>
+      setD((s) => ({ ...s, [alan]: e.target.value }));
+
+  function gonder(olay: React.FormEvent) {
+    olay.preventDefault();
+    setHata(null);
+    basla(async () => {
+      const sonuc = await leadEkle(d);
+      if (sonuc.ok) {
+        setD(BOS);
+        yonlendirici.refresh();
+      } else {
+        setHata(sonuc.hata);
+      }
+    });
+  }
+
+  return (
+    <form onSubmit={gonder} className="space-y-3">
+      <LeadAlanlari onek="lead" d={d} yaz={yaz} bekliyor={bekliyor} />
+
+      {hata && <Bildirim ton="tehlike">{hata}</Bildirim>}
+
+      <Dugme
         type="submit"
-        olcu="sm"
-        disabled={bekliyor || !adSoyad.trim()}
+        gorunum="birincil"
+        disabled={bekliyor || !d.adSoyad.trim()}
         className="w-full"
       >
-        {bekliyor ? "Kaydediliyor..." : "Lead ekle"}
-      </Buton>
+        {bekliyor && <Firildak />}
+        {bekliyor ? "Kaydediliyor…" : "Lead ekle"}
+      </Dugme>
     </form>
+  );
+}
+
+/* ------------------------------------------------------------ duzenleme */
+
+/**
+ * Lead duzenleme.
+ *
+ * Ogrenciye DONUSMUS lead icin dugme hic cikmiyor: o kayit artik bir
+ * donusum belgesi ("bu ogrenci Instagram'dan geldi") ve raporlar ona
+ * dayaniyor; bilgileri ogrenci kartindan duzeltiliyor.
+ */
+export function LeadDuzenle({ lead }: { lead: LeadKunyesi }) {
+  const yonlendirici = useRouter();
+  const [acik, setAcik] = useState(false);
+  const [hata, setHata] = useState<string | null>(null);
+  const [bekliyor, basla] = useTransition();
+
+  const [d, setD] = useState<Alanlar>({
+    adSoyad: lead.ad_soyad,
+    telefon: lead.telefon ?? "",
+    kaynak: lead.kaynak,
+    cocukAdi: lead.cocuk_adi ?? "",
+    ilgilendigiProgram: lead.ilgilendigi_program ?? "",
+    notlar: lead.notlar ?? "",
+  });
+
+  const yaz =
+    (alan: keyof Alanlar) => (e: { target: { value: string } }) =>
+      setD((s) => ({ ...s, [alan]: e.target.value }));
+
+  if (lead.ogrenci_id) return null;
+
+  function gonder(olay: React.FormEvent) {
+    olay.preventDefault();
+    setHata(null);
+    basla(async () => {
+      const sonuc = await leadGuncelle(lead.id, d);
+      if (sonuc.ok) {
+        setAcik(false);
+        yonlendirici.refresh();
+      } else {
+        setHata(sonuc.hata);
+      }
+    });
+  }
+
+  return (
+    <>
+      <IkonDugme baslik="Lead'i düzenle" onClick={() => setAcik(true)}>
+        <Ikon.Not boyut={15} />
+      </IkonDugme>
+
+      <Kip
+        acik={acik}
+        kapat={() => setAcik(false)}
+        genislik="34rem"
+        baslik="Lead'i düzenle"
+      >
+        <form onSubmit={gonder} className="space-y-3">
+          <LeadAlanlari onek="ld" d={d} yaz={yaz} bekliyor={bekliyor} />
+
+          {hata && <Bildirim ton="tehlike">{hata}</Bildirim>}
+
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-panel-cizgi pt-4">
+            <SilDugmesi
+              etiket="Sil"
+              onayEtiketi="Kalıcı olarak sil"
+              islem={() => leadSil(lead.id)}
+              tamamlandi={() => setAcik(false)}
+            />
+            <span className="flex gap-2">
+              <Dugme
+                type="button"
+                onClick={() => setAcik(false)}
+                disabled={bekliyor}
+              >
+                Vazgeç
+              </Dugme>
+              <Dugme type="submit" gorunum="birincil" disabled={bekliyor}>
+                {bekliyor && <Firildak />}
+                Kaydet
+              </Dugme>
+            </span>
+          </div>
+        </form>
+      </Kip>
+    </>
   );
 }

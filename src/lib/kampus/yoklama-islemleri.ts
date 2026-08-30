@@ -402,3 +402,247 @@ export async function rolumuGetir() {
   const oturum = await oturumZorunlu();
   return oturum.rol;
 }
+
+// ----------------------------------------------------------- ders silme
+
+/**
+ * Ders kaydini siler.
+ *
+ * Yoklamasi ALINMIS ders silinmiyor: o gun kimin geldigi bilgisi baska
+ * hicbir yerde durmuyor. Yanlis gune acilmis ama bos duran bir ders
+ * silinebilir; islenmis olan "iptal" isaretlenir.
+ *
+ * Yalniz yonetici: `dersler` tablosunda ogretmenin select ve update
+ * politikasi var, delete politikasi YOK. Ogretmene acilsaydi cagri hatasiz
+ * doner ama hicbir satir silinmezdi -- sessizce basarisiz olan bir dugme.
+ */
+export async function dersSil(id: string): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = z.uuid().safeParse(id);
+  if (!g.success) return { ok: false, hata: "Geçersiz ders." };
+
+  const db = await sunucuIstemcisi();
+
+  const { count } = await db
+    .from("yoklama")
+    .select("id", { count: "exact", head: true })
+    .eq("ders_id", g.data);
+
+  if ((count ?? 0) > 0) {
+    return {
+      ok: false,
+      hata: `Bu derste ${count} yoklama işareti var. Silmek yerine dersi "iptal" yapın.`,
+    };
+  }
+
+  const { error } = await db.from("dersler").delete().eq("id", g.data);
+  if (error) return { ok: false, hata: "Ders silinemedi." };
+
+  revalidatePath("/kampus/yoklama");
+  revalidatePath("/kampus/dersler");
+  return { ok: true };
+}
+
+// -------------------------------------------------------- odeme duzeltme
+
+export async function odemeGuncelle(
+  id: string,
+  girdi: {
+    ogrenciId: string;
+    tur: string;
+    tutar: number | string;
+    tarih: string;
+    vade?: string;
+    yontem?: string;
+    aciklama?: string;
+  },
+): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const k = z.uuid().safeParse(id);
+  if (!k.success) return { ok: false, hata: "Geçersiz kayıt." };
+
+  const g = odemeSemasi.safeParse(girdi);
+  if (!g.success) return { ok: false, hata: g.error.issues[0].message };
+
+  const db = await sunucuIstemcisi();
+  const { error } = await db
+    .from("odemeler")
+    .update({
+      tur: g.data.tur,
+      tutar: g.data.tutar,
+      tarih: g.data.tarih,
+      vade: g.data.tur === "borc" && g.data.vade ? g.data.vade : null,
+      yontem: g.data.tur === "tahsilat" && g.data.yontem ? g.data.yontem : null,
+      aciklama: g.data.aciklama || null,
+    })
+    .eq("id", k.data);
+
+  if (error) return { ok: false, hata: "Hareket kaydedilemedi." };
+
+  revalidatePath("/kampus/cari");
+  revalidatePath("/kampus/tahsilat");
+  revalidatePath(`/kampus/ogrenciler/${g.data.ogrenciId}`);
+  return { ok: true };
+}
+
+// ------------------------------------------------------ lead duzenle/sil
+
+/**
+ * Lead'i gunceller.
+ *
+ * Ogrenciye DONUSMUS lead degistirilemiyor: o kayit artik bir donusum
+ * belgesi ("bu ogrenci Instagram'dan geldi") ve raporlar ona dayaniyor.
+ */
+export async function leadGuncelle(
+  id: string,
+  girdi: {
+    adSoyad: string;
+    telefon?: string;
+    kaynak: string;
+    cocukAdi?: string;
+    ilgilendigiProgram?: string;
+    notlar?: string;
+  },
+): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const k = z.uuid().safeParse(id);
+  if (!k.success) return { ok: false, hata: "Geçersiz kayıt." };
+
+  const g = leadSemasi.safeParse(girdi);
+  if (!g.success) return { ok: false, hata: g.error.issues[0].message };
+
+  const db = await sunucuIstemcisi();
+
+  const { data: mevcut } = await db
+    .from("leadler")
+    .select("ogrenci_id")
+    .eq("id", k.data)
+    .maybeSingle();
+
+  if ((mevcut as { ogrenci_id: string | null } | null)?.ogrenci_id) {
+    return {
+      ok: false,
+      hata: "Bu lead öğrenciye dönüştürülmüş. Bilgileri öğrenci kartından düzeltin.",
+    };
+  }
+
+  const { error } = await db
+    .from("leadler")
+    .update({
+      ad_soyad: g.data.adSoyad,
+      telefon: g.data.telefon
+        ? g.data.telefon.replace(/\D/g, "").replace(/^(90|0)/, "")
+        : null,
+      kaynak: g.data.kaynak,
+      cocuk_adi: g.data.cocukAdi || null,
+      ilgilendigi_program: g.data.ilgilendigiProgram || null,
+      notlar: g.data.notlar || null,
+    })
+    .eq("id", k.data);
+
+  if (error) return { ok: false, hata: "Lead kaydedilemedi." };
+
+  revalidatePath("/kampus/leadler");
+  return { ok: true, id: k.data };
+}
+
+/**
+ * Lead'i siler.
+ *
+ * Ogrenciye donusmus lead silinmiyor: donusum oranini ve "hangi kanal
+ * ogrenciye donuyor" sorusunun cevabini tasiyan tek kayit o. Kaybedilen
+ * talep icin durum "kayip" var; silme yalniz yanlis/tekrar girilmis kayit
+ * icin.
+ */
+export async function leadSil(id: string): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = z.uuid().safeParse(id);
+  if (!g.success) return { ok: false, hata: "Geçersiz kayıt." };
+
+  const db = await sunucuIstemcisi();
+
+  const { data: mevcut } = await db
+    .from("leadler")
+    .select("ogrenci_id")
+    .eq("id", g.data)
+    .maybeSingle();
+
+  if ((mevcut as { ogrenci_id: string | null } | null)?.ogrenci_id) {
+    return {
+      ok: false,
+      hata: "Öğrenciye dönüşmüş lead silinemez; dönüşüm kaydı kaybolur.",
+    };
+  }
+
+  const { error } = await db.from("leadler").delete().eq("id", g.data);
+  if (error) return { ok: false, hata: "Lead silinemedi." };
+
+  revalidatePath("/kampus/leadler");
+  revalidatePath("/kampus/raporlar");
+  return { ok: true };
+}
+
+// ---------------------------------------------------- duyuru duzenle/sil
+
+export async function duyuruGuncelle(
+  id: string,
+  girdi: { baslik: string; metin: string; hedef: string },
+): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const k = z.uuid().safeParse(id);
+  if (!k.success) return { ok: false, hata: "Geçersiz duyuru." };
+
+  const g = duyuruSemasi.safeParse(girdi);
+  if (!g.success) return { ok: false, hata: g.error.issues[0].message };
+
+  const db = await sunucuIstemcisi();
+  const { error } = await db
+    .from("duyurular")
+    .update({
+      baslik: g.data.baslik,
+      metin: g.data.metin,
+      hedef: g.data.hedef,
+    })
+    .eq("id", k.data);
+
+  if (error) return { ok: false, hata: "Duyuru kaydedilemedi." };
+
+  revalidatePath("/kampus/duyurular");
+  return { ok: true, id: k.data };
+}
+
+export async function duyuruSil(id: string): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = z.uuid().safeParse(id);
+  if (!g.success) return { ok: false, hata: "Geçersiz duyuru." };
+
+  const db = await sunucuIstemcisi();
+  const { error } = await db.from("duyurular").delete().eq("id", g.data);
+  if (error) return { ok: false, hata: "Duyuru silinemedi." };
+
+  revalidatePath("/kampus/duyurular");
+  return { ok: true };
+}
+
+// ------------------------------------------------------------ menu silme
+
+/** Gunun menusunu siler. Bos kaydetmek yerine satiri kaldiriyor. */
+export async function menuSil(tarih: string): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = tarihSemasi.safeParse(tarih);
+  if (!g.success) return { ok: false, hata: g.error.issues[0].message };
+
+  const db = await sunucuIstemcisi();
+  const { error } = await db.from("menuler").delete().eq("tarih", g.data);
+  if (error) return { ok: false, hata: "Menü silinemedi." };
+
+  revalidatePath("/kampus/yemek");
+  return { ok: true };
+}

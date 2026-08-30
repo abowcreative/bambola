@@ -1,6 +1,7 @@
 import { rolZorunlu } from "@/lib/kampus/oturum";
 import { menuleriGetir } from "@/lib/kampus/yoklama";
 import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
+import { Bildirim, DugmeLink, Satir } from "@/components/kampus/ui";
 import { MenuAlani } from "@/components/kampus/menu-alani";
 import { ogrencileriGetir } from "@/lib/kampus/ogrenciler";
 import { ogrenciAdi } from "@/lib/kampus/ogrenci-tipleri";
@@ -64,37 +65,35 @@ export default async function YemekSayfasi({
         baslik="Yemek ve menü"
         aciklama={`${gunler[0].toLocaleDateString("tr-TR", { day: "numeric", month: "long" })} - ${gunler[5].toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}`}
         cocuklar={
-          <div className="flex gap-2">
-            <a
-              href={`/kampus/yemek?hafta=${iso(oncekiHafta)}`}
-              className="rounded-full border-2 border-cizgi bg-white px-3.5 py-1.5 text-sm font-semibold text-murekkep transition-colors hover:border-yesil"
-            >
+          <>
+            <DugmeLink href={`/kampus/yemek?hafta=${iso(oncekiHafta)}`}>
+              <Ikon.OkGeri boyut={15} />
               Önceki
-            </a>
-            <a
-              href={`/kampus/yemek?hafta=${iso(sonrakiHafta)}`}
-              className="rounded-full border-2 border-cizgi bg-white px-3.5 py-1.5 text-sm font-semibold text-murekkep transition-colors hover:border-yesil"
-            >
+            </DugmeLink>
+            <DugmeLink href="/kampus/yemek">Bu hafta</DugmeLink>
+            <DugmeLink href={`/kampus/yemek?hafta=${iso(sonrakiHafta)}`}>
               Sonraki
-            </a>
-          </div>
+              <Ikon.Ok boyut={15} />
+            </DugmeLink>
+          </>
         }
       />
 
       {alerjililer.length > 0 && (
-        <div className="mb-5 rounded-blok border-2 border-yesil bg-lime-rozet/25 p-5">
-          <h2 className="flex items-center gap-2 font-baslik text-base font-bold text-murekkep">
-            <Ikon.Kalp boyut={18} />
-            Alerjisi olan öğrenciler
-          </h2>
-          <ul className="mt-2 space-y-1">
+        <Bildirim
+          ton="uyari"
+          className="mb-4"
+          baslik="Alerjisi olan öğrenciler"
+          ikon={<Ikon.Kalp boyut={16} />}
+        >
+          <ul className="mt-1 space-y-0.5">
             {alerjililer.map((o) => (
               <li key={o.id} className="text-sm text-murekkep">
                 <strong>{ogrenciAdi(o)}:</strong> {o.alerji}
               </li>
             ))}
           </ul>
-        </div>
+        </Bildirim>
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -113,37 +112,20 @@ export default async function YemekSayfasi({
               {oturum.rol === "admin" ? (
                 <MenuAlani tarih={t} menu={menu} />
               ) : menu ? (
-                <dl className="space-y-2 text-sm">
-                  {menu.kahvalti && (
-                    <div>
-                      <dt className="text-murekkep-soluk">Kahvaltı</dt>
-                      <dd className="text-murekkep">{menu.kahvalti}</dd>
-                    </div>
-                  )}
-                  {menu.ogle && (
-                    <div>
-                      <dt className="text-murekkep-soluk">Öğle</dt>
-                      <dd className="text-murekkep">{menu.ogle}</dd>
-                    </div>
-                  )}
-                  {menu.ara_ogun && (
-                    <div>
-                      <dt className="text-murekkep-soluk">Ara öğün</dt>
-                      <dd className="text-murekkep">{menu.ara_ogun}</dd>
-                    </div>
-                  )}
+                <dl>
+                  <Satir etiket="Kahvaltı">{menu.kahvalti}</Satir>
+                  <Satir etiket="Öğle">{menu.ogle}</Satir>
+                  <Satir etiket="Ara öğün">{menu.ara_ogun}</Satir>
                 </dl>
               ) : (
-                <p className="text-sm text-murekkep-soluk">
-                  Menü girilmemiş.
-                </p>
+                <p className="text-sm text-panel-soluk">Menü girilmemiş.</p>
               )}
             </Kutu>
           );
         })}
       </div>
 
-      <p className="mt-4 text-xs leading-relaxed text-murekkep-soluk">
+      <p className="mt-4 text-xs leading-relaxed text-panel-silik">
         Ara öğün yalnızca Okula Hazırlık Gruplarında verilir (müşteri düzeltmesi, 17 Ağustos 2026).
         Cumartesi programı ayrıdır, pazar grup programı yoktur.
       </p>

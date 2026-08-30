@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { adminZorunlu } from "@/lib/kampus/oturum";
 import { siniflariGetir } from "@/lib/kampus/ogrenciler";
-import { Kabuk, SayfaBasi, Kutu, Sayac } from "@/components/kampus/kabuk";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
+import { Bildirim, DugmeLink, Rozet, Sayac } from "@/components/kampus/ui";
 import { EKIP, ogretmenAdi, atolyeOgretmenleri } from "@/lib/data/ekip";
 import { SLOTLAR } from "@/lib/data/program";
 import { ATOLYELER, atolyeBul } from "@/lib/data/atolyeler";
@@ -66,7 +67,7 @@ export default async function OgretmenlerSayfasi() {
         />
       </div>
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-4 space-y-3">
         {kadro.map(({
           ogretmen,
           slotlar,
@@ -76,7 +77,7 @@ export default async function OgretmenlerSayfasi() {
           ikinciligi,
         }) => (
           <Kutu key={ogretmen.ad}>
-            <div className="flex flex-wrap gap-5">
+            <div className="flex flex-wrap gap-4">
               {ogretmen.fotograf && (
                 <Image
                   src={`/ekip/${ogretmen.fotograf}.jpg`}
@@ -84,55 +85,53 @@ export default async function OgretmenlerSayfasi() {
                   width={160}
                   height={160}
                   sizes="80px"
-                  className="size-20 shrink-0 rounded-full bg-krem-koyu object-cover"
+                  className="size-16 shrink-0 rounded-full bg-panel-zemin object-cover"
                 />
               )}
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-baslik text-lg font-bold text-murekkep">
+                  <h2 className="font-baslik text-base font-bold text-murekkep">
                     {ogretmenAdi(ogretmen)}
                   </h2>
                   {ogretmen.gorev && (
-                    <span className="rounded-full bg-yesil-koyu px-2.5 py-0.5 text-xs font-bold text-white">
-                      {ogretmen.gorev}
-                    </span>
+                    <Rozet ton="bilgi">{ogretmen.gorev}</Rozet>
                   )}
                 </div>
-                <p className="mt-0.5 text-sm font-medium text-yesil-koyu">
+                <p className="mt-0.5 text-sm font-medium text-yesil-derin">
                   {ogretmen.unvan}
                 </p>
                 {ogretmen.egitim && (
-                  <p className="mt-1 text-sm text-murekkep-soluk">
+                  <p className="mt-0.5 text-xs text-panel-soluk">
                     {ogretmen.egitim}
                   </p>
                 )}
 
-                <dl className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
+                <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
                   <div>
-                    <dt className="text-xs uppercase tracking-wide text-murekkep-soluk">
+                    <dt className="text-[0.7rem] font-semibold uppercase tracking-[0.05em] text-panel-silik">
                       Haftalık seans
                     </dt>
-                    <dd className="font-baslik text-lg font-bold text-murekkep">
+                    <dd className="font-baslik text-base font-bold tabular-nums text-murekkep">
                       {slotlar.length}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs uppercase tracking-wide text-murekkep-soluk">
+                    <dt className="text-[0.7rem] font-semibold uppercase tracking-[0.05em] text-panel-silik">
                       Çalıştığı gün
                     </dt>
-                    <dd className="mt-0.5 font-medium text-murekkep">
+                    <dd className="mt-0.5 text-sm font-medium text-murekkep">
                       {gunler.map((g) => GUN_ADI[g].slice(0, 3)).join(", ") ||
                         "—"}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs uppercase tracking-wide text-murekkep-soluk">
+                    <dt className="text-[0.7rem] font-semibold uppercase tracking-[0.05em] text-panel-silik">
                       Atanmış sınıf
                     </dt>
-                    <dd className="mt-0.5 font-medium text-murekkep">
+                    <dd className="mt-0.5 text-sm font-medium text-murekkep">
                       {atanan.length}
-                      <span className="ml-1.5 text-murekkep-soluk">
+                      <span className="ml-1.5 text-panel-soluk">
                         · {atanan.reduce((t, s) => t + s.ogrenciSayisi, 0)} çocuk
                       </span>
                     </dd>
@@ -142,7 +141,7 @@ export default async function OgretmenlerSayfasi() {
                 {/* Atanan siniflar: buradan sinifa, sinifta ogrencilere. */}
                 {atanan.length > 0 && (
                   <>
-                    <p className="mt-4 text-xs uppercase tracking-wide text-murekkep-soluk">
+                    <p className="mt-3 text-[0.7rem] font-semibold uppercase tracking-[0.05em] text-panel-silik">
                       Atanmış sınıflar
                     </p>
                     <ul className="mt-1.5 flex flex-wrap gap-1.5">
@@ -150,10 +149,10 @@ export default async function OgretmenlerSayfasi() {
                         <li key={s.id}>
                           <Link
                             href={`/kampus/siniflar/${s.id}`}
-                            className="inline-block rounded-full border-2 border-cizgi px-2.5 py-1 text-xs font-medium text-murekkep transition-colors hover:border-yesil"
+                            className="inline-block rounded-panel-sm border border-panel-cizgi bg-panel-yuzey-alt px-2.5 py-1 text-xs font-medium text-murekkep transition-colors hover:border-yesil-koyu/40"
                           >
                             {s.ad}
-                            <span className="ml-1.5 text-murekkep-soluk">
+                            <span className="ml-1.5 tabular-nums text-panel-soluk">
                               {s.ogrenciSayisi}/{s.kontenjan}
                             </span>
                           </Link>
@@ -164,7 +163,7 @@ export default async function OgretmenlerSayfasi() {
                 )}
 
                 {ikinciligi > 0 && (
-                  <p className="mt-2 text-xs leading-relaxed text-murekkep-soluk">
+                  <p className="mt-2 text-xs leading-relaxed text-panel-silik">
                     {ikinciligi} seansta ikinci öğretmen olarak programda:
                     sınıfın sorumlusu tek kişi olduğu için o sınıflar burada
                     listelenmiyor.
@@ -174,26 +173,23 @@ export default async function OgretmenlerSayfasi() {
                 {atolyeler.length > 0 && (
                   <ul className="mt-3 flex flex-wrap gap-1.5">
                     {atolyeler.map((a) => (
-                      <li
-                        key={a.slug}
-                        className="rounded-full bg-krem-koyu px-2.5 py-1 text-xs font-medium text-murekkep"
-                      >
-                        {a.kisaAd}
+                      <li key={a.slug}>
+                        <Rozet>{a.kisaAd}</Rozet>
                       </li>
                     ))}
                   </ul>
                 )}
 
                 {slotlar.length > 0 && (
-                  <details className="mt-4">
-                    <summary className="cursor-pointer text-sm font-semibold text-yesil-koyu">
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-sm font-semibold text-yesil-derin">
                       Seans listesi
                     </summary>
                     <ul className="mt-2 space-y-1">
                       {slotlar.map((s) => (
                         <li
                           key={s.id}
-                          className="flex flex-wrap gap-x-3 text-sm text-murekkep-soluk"
+                          className="flex flex-wrap gap-x-3 text-sm text-panel-soluk"
                         >
                           <span className="w-24 shrink-0 font-medium text-murekkep">
                             {GUN_ADI[s.gun]}
@@ -216,20 +212,25 @@ export default async function OgretmenlerSayfasi() {
       </div>
 
       {atanmamis > 0 && (
-        <p className="mt-5 rounded-blok border-2 border-dashed border-cizgi bg-white px-4 py-3 text-sm text-murekkep">
-          <strong>{atanmamis} aktif sınıfın öğretmeni atanmamış.</strong>{" "}
-          <Link
-            href="/kampus/siniflar"
-            className="font-semibold text-yesil-koyu hover:underline"
+        <div className="mt-4">
+          <Bildirim
+            ton="uyari"
+            baslik={`${atanmamis} aktif sınıfın öğretmeni atanmamış`}
           >
-            Sınıflar
-          </Link>{" "}
-          sayfasından atayabilirsiniz. Yoklama, öğretmenin kendi sınıfını
-          görmesi bu atamaya bağlı.
-        </p>
+            <span className="flex flex-wrap items-center justify-between gap-3">
+              <span>
+                Öğretmenin kendi sınıfını ve yoklamasını görmesi bu atamaya
+                bağlı.
+              </span>
+              <DugmeLink href="/kampus/siniflar" olcu="sm">
+                Sınıflara git
+              </DugmeLink>
+            </span>
+          </Bildirim>
+        </div>
       )}
 
-      <p className="mt-4 text-xs leading-relaxed text-murekkep-soluk">
+      <p className="mt-3 text-xs leading-relaxed text-panel-silik">
         Kimin hangi programı verdiği haftalık programdan çıkarılıyor, ayrı bir
         listede tutulmuyor. Sınıf ataması ise veritabanında: program aynı kalsa
         da atama değişebilir. Öğretmen hesabı açmak için Kullanıcılar bölümüne

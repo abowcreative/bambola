@@ -1,15 +1,19 @@
 import Link from "next/link";
 import { adminZorunlu } from "@/lib/kampus/oturum";
 import { cariListesi } from "@/lib/kampus/yoklama";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
 import {
-  Kabuk,
-  SayfaBasi,
-  Kutu,
-  Sayac,
   BosDurum,
-} from "@/components/kampus/kabuk";
+  Rozet,
+  Sayac,
+  TabloSarmal,
+  Th,
+  Td,
+  Tr,
+} from "@/components/kampus/ui";
 import { ogrenciAdi } from "@/lib/kampus/ogrenci-tipleri";
 import { tlYaz } from "@/lib/data/ucretler";
+import { Ikon } from "@/components/ui/ikon";
 
 export const metadata = { title: "Cari hesap", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -28,6 +32,7 @@ export default async function CariSayfasi() {
   const toplamBorc = liste.reduce((t, c) => t + c.borc, 0);
   const toplamTahsilat = liste.reduce((t, c) => t + c.tahsilat, 0);
   const acikBakiye = liste.reduce((t, c) => t + Math.max(0, c.bakiye), 0);
+  const gecikmisSayisi = liste.filter((c) => c.gecikmis).length;
 
   return (
     <Kabuk oturum={oturum} aktifYol="/kampus/cari">
@@ -36,91 +41,96 @@ export default async function CariSayfasi() {
         aciklama="Öğrenci bazında borç, tahsilat ve bakiye."
       />
 
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Sayac etiket="Tahakkuk" deger={tlYaz(toplamBorc)} />
-        <Sayac etiket="Tahsilat" deger={tlYaz(toplamTahsilat)} />
+        <Sayac
+          etiket="Tahsilat"
+          deger={tlYaz(toplamTahsilat)}
+          ton="basari"
+          alt={
+            toplamBorc > 0
+              ? `tahakkukun %${Math.round((toplamTahsilat / toplamBorc) * 100)}'i`
+              : undefined
+          }
+        />
         <Sayac
           etiket="Açık bakiye"
           deger={tlYaz(acikBakiye)}
-          vurgu={acikBakiye > 0}
+          ton={acikBakiye > 0 ? "uyari" : "notr"}
         />
         <Sayac
           etiket="Gecikmiş"
-          deger={liste.filter((c) => c.gecikmis).length}
+          deger={gecikmisSayisi}
           alt="öğrenci"
-          vurgu={liste.some((c) => c.gecikmis)}
+          ton={gecikmisSayisi > 0 ? "tehlike" : "notr"}
         />
       </div>
 
       {hareketliler.length === 0 ? (
-        <div className="mt-6">
+        <div className="mt-4">
           <BosDurum
             baslik="Henüz cari hareket yok"
+            ikon={<Ikon.Rozet boyut={22} />}
             aciklama="Öğrenci sayfasından borç veya tahsilat kaydı ekleyerek başlayabilirsiniz."
           />
         </div>
       ) : (
-        <Kutu className="mt-6">
-          <div className="-mx-5 overflow-x-auto px-5">
-            <table className="w-full min-w-[34rem] text-sm">
-              <thead>
-                <tr className="border-b-2 border-cizgi text-left">
-                  <th className="pb-2 font-baslik text-xs uppercase tracking-wide text-murekkep-soluk">
-                    Öğrenci
-                  </th>
-                  <th className="pb-2 text-right font-baslik text-xs uppercase tracking-wide text-murekkep-soluk">
-                    Tahakkuk
-                  </th>
-                  <th className="pb-2 text-right font-baslik text-xs uppercase tracking-wide text-murekkep-soluk">
-                    Tahsilat
-                  </th>
-                  <th className="pb-2 text-right font-baslik text-xs uppercase tracking-wide text-murekkep-soluk">
-                    Bakiye
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-cizgi">
-                {hareketliler.map((c) => (
-                  <tr key={c.ogrenci.id}>
-                    <td className="py-2.5">
-                      <Link
-                        href={`/kampus/ogrenciler/${c.ogrenci.id}`}
-                        className="font-medium text-murekkep hover:underline"
-                      >
-                        {ogrenciAdi(c.ogrenci)}
-                      </Link>
-                      {c.gecikmis && (
-                        <span className="ml-2 rounded-full bg-yesil-koyu px-2 py-0.5 text-xs font-bold text-white">
-                          Gecikmiş
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2.5 text-right tabular-nums text-murekkep-soluk">
-                      {tlYaz(c.borc)}
-                    </td>
-                    <td className="py-2.5 text-right tabular-nums text-murekkep-soluk">
-                      {tlYaz(c.tahsilat)}
-                    </td>
-                    <td
-                      className={`py-2.5 text-right font-baslik font-bold tabular-nums ${
-                        c.bakiye > 0
-                          ? "text-murekkep"
-                          : c.bakiye < 0
-                            ? "text-yesil-koyu"
-                            : "text-murekkep-soluk"
-                      }`}
+        <Kutu className="mt-4" dolgusuz>
+          <TabloSarmal enAz="36rem">
+            <thead>
+              <tr>
+                <Th>Öğrenci</Th>
+                <Th sag>Tahakkuk</Th>
+                <Th sag>Tahsilat</Th>
+                <Th sag>Bakiye</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {hareketliler.map((c) => (
+                <Tr key={c.ogrenci.id}>
+                  <Td>
+                    <Link
+                      href={`/kampus/ogrenciler/${c.ogrenci.id}`}
+                      className="font-semibold text-murekkep hover:text-yesil-derin hover:underline"
                     >
-                      {tlYaz(c.bakiye)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      {ogrenciAdi(c.ogrenci)}
+                    </Link>
+                    {c.gecikmis && (
+                      <span className="ml-2 align-middle">
+                        <Rozet ton="tehlike" ikon={<Ikon.Saat boyut={11} />}>
+                          Gecikmiş
+                        </Rozet>
+                      </span>
+                    )}
+                  </Td>
+                  <Td sayi className="text-panel-soluk">
+                    {tlYaz(c.borc)}
+                  </Td>
+                  <Td sayi className="text-panel-soluk">
+                    {tlYaz(c.tahsilat)}
+                  </Td>
+                  <Td
+                    sayi
+                    className={`font-baslik font-bold ${
+                      c.bakiye > 0
+                        ? c.gecikmis
+                          ? "text-tehlike"
+                          : "text-uyari"
+                        : c.bakiye < 0
+                          ? "text-basari"
+                          : "text-panel-silik"
+                    }`}
+                  >
+                    {tlYaz(c.bakiye)}
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </TabloSarmal>
         </Kutu>
       )}
 
-      <p className="mt-4 text-xs leading-relaxed text-murekkep-soluk">
+      <p className="mt-3 text-xs leading-relaxed text-panel-silik">
         Bakiye = tahakkuk eden borç eksi tahsilat. Pozitif bakiye borçlu,
         negatif bakiye fazla ödeme demektir. Tutarlar tam TL olarak tutulur.
       </p>

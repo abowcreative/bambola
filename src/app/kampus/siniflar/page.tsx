@@ -1,10 +1,18 @@
 import Link from "next/link";
 import { rolZorunlu } from "@/lib/kampus/oturum";
 import { siniflariGetir } from "@/lib/kampus/ogrenciler";
-import { Kabuk, SayfaBasi, Kutu, Sayac } from "@/components/kampus/kabuk";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
+import {
+  Bildirim,
+  BosDurum,
+  Ilerleme,
+  Rozet,
+  Sayac,
+} from "@/components/kampus/ui";
 import { SinifUretButonu } from "@/components/kampus/sinif-uret-butonu";
+import { SinifFormu } from "@/components/kampus/sinif-formu";
 import { OgretmenSecici } from "@/components/kampus/ogretmen-secici";
-import { atolyeBul } from "@/lib/data/atolyeler";
+import { atolyeBul, ATOLYELER } from "@/lib/data/atolyeler";
 import { GUN_ADI, GUNLER } from "@/lib/data/types";
 import type { Gun } from "@/lib/data/types";
 import { EKIP } from "@/lib/data/ekip";
@@ -18,10 +26,12 @@ const DONEM = "2026-2027";
 export default async function SiniflarSayfasi() {
   const oturum = await rolZorunlu("admin", "ogretmen");
   const siniflar = await siniflariGetir(DONEM);
+  const yonetici = oturum.rol === "admin";
 
-  const toplamKontenjan = siniflar.reduce((t, s) => t + s.kontenjan, 0);
-  const toplamOgrenci = siniflar.reduce((t, s) => t + s.ogrenciSayisi, 0);
-  const ogretmensiz = siniflar.filter((s) => !s.ogretmen_ad).length;
+  const acikOlanlar = siniflar.filter((s) => s.aktif);
+  const toplamKontenjan = acikOlanlar.reduce((t, s) => t + s.kontenjan, 0);
+  const toplamOgrenci = acikOlanlar.reduce((t, s) => t + s.ogrenciSayisi, 0);
+  const ogretmensiz = acikOlanlar.filter((s) => !s.ogretmen_ad).length;
 
   /* Gune gore grupla: takvim mantigi panelde de korunuyor. */
   const gunlere = GUNLER.map((g) => ({
@@ -29,40 +39,62 @@ export default async function SiniflarSayfasi() {
     liste: siniflar.filter((s) => s.gun === g),
   })).filter((x) => x.liste.length > 0);
 
+  const atolyeSecenekleri = ATOLYELER.map((a) => ({
+    slug: a.slug,
+    ad: a.ad,
+  }));
+  const ogretmenAdlari = EKIP.map((o) => o.ad);
+
   return (
     <Kabuk oturum={oturum} aktifYol="/kampus/siniflar">
       <SayfaBasi
         baslik="Sınıflar"
-        aciklama={`${DONEM} dönemi. Öğretmen ataması ve doluluk.`}
-        /* Sinif varken ustte duruyor; hic yokken asagidaki bos durum
-           kutusunda aciklamasiyla birlikte gosteriliyor, iki kez degil. */
+        aciklama={`${DONEM} dönemi · öğretmen ataması ve doluluk`}
         cocuklar={
-          oturum.rol === "admin" && siniflar.length > 0 ? (
-            <SinifUretButonu donem={DONEM} />
+          yonetici && siniflar.length > 0 ? (
+            <>
+              <SinifUretButonu donem={DONEM} />
+              <SinifFormu
+                donem={DONEM}
+                atolyeler={atolyeSecenekleri}
+                ogretmenler={ogretmenAdlari}
+                gorunum="birincil"
+              />
+            </>
           ) : undefined
         }
       />
 
       {siniflar.length === 0 ? (
-        <Kutu>
-          <p className="leading-relaxed text-murekkep">
-            Bu dönem için henüz sınıf açılmamış.
-          </p>
-          <p className="mt-2 text-sm leading-relaxed text-murekkep-soluk">
-            Sınıflar haftalık programdan üretiliyor: her seans için bir sınıf
-            açılır, öğretmeni programdaki öğretmen olur, kontenjan 12 olur.
-            Sonrasında her biri tek tek değiştirilebilir.
-          </p>
-          {oturum.rol === "admin" && (
-            <div className="mt-4">
-              <SinifUretButonu donem={DONEM} />
-            </div>
-          )}
-        </Kutu>
+        <BosDurum
+          baslik="Bu dönem için sınıf açılmamış"
+          ikon={<Ikon.Ayi boyut={22} />}
+          aciklama="Sınıflar haftalık programdan üretiliyor: her seans için bir sınıf açılır, öğretmeni programdaki öğretmen olur, kontenjan 12 olur. Sonrasında her biri tek tek değiştirilebilir."
+          cocuklar={
+            yonetici ? (
+              <div className="flex flex-wrap gap-2">
+                <SinifUretButonu donem={DONEM} />
+                <SinifFormu
+                  donem={DONEM}
+                  atolyeler={atolyeSecenekleri}
+                  ogretmenler={ogretmenAdlari}
+                />
+              </div>
+            ) : undefined
+          }
+        />
       ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-4">
-            <Sayac etiket="Sınıf" deger={siniflar.length} />
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Sayac
+              etiket="Açık sınıf"
+              deger={acikOlanlar.length}
+              alt={
+                siniflar.length > acikOlanlar.length
+                  ? `${siniflar.length - acikOlanlar.length} kapalı`
+                  : undefined
+              }
+            />
             <Sayac
               etiket="Kayıtlı öğrenci"
               deger={toplamOgrenci}
@@ -79,31 +111,52 @@ export default async function SiniflarSayfasi() {
             <Sayac
               etiket="Öğretmensiz"
               deger={ogretmensiz}
-              vurgu={ogretmensiz > 0}
+              ton={ogretmensiz > 0 ? "uyari" : "basari"}
+              alt={ogretmensiz > 0 ? "atama bekliyor" : "hepsi atandı"}
             />
           </div>
 
-          <div className="mt-6 space-y-4">
-            {gunlere.map(({ gun, liste }) => (
-              <Kutu key={gun} baslik={GUN_ADI[gun as Gun]}>
-                <ul className="space-y-2">
-                  {liste.map((s) => {
-                    const doluluk =
-                      s.kontenjan > 0 ? s.ogrenciSayisi / s.kontenjan : 0;
-                    return (
-                      <li
-                        key={s.id}
-                        className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-kart border-2 border-cizgi px-4 py-3"
-                      >
-                        <span className="shrink-0 font-baslik text-sm font-bold tabular-nums text-yesil-koyu">
-                          {s.bas}
-                        </span>
+          {ogretmensiz > 0 && (
+            <Bildirim
+              ton="uyari"
+              className="mt-3"
+              ikon={<Ikon.Ampul boyut={15} />}
+            >
+              {ogretmensiz} sınıfın öğretmeni atanmamış. Öğretmen kendi
+              sınıfını ancak atandığında görebiliyor.
+            </Bildirim>
+          )}
 
-                        <Link
-                          href={`/kampus/siniflar/${s.id}`}
-                          className="min-w-0 flex-1"
-                        >
-                          <span className="block font-baslik text-sm font-bold text-murekkep hover:underline">
+          <div className="mt-4 space-y-3">
+            {gunlere.map(({ gun, liste }) => (
+              <Kutu
+                key={gun}
+                baslik={GUN_ADI[gun as Gun]}
+                yanCocuk={
+                  <span className="text-xs text-panel-silik">
+                    {liste.length} sınıf
+                  </span>
+                }
+                dolgusuz
+              >
+                <ul className="divide-y divide-panel-cizgi">
+                  {liste.map((s) => (
+                    <li
+                      key={s.id}
+                      className={`flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 transition-colors hover:bg-panel-yuzey-alt ${
+                        s.aktif ? "" : "opacity-60"
+                      }`}
+                    >
+                      <span className="w-11 shrink-0 font-baslik text-sm font-bold tabular-nums text-yesil-derin">
+                        {s.bas}
+                      </span>
+
+                      <Link
+                        href={`/kampus/siniflar/${s.id}`}
+                        className="min-w-0 flex-1"
+                      >
+                        <span className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-semibold text-murekkep hover:underline">
                             {s.atolye_slug
                               ? (atolyeBul(
                                   s.atolye_slug as Parameters<
@@ -112,57 +165,42 @@ export default async function SiniflarSayfasi() {
                                 )?.ad ?? s.ad)
                               : s.ad}
                           </span>
-                          <span className="mt-0.5 block text-xs text-murekkep-soluk">
-                            {s.bas} - {s.bit}
-                          </span>
-                        </Link>
-
-                        {/* --- doluluk --- */}
-                        <span className="flex w-32 shrink-0 items-center gap-2">
-                          <span className="h-2 flex-1 overflow-hidden rounded-full bg-krem-koyu">
-                            <span
-                              className={`block h-full rounded-full ${
-                                doluluk >= 1
-                                  ? "bg-murekkep-soluk"
-                                  : doluluk >= 0.75
-                                    ? "bg-yesil-koyu"
-                                    : "bg-yesil"
-                              }`}
-                              style={{
-                                width: `${Math.min(100, doluluk * 100)}%`,
-                              }}
-                            />
-                          </span>
-                          <span className="shrink-0 text-xs tabular-nums text-murekkep-soluk">
-                            {s.ogrenciSayisi}/{s.kontenjan}
-                          </span>
+                          {!s.aktif && <Rozet ton="sessiz">Kapalı</Rozet>}
                         </span>
+                        <span className="mt-0.5 block text-xs text-panel-silik">
+                          {s.bas} - {s.bit}
+                        </span>
+                      </Link>
 
-                        {oturum.rol === "admin" ? (
-                          <OgretmenSecici
-                            sinifId={s.id}
-                            secili={s.ogretmen_ad}
-                            adaylar={EKIP.map((o) => o.ad)}
-                          />
-                        ) : (
-                          <span className="w-32 shrink-0 text-sm text-murekkep-soluk">
-                            {s.ogretmen_ad ?? "—"}
-                          </span>
-                        )}
-                      </li>
-                    );
-                  })}
+                      {/* --- doluluk --- */}
+                      <span className="flex w-28 shrink-0 items-center gap-2">
+                        <Ilerleme
+                          deger={s.ogrenciSayisi}
+                          toplam={s.kontenjan}
+                          className="flex-1"
+                        />
+                        <span className="shrink-0 text-xs tabular-nums text-panel-soluk">
+                          {s.ogrenciSayisi}/{s.kontenjan}
+                        </span>
+                      </span>
+
+                      {yonetici ? (
+                        <OgretmenSecici
+                          sinifId={s.id}
+                          secili={s.ogretmen_ad}
+                          adaylar={ogretmenAdlari}
+                        />
+                      ) : (
+                        <span className="w-32 shrink-0 text-sm text-panel-soluk">
+                          {s.ogretmen_ad ?? "—"}
+                        </span>
+                      )}
+                    </li>
+                  ))}
                 </ul>
               </Kutu>
             ))}
           </div>
-
-          {ogretmensiz > 0 && (
-            <p className="mt-4 flex items-center gap-2 text-sm text-murekkep-soluk">
-              <Ikon.Ampul boyut={15} />
-              {ogretmensiz} sınıfın öğretmeni atanmamış.
-            </p>
-          )}
         </>
       )}
     </Kabuk>

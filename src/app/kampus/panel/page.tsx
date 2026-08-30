@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { adminZorunlu } from "@/lib/kampus/oturum";
 import { basvurulariGetir, basvuruSayilari } from "@/lib/kampus/basvurular";
-import { Kabuk, SayfaBasi, Kutu, Sayac } from "@/components/kampus/kabuk";
+import { cariListesi, raporuGetir } from "@/lib/kampus/yoklama";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
+import {
+  Bildirim,
+  BosDurum,
+  DugmeLink,
+  Rozet,
+  Sayac,
+} from "@/components/kampus/ui";
 import { BasvuruSatiri, gecenSure } from "@/components/kampus/basvuru-satiri";
 import { MODULLER } from "@/lib/kampus/moduller";
 import { DinamikIkon, Ikon } from "@/components/ui/ikon";
@@ -15,6 +23,7 @@ import {
   KAMPANYA_PENCERESI,
   kampanyaAcikMi,
   kampanyaKalanGun,
+  tlYaz,
 } from "@/lib/data/ucretler";
 
 export const metadata = { title: "Panel", robots: { index: false } };
@@ -56,9 +65,11 @@ function sonGunlerde(kayitlar: { created_at: string }[], gun: number): number {
 export default async function PanelSayfasi() {
   const oturum = await adminZorunlu();
 
-  const [sayilar, sonBasvurular] = await Promise.all([
+  const [sayilar, sonBasvurular, cari, rapor] = await Promise.all([
     basvuruSayilari(),
     basvurulariGetir({ durum: "hepsi" }),
+    cariListesi(),
+    raporuGetir(),
   ]);
 
   const bugun = bugununGunu();
@@ -70,6 +81,9 @@ export default async function PanelSayfasi() {
   const bekleyen = sayilar.yeni;
   const buHafta = sonGunlerde(sonBasvurular, 7);
 
+  const gecikmisler = cari.filter((c) => c.gecikmis);
+  const acikBakiye = cari.reduce((t, c) => t + Math.max(0, c.bakiye), 0);
+
   const hazirModuller = MODULLER.filter((m) => m.durum === "hazir");
 
   return (
@@ -77,62 +91,88 @@ export default async function PanelSayfasi() {
       <SayfaBasi
         baslik={`Merhaba ${oturum.adSoyad.split(" ")[0]}`}
         aciklama={`${GUN_ADI[bugun]} · ${new Date().toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Istanbul" })}`}
+        cocuklar={
+          <DugmeLink href="/kampus/yoklama" gorunum="birincil">
+            <Ikon.Tik boyut={15} />
+            Bugünün yoklaması
+          </DugmeLink>
+        }
       />
 
       {/* ------------------------------------------------------- sayaclar */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Sayac
           etiket="Bekleyen başvuru"
           deger={bekleyen}
           alt={bekleyen > 0 ? "aranmayı bekliyor" : "hepsi işlendi"}
-          vurgu={bekleyen > 0}
-        />
-        <Sayac etiket="Bu hafta gelen" deger={buHafta} alt="son 7 gün" />
-        <Sayac
-          etiket="Bugünkü seans"
-          deger={bugunkuSeanslar.length}
-          alt={GUN_ADI[bugun]}
+          ton={bekleyen > 0 ? "uyari" : "notr"}
+          ikon={<Ikon.Posta boyut={15} />}
+          yol="/kampus/basvurular"
         />
         <Sayac
-          etiket="Kayıt olan"
-          deger={sayilar.kayit_oldu}
-          alt={`${sayilar.hepsi} başvurudan`}
+          etiket="Bu hafta gelen"
+          deger={buHafta}
+          alt="son 7 gün · başvuru"
+          ikon={<Ikon.Takvim boyut={15} />}
+          yol="/kampus/basvurular?durum=hepsi"
+        />
+        <Sayac
+          etiket="Aktif öğrenci"
+          deger={rapor.aktifOgrenci}
+          alt={`${rapor.toplamKayit}/${rapor.toplamKontenjan} yer dolu`}
+          ikon={<Ikon.Bebek boyut={15} />}
+          yol="/kampus/ogrenciler"
+        />
+        <Sayac
+          etiket="Açık bakiye"
+          deger={tlYaz(acikBakiye)}
+          alt={
+            gecikmisler.length > 0
+              ? `${gecikmisler.length} öğrencide vadesi geçmiş`
+              : "vadesi geçen yok"
+          }
+          ton={gecikmisler.length > 0 ? "tehlike" : "notr"}
+          ikon={<Ikon.Rozet boyut={15} />}
+          yol="/kampus/tahsilat"
         />
       </div>
 
       {/* --- erken kayit penceresi: para ve takvimle ilgili, ustte durur --- */}
       {kampanya && (
-        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-kart border-2 border-yesil bg-lime-rozet/25 px-5 py-3">
-          <span className="font-baslik text-sm font-bold text-murekkep">
-            Erken kayıt penceresi açık
-          </span>
-          <span className="text-sm text-murekkep-soluk">
-            {KAMPANYA_PENCERESI.metin} · son gün {KAMPANYA_PENCERESI.sonGun}
-            {kalanGun > 0 && ` · ${kalanGun} gün kaldı`}
-          </span>
-        </div>
+        <Bildirim
+          ton="vurgu"
+          className="mt-3"
+          ikon={<Ikon.Yildiz boyut={16} />}
+          baslik="Erken kayıt penceresi açık"
+        >
+          {KAMPANYA_PENCERESI.metin} · son gün {KAMPANYA_PENCERESI.sonGun}
+          {kalanGun > 0 && ` · ${kalanGun} gün kaldı`}
+        </Bildirim>
       )}
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-[1.3fr_1fr]">
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1.35fr_1fr]">
         {/* ------------------------------------------------ son basvurular */}
         <Kutu
           baslik="Son başvurular"
           yanCocuk={
             <Link
               href="/kampus/basvurular"
-              className="inline-flex items-center gap-1 text-sm font-semibold text-yesil-koyu hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-yesil-derin hover:underline"
             >
               Hepsi
-              <Ikon.Ok boyut={14} />
+              <Ikon.Ok boyut={13} />
             </Link>
           }
         >
           {sonBasvurular.length === 0 ? (
-            <p className="py-8 text-center text-murekkep-soluk">
-              Henüz başvuru yok. Formdan gelen ilk talep burada görünecek.
-            </p>
+            <BosDurum
+              baslik="Henüz başvuru yok"
+              aciklama="Formdan gelen ilk talep burada görünecek."
+              ikon={<Ikon.Posta boyut={22} />}
+              className="border-0 bg-transparent py-8"
+            />
           ) : (
-            <ul className="space-y-3">
+            <ul className="space-y-2.5">
               {sonBasvurular.slice(0, 4).map((b) => (
                 <li key={b.id}>
                   <Link href={`/kampus/basvurular/${b.id}`} className="block">
@@ -142,101 +182,139 @@ export default async function PanelSayfasi() {
               ))}
             </ul>
           )}
+
+          {sonBasvurular.length > 0 && (
+            <p className="mt-3 text-xs text-panel-silik">
+              Son başvuru {gecenSure(sonBasvurular[0].created_at)} geldi.
+            </p>
+          )}
         </Kutu>
 
-        <div className="space-y-5">
+        <div className="space-y-4">
           {/* ------------------------------------------ bugunku program --- */}
           <Kutu
             baslik={`Bugün · ${GUN_ADI[bugun]}`}
             yanCocuk={
               <Link
                 href="/kampus/takvim"
-                className="inline-flex items-center gap-1 text-sm font-semibold text-yesil-koyu hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-yesil-derin hover:underline"
               >
                 Takvim
-                <Ikon.Ok boyut={14} />
+                <Ikon.Ok boyut={13} />
               </Link>
             }
+            dolgusuz
           >
             {bugunkuSeanslar.length === 0 ? (
-              <p className="py-6 text-center text-murekkep-soluk">
+              <p className="px-4 py-6 text-center text-sm text-panel-soluk">
                 Bugün grup programı yok.
               </p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="divide-y divide-panel-cizgi">
                 {bugunkuSeanslar.map((s) => (
                   <li
                     key={s.id}
-                    className="flex items-start justify-between gap-3 rounded-kart border border-cizgi px-3.5 py-2.5"
+                    className="flex items-start gap-3 px-4 py-2.5"
                   >
-                    <div className="min-w-0">
-                      <p className="font-baslik text-sm font-bold text-murekkep">
+                    <span className="w-11 shrink-0 font-baslik text-sm font-bold tabular-nums text-yesil-derin">
+                      {s.bas}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-murekkep">
                         {atolyeBul(s.atolyeSlug)?.kisaAd ?? s.atolyeSlug}
                       </p>
-                      <p className="mt-0.5 text-xs text-murekkep-soluk">
+                      <p className="mt-0.5 truncate text-xs text-panel-soluk">
                         {s.yas.etiket}
                         {s.ogretmenler.length > 0 &&
                           ` · ${s.ogretmenler.join(", ")}`}
                       </p>
                     </div>
-                    <span className="shrink-0 font-baslik text-sm font-bold tabular-nums text-yesil-koyu">
-                      {s.bas}
-                    </span>
                   </li>
                 ))}
               </ul>
             )}
           </Kutu>
 
+          {/* -------------------------------------- gecikmis tahsilatlar --- */}
+          {gecikmisler.length > 0 && (
+            <Kutu
+              baslik="Vadesi geçmiş"
+              yanCocuk={
+                <Link
+                  href="/kampus/tahsilat"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-yesil-derin hover:underline"
+                >
+                  Tahsilat
+                  <Ikon.Ok boyut={13} />
+                </Link>
+              }
+              dolgusuz
+            >
+              <ul className="divide-y divide-panel-cizgi">
+                {gecikmisler.slice(0, 5).map((c) => (
+                  <li key={c.ogrenci.id}>
+                    <Link
+                      href={`/kampus/ogrenciler/${c.ogrenci.id}`}
+                      className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-panel-yuzey-alt"
+                    >
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-murekkep">
+                        {c.ogrenci.ad} {c.ogrenci.soyad ?? ""}
+                      </span>
+                      <Rozet ton="tehlike">{tlYaz(c.bakiye)}</Rozet>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Kutu>
+          )}
+
           {/* ------------------------------------------------- kurum ozeti */}
           <Kutu baslik="Kurum">
-            <dl className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <dt className="text-murekkep-soluk">Haftalık seans</dt>
-                <dd className="font-baslik text-lg font-bold text-murekkep">
-                  {SLOTLAR.length}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-murekkep-soluk">Öğretmen</dt>
-                <dd className="font-baslik text-lg font-bold text-murekkep">
-                  {EKIP.length}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-murekkep-soluk">Program ailesi</dt>
-                <dd className="font-baslik text-lg font-bold text-murekkep">
-                  {AILELER.length}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-murekkep-soluk">Açık gün</dt>
-                <dd className="font-baslik text-lg font-bold text-murekkep">
-                  {GUNLER.filter((g) => gunSlotlari(g).length > 0).length}
-                </dd>
-              </div>
+            <dl className="grid grid-cols-2 gap-3">
+              {(
+                [
+                  ["Haftalık seans", SLOTLAR.length],
+                  ["Öğretmen", EKIP.length],
+                  ["Program ailesi", AILELER.length],
+                  [
+                    "Açık gün",
+                    GUNLER.filter((g) => gunSlotlari(g).length > 0).length,
+                  ],
+                ] as const
+              ).map(([etiket, deger]) => (
+                <div key={etiket}>
+                  <dt className="text-xs text-panel-soluk">{etiket}</dt>
+                  <dd className="font-baslik text-lg font-bold tabular-nums text-murekkep">
+                    {deger}
+                  </dd>
+                </div>
+              ))}
             </dl>
           </Kutu>
         </div>
       </div>
 
       {/* --------------------------------------------------- kisayollar --- */}
-      <Kutu baslik="Modüller" className="mt-5">
-        <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+      <Kutu
+        baslik="Modüller"
+        aciklama="Sol menüde noktayla işaretli modüller hazırlanıyor."
+        className="mt-4"
+      >
+        <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {hazirModuller.map((m) => (
             <li key={m.slug}>
               <Link
                 href={m.yol}
-                className="flex h-full gap-3 rounded-kart border-2 border-cizgi px-4 py-3 transition-colors hover:border-yesil"
+                className="flex h-full gap-3 rounded-panel-sm border border-panel-cizgi px-3.5 py-2.5 transition-colors hover:border-yesil-koyu/40 hover:bg-panel-yuzey-alt"
               >
-                <span className="mt-0.5 shrink-0 text-yesil-koyu">
-                  <DinamikIkon ad={m.ikon} boyut={18} />
+                <span className="mt-0.5 shrink-0 text-panel-silik">
+                  <DinamikIkon ad={m.ikon} boyut={17} />
                 </span>
                 <span className="min-w-0">
-                  <span className="block font-baslik text-sm font-bold text-murekkep">
+                  <span className="block text-sm font-semibold text-murekkep">
                     {m.ad}
                   </span>
-                  <span className="mt-0.5 block text-xs leading-snug text-murekkep-soluk">
+                  <span className="mt-0.5 block text-xs leading-snug text-panel-soluk">
                     {m.ozet}
                   </span>
                 </span>
@@ -244,17 +322,7 @@ export default async function PanelSayfasi() {
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-xs leading-relaxed text-murekkep-soluk">
-          Sol menüde noktayla işaretli modüller hazırlanıyor. Açıldıklarında
-          neyi beklediklerini yazıyorlar.
-        </p>
       </Kutu>
-
-      {sonBasvurular.length > 0 && (
-        <p className="mt-4 text-xs text-murekkep-soluk">
-          Son başvuru {gecenSure(sonBasvurular[0].created_at)} geldi.
-        </p>
-      )}
     </Kabuk>
   );
 }

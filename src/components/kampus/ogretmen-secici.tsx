@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { sinifaOgretmenAta } from "@/lib/kampus/ogrenci-islemleri";
+import { ALAN } from "./ui";
 
 /**
  * Sinifa ogretmen atar.
@@ -37,16 +38,14 @@ export function OgretmenSecici({
   }
 
   return (
-    <span className="w-36 shrink-0">
+    <span className="w-32 shrink-0">
       <select
         value={deger}
         onChange={(e) => degistir(e.target.value)}
         disabled={bekliyor}
         aria-label="Öğretmen ata"
-        className={`w-full rounded-full border-2 bg-white px-3 py-1.5 text-sm outline-none focus:border-yesil disabled:opacity-60 ${
-          deger
-            ? "border-cizgi text-murekkep"
-            : "border-dashed border-cizgi text-murekkep-soluk"
+        className={`${ALAN} h-8 py-0 text-xs ${
+          deger ? "" : "border-dashed text-panel-silik"
         }`}
       >
         <option value="">Atanmadı</option>
@@ -57,7 +56,7 @@ export function OgretmenSecici({
         ))}
       </select>
       {hata && (
-        <span role="alert" className="mt-1 block text-xs text-murekkep">
+        <span role="alert" className="mt-1 block text-xs text-tehlike">
           {hata}
         </span>
       )}

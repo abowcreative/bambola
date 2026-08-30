@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MarkaLogosu } from "@/components/site/marka-logosu";
 import { DinamikIkon, Ikon } from "@/components/ui/ikon";
+import { MARKA } from "@/lib/site";
 import type { ModulGrubu } from "@/lib/kampus/moduller";
 
 /**
@@ -27,13 +28,13 @@ function Liste({
   kapat?: () => void;
 }) {
   return (
-    <nav className="space-y-6 px-3 py-4">
+    <nav className="space-y-5 px-3 py-4">
       {gruplar.map((g) => (
         <div key={g.baslik}>
-          <p className="px-3 pb-2 font-baslik text-[0.68rem] font-bold uppercase tracking-[0.14em] text-murekkep-soluk">
+          <p className="px-3 pb-1.5 text-[0.66rem] font-bold uppercase tracking-[0.1em] text-panel-silik">
             {g.baslik}
           </p>
-          <ul className="space-y-0.5">
+          <ul className="space-y-px">
             {g.moduller.map((m) => {
               const aktif =
                 aktifYol === m.yol || aktifYol.startsWith(`${m.yol}/`);
@@ -45,18 +46,28 @@ function Liste({
                     onClick={kapat}
                     aria-current={aktif ? "page" : undefined}
                     title={m.ozet}
-                    className={`flex items-center gap-2.5 rounded-yumusak px-3 py-2 text-sm transition-colors ${
+                    className={`group relative flex items-center gap-2.5 rounded-panel-sm py-2 pl-3 pr-2.5 text-sm transition-colors ${
                       aktif
-                        ? "bg-yesil-koyu font-semibold text-white"
-                        : hazir
-                          ? "text-murekkep hover:bg-krem-koyu"
-                          : "text-murekkep-soluk hover:bg-krem-koyu"
+                        ? "bg-yesil-koyu/10 font-semibold text-yesil-derin"
+                        : "text-panel-soluk hover:bg-panel-yuzey-alt hover:text-murekkep"
                     }`}
                   >
+                    {/* Aktif satirin sol kenar cizgisi: dolu zemin yerine
+                        ince bir isaret, uzun menude goz yormuyor. */}
+                    {aktif && (
+                      <span
+                        aria-hidden
+                        className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-yesil-koyu"
+                      />
+                    )}
                     <DinamikIkon
                       ad={m.ikon}
                       boyut={17}
-                      className="shrink-0 opacity-90"
+                      className={`shrink-0 ${
+                        aktif
+                          ? "text-yesil-koyu"
+                          : "text-panel-silik group-hover:text-panel-soluk"
+                      }`}
                     />
                     <span className="min-w-0 flex-1 truncate">{m.ad}</span>
                     {/*
@@ -67,9 +78,7 @@ function Liste({
                       <span
                         aria-label="hazırlanıyor"
                         title="Hazırlanıyor"
-                        className={`size-1.5 shrink-0 rounded-full ${
-                          aktif ? "bg-white/60" : "bg-murekkep-soluk/40"
-                        }`}
+                        className="size-1.5 shrink-0 rounded-full bg-uyari/60"
                       />
                     )}
                   </Link>
@@ -83,6 +92,39 @@ function Liste({
   );
 }
 
+/** Menunun tepesindeki marka satiri. Cekmecede ve sutunda ayni. */
+function MarkaSatiri({ kapat }: { kapat?: () => void }) {
+  return (
+    <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-panel-cizgi px-4">
+      <Link
+        href="/kampus"
+        onClick={kapat}
+        className="flex min-w-0 items-center gap-2.5"
+      >
+        <MarkaLogosu boyut={28} />
+        <span className="min-w-0 leading-none">
+          <span className="block truncate font-baslik text-sm font-bold text-yesil-derin">
+            {MARKA.ad}
+          </span>
+          <span className="mt-0.5 block text-[0.62rem] font-bold uppercase tracking-[0.14em] text-panel-silik">
+            Kampüs
+          </span>
+        </span>
+      </Link>
+      {kapat && (
+        <button
+          type="button"
+          onClick={kapat}
+          aria-label="Menüyü kapat"
+          className="ml-auto grid size-8 shrink-0 place-items-center rounded-panel-sm text-panel-soluk transition-colors hover:bg-panel-yuzey-alt"
+        >
+          <Ikon.Kapat boyut={17} />
+        </button>
+      )}
+    </div>
+  );
+}
+
 /** Telefon: ust cubuktaki dugme ve acilan cekmece. */
 export function MenuCekmecesi({
   gruplar,
@@ -93,6 +135,21 @@ export function MenuCekmecesi({
 }) {
   const [acik, setAcik] = useState(false);
 
+  /* Cekmece acikken arkadaki sayfa kaymasin ve Escape kapatsin. */
+  useEffect(() => {
+    if (!acik) return;
+    const onceki = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    function tus(e: KeyboardEvent) {
+      if (e.key === "Escape") setAcik(false);
+    }
+    document.addEventListener("keydown", tus);
+    return () => {
+      document.body.style.overflow = onceki;
+      document.removeEventListener("keydown", tus);
+    };
+  }, [acik]);
+
   return (
     <>
       <button
@@ -100,9 +157,9 @@ export function MenuCekmecesi({
         onClick={() => setAcik(true)}
         aria-label="Menüyü aç"
         aria-expanded={acik}
-        className="grid size-10 place-items-center rounded-full border-2 border-cizgi text-murekkep lg:hidden"
+        className="grid size-9 shrink-0 place-items-center rounded-panel-sm border border-panel-cizgi-guclu bg-panel-yuzey text-panel-soluk transition-colors hover:bg-panel-yuzey-alt lg:hidden"
       >
-        <Ikon.Menu boyut={19} />
+        <Ikon.Menu boyut={18} />
       </button>
 
       {acik && (
@@ -111,25 +168,17 @@ export function MenuCekmecesi({
             type="button"
             aria-label="Menüyü kapat"
             onClick={() => setAcik(false)}
-            className="absolute inset-0 bg-murekkep/40"
+            className="absolute inset-0 bg-murekkep/45 backdrop-blur-[2px]"
           />
-          <div className="absolute inset-y-0 left-0 w-72 max-w-[85vw] overflow-y-auto border-r-2 border-cizgi bg-white">
-            <div className="flex items-center justify-between px-4 py-3">
-              <MarkaLogosu boyut={32} />
-              <button
-                type="button"
-                onClick={() => setAcik(false)}
-                aria-label="Kapat"
-                className="grid size-9 place-items-center rounded-full text-murekkep-soluk hover:bg-krem-koyu"
-              >
-                <Ikon.Kapat boyut={18} />
-              </button>
+          <div className="absolute inset-y-0 left-0 flex w-72 max-w-[86vw] flex-col border-r border-panel-cizgi bg-panel-yuzey shadow-panel-yuksek">
+            <MarkaSatiri kapat={() => setAcik(false)} />
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <Liste
+                gruplar={gruplar}
+                aktifYol={aktifYol}
+                kapat={() => setAcik(false)}
+              />
             </div>
-            <Liste
-              gruplar={gruplar}
-              aktifYol={aktifYol}
-              kapat={() => setAcik(false)}
-            />
           </div>
         </div>
       )}
@@ -137,20 +186,33 @@ export function MenuCekmecesi({
   );
 }
 
-/** Genis ekran: sabit sol sutun. */
+/**
+ * Genis ekran: sabit sol sutun.
+ *
+ * Kendi icinde kayiyor ve marka satiri tepede sabit duruyor; uzun modul
+ * listesinde kaydirinca "buradayim" bilgisi kaybolmuyor.
+ */
 export function YanMenuSutunu({
   gruplar,
   aktifYol,
+  altCocuk,
 }: {
   gruplar: ModulGrubu[];
   aktifYol: string;
+  /** Sutunun en altina sabitlenen alan: kullanici kutusu. */
+  altCocuk?: React.ReactNode;
 }) {
   return (
-    <aside className="hidden w-60 shrink-0 border-r-2 border-cizgi bg-white lg:block">
-      {/* Ust cubuk 57px; sutun onun altinda kalip kendi icinde kayiyor. */}
-      <div className="sticky top-[57px] max-h-[calc(100dvh-57px)] overflow-y-auto">
+    <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-panel-cizgi bg-panel-yuzey lg:flex xl:w-64">
+      <MarkaSatiri />
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <Liste gruplar={gruplar} aktifYol={aktifYol} />
       </div>
+      {altCocuk && (
+        <div className="shrink-0 border-t border-panel-cizgi p-3">
+          {altCocuk}
+        </div>
+      )}
     </aside>
   );
 }

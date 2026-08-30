@@ -2,25 +2,25 @@ import Link from "next/link";
 import { rolZorunlu } from "@/lib/kampus/oturum";
 import { dersleriGetir, DERS_DURUM_ETIKET } from "@/lib/kampus/yoklama";
 import type { DersDurumu } from "@/lib/kampus/yoklama-tipleri";
+import { DERS_TONU } from "@/lib/kampus/tonlar";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
 import {
-  Kabuk,
-  SayfaBasi,
-  Kutu,
-  Sayac,
+  Bildirim,
   BosDurum,
-} from "@/components/kampus/kabuk";
+  Rozet,
+  Sayac,
+  SekmeSeridi,
+  TabloSarmal,
+  Th,
+  Td,
+  Tr,
+} from "@/components/kampus/ui";
 import { atolyeBul } from "@/lib/data/atolyeler";
 import { sinifGetir } from "@/lib/kampus/ogrenciler";
 import { z } from "zod";
 
 export const metadata = { title: "Ders kayıtları", robots: { index: false } };
 export const dynamic = "force-dynamic";
-
-const DURUM_RENGI: Record<DersDurumu, string> = {
-  planli: "bg-krem-koyu text-murekkep",
-  islendi: "bg-yesil-koyu text-white",
-  iptal: "bg-cizgi text-murekkep-soluk",
-};
 
 /**
  * Islenen derslerin gecmisi.
@@ -54,6 +54,15 @@ export default async function DerslerSayfasi({
 
   const say = (d: DersDurumu) => hepsi.filter((x) => x.durum === d).length;
 
+  /** Sekme adresi. Sinif suzgeci durum degisirken kaybolmuyor. */
+  function yol(yeniDurum: string): string {
+    const y = new URLSearchParams();
+    if (sinifId) y.set("sinif", sinifId);
+    if (yeniDurum !== "hepsi") y.set("durum", yeniDurum);
+    const sorgu = y.toString();
+    return sorgu ? `/kampus/dersler?${sorgu}` : "/kampus/dersler";
+  }
+
   return (
     <Kabuk oturum={oturum} aktifYol="/kampus/dersler">
       <SayfaBasi
@@ -62,26 +71,28 @@ export default async function DerslerSayfasi({
       />
 
       {sinif && (
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-blok border-2 border-yesil bg-lime-rozet/25 px-4 py-3">
-          <span className="text-sm text-murekkep">
-            <strong className="font-baslik">{sinif.ad}</strong> sınıfının
-            dersleri
+        <Bildirim ton="bilgi" className="mb-4">
+          <span className="flex flex-wrap items-center justify-between gap-3">
+            <span>
+              <strong className="font-baslik">{sinif.ad}</strong> sınıfının
+              dersleri
+            </span>
+            <span className="flex gap-3 text-sm font-semibold">
+              <Link
+                href={`/kampus/siniflar/${sinif.id}`}
+                className="text-yesil-derin hover:underline"
+              >
+                Sınıfa git
+              </Link>
+              <Link
+                href="/kampus/dersler"
+                className="text-panel-soluk hover:underline"
+              >
+                Süzgeci kaldır
+              </Link>
+            </span>
           </span>
-          <span className="flex gap-3 text-sm font-semibold">
-            <Link
-              href={`/kampus/siniflar/${sinif.id}`}
-              className="text-yesil-koyu hover:underline"
-            >
-              Sınıfa git
-            </Link>
-            <Link
-              href="/kampus/dersler"
-              className="text-murekkep-soluk hover:underline"
-            >
-              Süzgeci kaldır
-            </Link>
-          </span>
-        </div>
+        </Bildirim>
       )}
 
       {hepsi.length === 0 ? (
@@ -92,80 +103,98 @@ export default async function DerslerSayfasi({
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-3">
-            <Sayac etiket="İşlendi" deger={say("islendi")} />
-            <Sayac etiket="Planlı" deger={say("planli")} />
+            <Sayac etiket="İşlendi" deger={say("islendi")} ton="basari" />
+            <Sayac etiket="Planlı" deger={say("planli")} ton="bilgi" />
             <Sayac etiket="İptal" deger={say("iptal")} />
           </div>
 
-          <form className="mt-5 flex flex-wrap gap-2">
-            {/* Sinif suzgeci durum degistirilirken kaybolmasin. */}
-            {sinifId && <input type="hidden" name="sinif" value={sinifId} />}
-            {(["hepsi", "islendi", "planli", "iptal"] as const).map((d) => (
-              <button
-                key={d}
-                type="submit"
-                name="durum"
-                value={d}
-                className={`rounded-full border-2 px-4 py-1.5 font-baslik text-sm font-semibold transition-colors ${
-                  durum === d
-                    ? "border-yesil-koyu bg-yesil-koyu text-white"
-                    : "border-cizgi bg-white text-murekkep-soluk hover:border-yesil hover:text-murekkep"
-                }`}
-              >
-                {d === "hepsi" ? "Hepsi" : DERS_DURUM_ETIKET[d]}
-              </button>
-            ))}
-          </form>
+          <div className="mt-4">
+            <SekmeSeridi
+              sekmeler={(["hepsi", "islendi", "planli", "iptal"] as const).map(
+                (d) => ({
+                  anahtar: d,
+                  etiket: d === "hepsi" ? "Hepsi" : DERS_DURUM_ETIKET[d],
+                  yol: yol(d),
+                  sayi: d === "hepsi" ? hepsi.length : say(d),
+                  aktif: durum === d,
+                }),
+              )}
+            />
+          </div>
 
-          <Kutu className="mt-5">
-            <ul className="divide-y divide-cizgi">
-              {liste.map((d) => (
-                <li
-                  key={d.id}
-                  className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3"
-                >
-                  <span className="w-24 shrink-0 tabular-nums text-sm text-murekkep-soluk">
-                    {new Date(`${d.tarih}T12:00:00+03:00`).toLocaleDateString(
-                      "tr-TR",
-                      { day: "2-digit", month: "2-digit", year: "2-digit" },
-                    )}
-                  </span>
-
-                  <Link
-                    href={`/kampus/yoklama/${d.id}`}
-                    className="min-w-0 flex-1"
-                  >
-                    <span className="block font-baslik text-sm font-bold text-murekkep hover:underline">
-                      {d.sinif?.atolye_slug
-                        ? (atolyeBul(
-                            d.sinif.atolye_slug as Parameters<
-                              typeof atolyeBul
-                            >[0],
-                          )?.ad ?? d.sinif.ad)
-                        : (d.sinif?.ad ?? "—")}
-                    </span>
-                    <span className="mt-0.5 block text-xs text-murekkep-soluk">
-                      {d.sinif?.bas} - {d.sinif?.bit}
-                      {d.isleyen_ogretmen && ` · ${d.isleyen_ogretmen}`}
-                      {d.konu && ` · ${d.konu}`}
-                    </span>
-                  </Link>
-
-                  <span className="shrink-0 text-sm text-murekkep-soluk">
-                    {d.yoklamaSayisi > 0
-                      ? `${d.gelenSayisi}/${d.yoklamaSayisi}`
-                      : "—"}
-                  </span>
-
-                  <span
-                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${DURUM_RENGI[d.durum]}`}
-                  >
-                    {DERS_DURUM_ETIKET[d.durum]}
-                  </span>
-                </li>
-              ))}
-            </ul>
+          <Kutu className="mt-4" dolgusuz>
+            <TabloSarmal enAz="42rem">
+              <thead>
+                <tr>
+                  <Th>Tarih</Th>
+                  <Th>Sınıf</Th>
+                  <Th>Konu</Th>
+                  <Th sag>Yoklama</Th>
+                  <Th sag>Durum</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {liste.map((d) => (
+                  <Tr key={d.id}>
+                    <Td sayi className="text-panel-soluk">
+                      <Link
+                        href={`/kampus/yoklama/${d.id}`}
+                        className="font-medium text-yesil-derin hover:underline"
+                      >
+                        {new Date(
+                          `${d.tarih}T12:00:00+03:00`,
+                        ).toLocaleDateString("tr-TR", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "2-digit",
+                        })}
+                      </Link>
+                    </Td>
+                    <Td>
+                      <Link
+                        href={`/kampus/yoklama/${d.id}`}
+                        className="font-semibold text-murekkep hover:underline"
+                      >
+                        {d.sinif?.atolye_slug
+                          ? (atolyeBul(
+                              d.sinif.atolye_slug as Parameters<
+                                typeof atolyeBul
+                              >[0],
+                            )?.ad ?? d.sinif.ad)
+                          : (d.sinif?.ad ?? "—")}
+                      </Link>
+                      <span className="mt-0.5 block text-xs text-panel-silik">
+                        {d.sinif?.bas} - {d.sinif?.bit}
+                        {d.isleyen_ogretmen && ` · ${d.isleyen_ogretmen}`}
+                      </span>
+                    </Td>
+                    <Td className="max-w-64 truncate text-panel-soluk">
+                      {d.konu ?? <span className="text-panel-silik">—</span>}
+                    </Td>
+                    <Td sayi className="text-panel-soluk">
+                      {d.yoklamaSayisi > 0
+                        ? `${d.gelenSayisi}/${d.yoklamaSayisi}`
+                        : "—"}
+                    </Td>
+                    <Td sag>
+                      <Rozet ton={DERS_TONU[d.durum] ?? "notr"}>
+                        {DERS_DURUM_ETIKET[d.durum]}
+                      </Rozet>
+                    </Td>
+                  </Tr>
+                ))}
+              </tbody>
+            </TabloSarmal>
           </Kutu>
+
+          {liste.length === 0 && (
+            <div className="mt-4">
+              <BosDurum
+                baslik="Bu filtrede ders yok"
+                aciklama="Başka bir durum sekmesine bakabilirsiniz."
+              />
+            </div>
+          )}
         </>
       )}
     </Kabuk>

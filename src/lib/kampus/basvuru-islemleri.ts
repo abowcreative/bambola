@@ -88,3 +88,88 @@ export async function notEkle(
   revalidatePath(`/kampus/basvurular/${sonuc.data.basvuruId}`);
   return { ok: true };
 }
+
+/**
+ * Basvuruyu siler.
+ *
+ * Normal yol DURUM DEGISTIRMEK: formdan gelen bir talep, sonu ne olursa
+ * olsun bir kayittir ve donusum oranini o kayitlar olusturuyor. Silme
+ * yalniz gercekten kayit olmayanlar icin: bot doldurmasi, deneme kaydi,
+ * ayni kisinin iki kez gonderdigi form.
+ *
+ * Ogrenciye donusmus basvuru silinmiyor: ogrenci karti `basvuru_id` ile
+ * ona bakiyor ve "nereden geldi" bilgisini oradan okuyor.
+ *
+ * Silme yetkisi 0006 gocuyle aciliyor. Goc calistirilmadiysa RLS satiri
+ * dusurmuyor ve cagri sessizce basarili gorunurdu; o yuzden silinen satir
+ * sayisi geri isteniyor ve sifirsa acik bir hata donuyor.
+ */
+export async function basvuruSil(id: string): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = z.uuid().safeParse(id);
+  if (!g.success) return { ok: false, hata: "Geçersiz başvuru." };
+
+  const db = await sunucuIstemcisi();
+
+  const { count } = await db
+    .from("ogrenciler")
+    .select("id", { count: "exact", head: true })
+    .eq("basvuru_id", g.data);
+
+  if ((count ?? 0) > 0) {
+    return {
+      ok: false,
+      hata: "Bu başvurudan öğrenci kaydı açılmış; silinemez. Durumunu değiştirebilirsiniz.",
+    };
+  }
+
+  const { data, error } = await db
+    .from("basvurular")
+    .delete()
+    .eq("id", g.data)
+    .select("id");
+
+  if (error) return { ok: false, hata: "Başvuru silinemedi." };
+  if (!data || data.length === 0) {
+    return {
+      ok: false,
+      hata: "Silme yetkisi yok. supabase/migrations/0006_basvuru_silme.sql çalıştırılmalı.",
+    };
+  }
+
+  revalidatePath("/kampus/basvurular");
+  revalidatePath("/kampus/panel");
+  return { ok: true };
+}
+
+/** Gorusme notunu siler. Yanlis yazilmis bir not kalici olmamali. */
+export async function notSil(
+  id: string,
+  basvuruId: string,
+): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = z
+    .object({ id: z.uuid(), basvuruId: z.uuid() })
+    .safeParse({ id, basvuruId });
+  if (!g.success) return { ok: false, hata: "Geçersiz not." };
+
+  const db = await sunucuIstemcisi();
+  const { data, error } = await db
+    .from("basvuru_notlari")
+    .delete()
+    .eq("id", g.data.id)
+    .select("id");
+
+  if (error) return { ok: false, hata: "Not silinemedi." };
+  if (!data || data.length === 0) {
+    return {
+      ok: false,
+      hata: "Silme yetkisi yok. supabase/migrations/0006_basvuru_silme.sql çalıştırılmalı.",
+    };
+  }
+
+  revalidatePath(`/kampus/basvurular/${g.data.basvuruId}`);
+  return { ok: true };
+}

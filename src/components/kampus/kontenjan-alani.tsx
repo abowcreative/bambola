@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { kontenjanDegistir } from "@/lib/kampus/ogrenci-islemleri";
+import { ALAN } from "./ui";
 
 /**
  * Sinif kontenjani.
@@ -55,15 +56,15 @@ export function KontenjanAlani({
         onBlur={kaydet}
         disabled={bekliyor}
         aria-label="Kontenjan"
-        className="w-24 rounded-full border-2 border-cizgi bg-white px-3.5 py-1.5 text-sm tabular-nums text-murekkep outline-none focus:border-yesil disabled:opacity-60"
+        className={`${ALAN} w-24 tabular-nums`}
       />
       {altinda && (
-        <p className="mt-1.5 text-xs text-murekkep">
+        <p className="mt-1.5 text-xs text-uyari">
           Şu an {enAz} kayıtlı öğrenci var, kontenjan bunun altında kalıyor.
         </p>
       )}
       {hata && (
-        <p role="alert" className="mt-1.5 text-xs text-murekkep">
+        <p role="alert" className="mt-1.5 text-xs text-tehlike">
           {hata}
         </p>
       )}

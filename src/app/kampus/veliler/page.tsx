@@ -1,13 +1,18 @@
 import Link from "next/link";
 import { adminZorunlu } from "@/lib/kampus/oturum";
 import { velileriGetir } from "@/lib/kampus/ogrenciler";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
 import {
-  Kabuk,
-  SayfaBasi,
-  Kutu,
-  Sayac,
   BosDurum,
-} from "@/components/kampus/kabuk";
+  Rozet,
+  Sayac,
+  TabloSarmal,
+  Th,
+  Td,
+  Tr,
+} from "@/components/kampus/ui";
+import { AramaKutusu } from "@/components/kampus/ui-istemci";
+import { VeliFormu } from "@/components/kampus/veli-formu";
 import { telefonYaz } from "@/components/kampus/basvuru-satiri";
 import { Ikon } from "@/components/ui/ikon";
 
@@ -29,18 +34,21 @@ export default async function VelilerSayfasi({
   ]);
 
   const hesapli = hepsi.filter((v) => v.profil_id).length;
+  const cocuksuz = hepsi.filter((v) => v.cocukSayisi === 0).length;
 
   return (
     <Kabuk oturum={oturum} aktifYol="/kampus/veliler">
       <SayfaBasi
         baslik="Veliler"
         aciklama="Veli kayıtları ve çocuk bağlantıları."
+        cocuklar={<VeliFormu gorunum="birincil" />}
       />
 
       {hepsi.length === 0 ? (
         <BosDurum
           baslik="Henüz veli kaydı yok"
-          aciklama="Bir başvuruyu öğrenciye dönüştürdüğünüzde veli kaydı da otomatik oluşur."
+          ikon={<Ikon.Grup boyut={22} />}
+          aciklama="Bir başvuruyu öğrenciye dönüştürdüğünüzde veli kaydı da otomatik oluşur; yukarıdan elle de ekleyebilirsiniz."
         />
       ) : (
         <>
@@ -54,80 +62,85 @@ export default async function VelilerSayfasi({
             <Sayac
               etiket="Toplam çocuk bağlantısı"
               deger={hepsi.reduce((t, v) => t + v.cocukSayisi, 0)}
+              alt={cocuksuz > 0 ? `${cocuksuz} veli çocuksuz` : undefined}
+              ton={cocuksuz > 0 ? "uyari" : "notr"}
             />
           </div>
 
-          <form className="mt-5 max-w-xs" role="search">
-            <div className="relative">
-              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-murekkep-soluk">
-                <Ikon.Mercek boyut={17} />
-              </span>
-              <input
-                type="search"
-                name="ara"
-                defaultValue={ara}
-                placeholder="Ad veya telefon"
-                aria-label="Velilerde ara"
-                className="w-full rounded-full border-2 border-cizgi bg-white py-2 pl-10 pr-4 text-sm text-murekkep outline-none focus:border-yesil"
-              />
-            </div>
-          </form>
+          <div className="mt-4 max-w-xs">
+            <AramaKutusu
+              yol="/kampus/veliler"
+              deger={ara}
+              yerTutucu="Ad veya telefon"
+              etiket="Velilerde ara"
+            />
+          </div>
 
           {liste.length === 0 ? (
-            <div className="mt-5">
+            <div className="mt-4">
               <BosDurum
                 baslik="Eşleşme yok"
                 aciklama={`"${ara}" aramasıyla veli bulunamadı.`}
               />
             </div>
           ) : (
-            <Kutu className="mt-5">
-              <ul className="divide-y divide-cizgi">
-                {liste.map((v) => (
-                  <li
-                    key={v.id}
-                    className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3"
-                  >
-                    <span className="min-w-0 flex-1">
-                      <Link
-                        href={`/kampus/veliler/${v.id}`}
-                        className="block font-baslik text-sm font-bold text-murekkep hover:underline"
-                      >
-                        {v.ad_soyad}
-                      </Link>
-                      <span className="mt-0.5 block text-xs text-murekkep-soluk">
-                        {v.cocukSayisi} çocuk
-                        {v.eposta && ` · ${v.eposta}`}
-                      </span>
-                    </span>
-
-                    {v.profil_id ? (
-                      <span className="shrink-0 rounded-full bg-lime-rozet px-2.5 py-0.5 text-xs font-bold text-black">
-                        Panel hesabı var
-                      </span>
-                    ) : (
-                      <span className="shrink-0 text-xs text-murekkep-soluk">
-                        hesap yok
-                      </span>
-                    )}
-
-                    <a
-                      href={`tel:0${v.telefon}`}
-                      className="shrink-0 font-medium text-yesil-koyu hover:underline"
-                    >
-                      {telefonYaz(v.telefon)}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+            <Kutu className="mt-4" dolgusuz>
+              <TabloSarmal enAz="38rem">
+                <thead>
+                  <tr>
+                    <Th>Veli</Th>
+                    <Th>Telefon</Th>
+                    <Th sag>Çocuk</Th>
+                    <Th sag>Panel hesabı</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {liste.map((v) => (
+                    <Tr key={v.id}>
+                      <Td>
+                        <Link
+                          href={`/kampus/veliler/${v.id}`}
+                          className="font-semibold text-murekkep hover:text-yesil-derin hover:underline"
+                        >
+                          {v.ad_soyad}
+                        </Link>
+                        {v.eposta && (
+                          <span className="mt-0.5 block truncate text-xs text-panel-silik">
+                            {v.eposta}
+                          </span>
+                        )}
+                      </Td>
+                      <Td>
+                        <a
+                          href={`tel:0${v.telefon}`}
+                          className="font-medium text-yesil-derin hover:underline"
+                        >
+                          {telefonYaz(v.telefon)}
+                        </a>
+                      </Td>
+                      <Td sayi className="text-panel-soluk">
+                        {v.cocukSayisi}
+                      </Td>
+                      <Td sag>
+                        {v.profil_id ? (
+                          <Rozet ton="basari">Var</Rozet>
+                        ) : (
+                          <Rozet ton="sessiz">Yok</Rozet>
+                        )}
+                      </Td>
+                    </Tr>
+                  ))}
+                </tbody>
+              </TabloSarmal>
             </Kutu>
           )}
         </>
       )}
 
-      <p className="mt-4 text-xs leading-relaxed text-murekkep-soluk">
-        Veli panele girecekse hesabı `npm run kampus:kullanici` ile açılır ve
-        veli kaydına bağlanır. Bağlantı olmadan veli kendi çocuğunu göremez.
+      <p className="mt-3 text-xs leading-relaxed text-panel-silik">
+        Veli panele girecekse önce Kullanıcılar bölümünden hesabı açılır,
+        sonra veli kartından o hesaba bağlanır. Bağlantı olmadan veli kendi
+        çocuğunu göremez.
       </p>
     </Kabuk>
   );

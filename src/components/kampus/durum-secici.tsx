@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { durumDegistir } from "@/lib/kampus/basvuru-islemleri";
 import { DURUM_ETIKET } from "@/lib/supabase/types";
 import type { BasvuruDurumu } from "@/lib/supabase/types";
-import { DURUM_RENGI } from "./basvuru-satiri";
+import { Etiket } from "./ui";
 
 const SIRA: BasvuruDurumu[] = [
   "yeni",
@@ -13,6 +13,15 @@ const SIRA: BasvuruDurumu[] = [
   "kayit_oldu",
   "vazgecti",
 ];
+
+/** Secili durumun dolu zemini. Rozet tonuyla ayni anlam, daha guclu. */
+const SECILI: Record<BasvuruDurumu, string> = {
+  yeni: "bg-lime-rozet text-black",
+  arandi: "bg-bilgi text-white",
+  ulasilamadi: "bg-uyari text-white",
+  kayit_oldu: "bg-basari text-white",
+  vazgecti: "bg-panel-soluk text-white",
+};
 
 /**
  * Durum degistirici.
@@ -48,11 +57,14 @@ export function DurumSecici({
   }
 
   return (
-    <div className="text-right">
+    <div>
+      <Etiket>Durum</Etiket>
       <div
         role="group"
         aria-label="Başvuru durumu"
-        className={`flex flex-wrap gap-1.5 ${bekliyor ? "opacity-70" : ""}`}
+        className={`flex flex-wrap overflow-hidden rounded-panel-sm border border-panel-cizgi-guclu ${
+          bekliyor ? "opacity-70" : ""
+        }`}
       >
         {SIRA.map((d) => {
           const aktif = gosterilen === d;
@@ -62,10 +74,10 @@ export function DurumSecici({
               type="button"
               onClick={() => degistir(d)}
               aria-pressed={aktif}
-              className={`rounded-full px-3.5 py-1.5 font-baslik text-sm font-semibold transition-colors ${
+              className={`flex-1 border-r border-panel-cizgi px-3 py-1.5 font-baslik text-sm font-semibold transition-colors last:border-r-0 ${
                 aktif
-                  ? DURUM_RENGI[d]
-                  : "border-2 border-cizgi bg-white text-murekkep-soluk hover:border-yesil hover:text-murekkep"
+                  ? SECILI[d]
+                  : "bg-panel-yuzey text-panel-soluk hover:bg-panel-yuzey-alt hover:text-murekkep"
               }`}
             >
               {DURUM_ETIKET[d]}
@@ -74,7 +86,7 @@ export function DurumSecici({
         })}
       </div>
       {hata && (
-        <p role="alert" className="mt-2 text-sm text-murekkep">
+        <p role="alert" className="mt-1.5 text-xs font-medium text-tehlike">
           {hata}
         </p>
       )}

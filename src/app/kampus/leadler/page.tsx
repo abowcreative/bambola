@@ -6,26 +6,23 @@ import {
   LEAD_KAYNAK_ETIKET,
   type LeadDurumu,
 } from "@/lib/kampus/yoklama-tipleri";
+import { LEAD_TONU } from "@/lib/kampus/tonlar";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
 import {
-  Kabuk,
-  SayfaBasi,
-  Kutu,
-  Sayac,
   BosDurum,
-} from "@/components/kampus/kabuk";
-import { LeadFormu } from "@/components/kampus/lead-formu";
+  DugmeLink,
+  Rozet,
+  Sayac,
+  SekmeSeridi,
+} from "@/components/kampus/ui";
+import { AramaKutusu } from "@/components/kampus/ui-istemci";
+import { LeadFormu, LeadDuzenle } from "@/components/kampus/lead-formu";
 import { LeadDurumSecici } from "@/components/kampus/lead-durum-secici";
 import { telefonYaz, gecenSure } from "@/components/kampus/basvuru-satiri";
+import { Ikon } from "@/components/ui/ikon";
 
 export const metadata = { title: "Lead'ler", robots: { index: false } };
 export const dynamic = "force-dynamic";
-
-const DURUM_RENGI: Record<LeadDurumu, string> = {
-  yeni: "bg-lime-rozet text-black",
-  gorusuldu: "bg-yesil-koyu text-white",
-  kayit_oldu: "bg-yesil text-white",
-  kayip: "bg-cizgi text-murekkep-soluk",
-};
 
 /**
  * Web formu DISINDAN gelen talepler.
@@ -56,6 +53,14 @@ export default async function LeadlerSayfasi({
   const donusum =
     hepsi.length > 0 ? Math.round((say("kayit_oldu") / hepsi.length) * 100) : 0;
 
+  function yol(yeniDurum: string): string {
+    const y = new URLSearchParams();
+    if (ara) y.set("ara", ara);
+    if (yeniDurum !== "hepsi") y.set("durum", yeniDurum);
+    const sorgu = y.toString();
+    return sorgu ? `/kampus/leadler?${sorgu}` : "/kampus/leadler";
+  }
+
   return (
     <Kabuk oturum={oturum} aktifYol="/kampus/leadler">
       <SayfaBasi
@@ -63,46 +68,45 @@ export default async function LeadlerSayfasi({
         aciklama="Instagram, telefon, tavsiye ve tabelayla gelen talepler."
       />
 
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Sayac etiket="Toplam" deger={hepsi.length} />
-        <Sayac etiket="Yeni" deger={say("yeni")} vurgu={say("yeni") > 0} />
-        <Sayac etiket="Kazanılan" deger={say("kayit_oldu")} />
+        <Sayac
+          etiket="Yeni"
+          deger={say("yeni")}
+          ton={say("yeni") > 0 ? "uyari" : "notr"}
+          alt={say("yeni") > 0 ? "aranmayı bekliyor" : "hepsi işlendi"}
+        />
+        <Sayac etiket="Kazanılan" deger={say("kayit_oldu")} ton="basari" />
         <Sayac etiket="Dönüşüm" deger={`%${donusum}`} />
       </div>
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-        <div>
-          <form className="mb-4 flex flex-wrap gap-2" role="search">
-            {(["hepsi", "yeni", "gorusuldu", "kayit_oldu", "kayip"] as const).map(
-              (d) => (
-                <button
-                  key={d}
-                  type="submit"
-                  name="durum"
-                  value={d}
-                  className={`rounded-full border-2 px-4 py-1.5 font-baslik text-sm font-semibold transition-colors ${
-                    durum === d
-                      ? "border-yesil-koyu bg-yesil-koyu text-white"
-                      : "border-cizgi bg-white text-murekkep-soluk hover:border-yesil hover:text-murekkep"
-                  }`}
-                >
-                  {d === "hepsi" ? "Hepsi" : LEAD_DURUM_ETIKET[d]}
-                </button>
-              ),
-            )}
-            <input
-              type="search"
-              name="ara"
-              defaultValue={ara}
-              placeholder="Ad, çocuk veya telefon"
-              aria-label="Lead'lerde ara"
-              className="min-w-0 flex-1 rounded-full border-2 border-cizgi bg-white px-4 py-1.5 text-sm text-murekkep outline-none focus:border-yesil"
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+        <div className="min-w-0">
+          <div className="mb-3 flex flex-wrap items-center gap-3">
+            <SekmeSeridi
+              sekmeler={(
+                ["hepsi", "yeni", "gorusuldu", "kayit_oldu", "kayip"] as const
+              ).map((d) => ({
+                anahtar: d,
+                etiket: d === "hepsi" ? "Hepsi" : LEAD_DURUM_ETIKET[d],
+                yol: yol(d),
+                sayi: d === "hepsi" ? hepsi.length : say(d),
+                aktif: durum === d,
+              }))}
             />
-          </form>
+            <AramaKutusu
+              yol="/kampus/leadler"
+              deger={ara}
+              yerTutucu="Ad, çocuk veya telefon"
+              etiket="Lead'lerde ara"
+              className="min-w-0 flex-1 sm:max-w-56"
+            />
+          </div>
 
           {liste.length === 0 ? (
             <BosDurum
               baslik={hepsi.length === 0 ? "Henüz lead yok" : "Eşleşme yok"}
+              ikon={<Ikon.Yildiz boyut={22} />}
               aciklama={
                 hepsi.length === 0
                   ? "Sağdaki formdan Instagram veya telefonla gelen bir talebi kaydedebilirsiniz."
@@ -110,23 +114,23 @@ export default async function LeadlerSayfasi({
               }
             />
           ) : (
-            <Kutu>
-              <ul className="divide-y divide-cizgi">
+            <Kutu dolgusuz>
+              <ul className="divide-y divide-panel-cizgi">
                 {liste.map((l) => (
                   <li
                     key={l.id}
-                    className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3"
+                    className="flex flex-wrap items-start gap-x-3 gap-y-2 px-4 py-3 transition-colors hover:bg-panel-yuzey-alt"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block font-baslik text-sm font-bold text-murekkep">
-                        {l.ad_soyad}
-                        <span
-                          className={`ml-2 rounded-full px-2 py-0.5 text-xs font-bold ${DURUM_RENGI[l.durum]}`}
-                        >
-                          {LEAD_DURUM_ETIKET[l.durum]}
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-semibold text-murekkep">
+                          {l.ad_soyad}
                         </span>
+                        <Rozet ton={LEAD_TONU[l.durum] ?? "notr"}>
+                          {LEAD_DURUM_ETIKET[l.durum]}
+                        </Rozet>
                       </span>
-                      <span className="mt-0.5 block text-xs text-murekkep-soluk">
+                      <span className="mt-0.5 block text-xs text-panel-soluk">
                         {LEAD_KAYNAK_ETIKET[l.kaynak] ?? l.kaynak}
                         {l.cocuk_adi && ` · ${l.cocuk_adi}`}
                         {l.ilgilendigi_program && ` · ${l.ilgilendigi_program}`}
@@ -134,7 +138,7 @@ export default async function LeadlerSayfasi({
                         {gecenSure(l.created_at)}
                       </span>
                       {l.notlar && (
-                        <span className="mt-1 block text-xs leading-snug text-murekkep-soluk">
+                        <span className="mt-1 block text-xs leading-snug text-panel-silik">
                           {l.notlar}
                         </span>
                       )}
@@ -143,7 +147,7 @@ export default async function LeadlerSayfasi({
                     {l.telefon && (
                       <a
                         href={`tel:0${l.telefon}`}
-                        className="shrink-0 text-sm font-medium text-yesil-koyu hover:underline"
+                        className="shrink-0 text-sm font-medium text-yesil-derin hover:underline"
                       >
                         {telefonYaz(l.telefon)}
                       </a>
@@ -157,22 +161,23 @@ export default async function LeadlerSayfasi({
                     {l.ogrenci_id ? (
                       <Link
                         href={`/kampus/ogrenciler/${l.ogrenci_id}`}
-                        className="shrink-0 text-sm font-semibold text-yesil-koyu hover:underline"
+                        className="shrink-0 text-sm font-semibold text-yesil-derin hover:underline"
                       >
                         Öğrenci kartı
                       </Link>
                     ) : (
                       l.durum !== "kayip" && (
-                        <Link
+                        <DugmeLink
                           href={`/kampus/ogrenciler?lead=${l.id}`}
-                          className="shrink-0 rounded-full border-2 border-cizgi bg-white px-3.5 py-1 font-baslik text-sm font-semibold text-murekkep transition-colors hover:border-yesil"
+                          olcu="sm"
                         >
                           Öğrenciye dönüştür
-                        </Link>
+                        </DugmeLink>
                       )
                     )}
 
                     <LeadDurumSecici id={l.id} durum={l.durum} />
+                    <LeadDuzenle lead={l} />
                   </li>
                 ))}
               </ul>

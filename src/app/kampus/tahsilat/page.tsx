@@ -1,13 +1,8 @@
 import Link from "next/link";
 import { adminZorunlu } from "@/lib/kampus/oturum";
 import { cariListesi } from "@/lib/kampus/yoklama";
-import {
-  Kabuk,
-  SayfaBasi,
-  Kutu,
-  Sayac,
-  BosDurum,
-} from "@/components/kampus/kabuk";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
+import { BosDurum, Rozet, Sayac } from "@/components/kampus/ui";
 import { ogrenciAdi } from "@/lib/kampus/ogrenci-tipleri";
 import { tlYaz } from "@/lib/data/ucretler";
 import { Ikon } from "@/components/ui/ikon";
@@ -49,55 +44,58 @@ export default async function TahsilatSayfasi() {
         <Sayac
           etiket="Vadesi geçmiş"
           deger={tlYaz(gecikmisTutar)}
-          vurgu={gecikmisTutar > 0}
+          ton={gecikmisTutar > 0 ? "tehlike" : "notr"}
         />
         <Sayac etiket="Borçlu öğrenci" deger={borclular.length} />
       </div>
 
       {borclular.length === 0 ? (
-        <div className="mt-6">
+        <div className="mt-4">
           <BosDurum
             baslik="Açık bakiye yok"
+            ikon={<Ikon.Tik boyut={22} />}
             aciklama="Tahsil edilecek borç bulunmuyor."
           />
         </div>
       ) : (
-        <Kutu className="mt-6">
-          <ul className="divide-y divide-cizgi">
+        <Kutu className="mt-4" dolgusuz>
+          <ul className="divide-y divide-panel-cizgi">
             {borclular.map((c) => (
-              <li
-                key={c.ogrenci.id}
-                className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3"
-              >
-                <span className="min-w-0 flex-1">
-                  <Link
-                    href={`/kampus/ogrenciler/${c.ogrenci.id}`}
-                    className="block font-baslik text-sm font-bold text-murekkep hover:underline"
+              <li key={c.ogrenci.id}>
+                <Link
+                  href={`/kampus/ogrenciler/${c.ogrenci.id}`}
+                  className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 transition-colors hover:bg-panel-yuzey-alt"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-murekkep">
+                      {ogrenciAdi(c.ogrenci)}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-panel-soluk">
+                      {tlYaz(c.borc)} tahakkuk · {tlYaz(c.tahsilat)} tahsilat
+                    </span>
+                  </span>
+
+                  {c.gecikmis && (
+                    <Rozet ton="tehlike" ikon={<Ikon.Saat boyut={11} />}>
+                      Vadesi geçti
+                    </Rozet>
+                  )}
+
+                  <span
+                    className={`shrink-0 font-baslik text-base font-bold tabular-nums ${
+                      c.gecikmis ? "text-tehlike" : "text-uyari"
+                    }`}
                   >
-                    {ogrenciAdi(c.ogrenci)}
-                  </Link>
-                  <span className="mt-0.5 block text-xs text-murekkep-soluk">
-                    {tlYaz(c.borc)} tahakkuk · {tlYaz(c.tahsilat)} tahsilat
+                    {tlYaz(c.bakiye)}
                   </span>
-                </span>
-
-                {c.gecikmis && (
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-yesil-koyu px-2.5 py-0.5 text-xs font-bold text-white">
-                    <Ikon.Saat boyut={12} />
-                    Vadesi geçti
-                  </span>
-                )}
-
-                <span className="shrink-0 font-baslik text-base font-bold tabular-nums text-murekkep">
-                  {tlYaz(c.bakiye)}
-                </span>
+                </Link>
               </li>
             ))}
           </ul>
         </Kutu>
       )}
 
-      <p className="mt-4 text-xs leading-relaxed text-murekkep-soluk">
+      <p className="mt-3 text-xs leading-relaxed text-panel-silik">
         Tahsilat kaydı öğrenci sayfasından giriliyor. Vadesi geçmiş işareti,
         vadesi dolmuş borcu olup bakiyesi kapanmamış öğrenciler için çıkar.
       </p>

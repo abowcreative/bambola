@@ -5,7 +5,8 @@ import {
   basvuruSayilari,
   type BasvuruSuzgeci,
 } from "@/lib/kampus/basvurular";
-import { Kabuk, SayfaBasi, BosDurum } from "@/components/kampus/kabuk";
+import { Kabuk, SayfaBasi } from "@/components/kampus/kabuk";
+import { BosDurum } from "@/components/kampus/ui";
 import { BasvuruSatiri } from "@/components/kampus/basvuru-satiri";
 import { SuzgecSeridi } from "@/components/kampus/suzgec-seridi";
 import type { BasvuruDurumu } from "@/lib/supabase/types";
@@ -56,7 +57,7 @@ export default async function BasvurularSayfasi({
       />
 
       {basvurular.length === 0 ? (
-        <div className="mt-6">
+        <div className="mt-4">
           <BosDurum
             baslik="Bu filtrede başvuru yok"
             aciklama={
@@ -68,18 +69,15 @@ export default async function BasvurularSayfasi({
         </div>
       ) : (
         <>
-          <p className="mt-6 text-sm text-murekkep-soluk">
+          <p className="mt-4 text-xs text-panel-silik">
             {basvurular.length} kayıt
             {basvurular.length === 500 && " (ilk 500 gösteriliyor)"}
           </p>
 
-          <ul className="mt-3 space-y-3">
+          <ul className="mt-2 space-y-2.5">
             {basvurular.map((b) => (
               <li key={b.id}>
-                <Link
-                  href={`/kampus/basvurular/${b.id}`}
-                  className="block rounded-kart transition-transform duration-150 ease-yayli hover:-translate-y-0.5"
-                >
+                <Link href={`/kampus/basvurular/${b.id}`} className="block">
                   <BasvuruSatiri basvuru={b} />
                 </Link>
               </li>

@@ -1,5 +1,7 @@
 import { adminZorunlu } from "@/lib/kampus/oturum";
 import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
+import { Bildirim, Satir } from "@/components/kampus/ui";
+import { Ikon } from "@/components/ui/ikon";
 import {
   MARKA,
   ILETISIM,
@@ -12,23 +14,6 @@ import { gunSlotlari } from "@/lib/data/program";
 
 export const metadata = { title: "Ayarlar", robots: { index: false } };
 export const dynamic = "force-dynamic";
-
-function Satir({
-  etiket,
-  deger,
-}: {
-  etiket: string;
-  deger: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-wrap justify-between gap-3 border-b border-cizgi py-2.5 last:border-b-0">
-      <dt className="text-sm text-murekkep-soluk">{etiket}</dt>
-      <dd className="text-right text-sm font-medium text-murekkep">
-        {deger || <span className="text-murekkep-soluk">—</span>}
-      </dd>
-    </div>
-  );
-}
 
 /**
  * Kurum bilgileri.
@@ -59,72 +44,58 @@ export default async function AyarlarSayfasi() {
         aciklama="Kurum bilgileri ve çalışma saatleri."
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-3 lg:grid-cols-2">
         <Kutu baslik="Kurum">
           <dl>
-            <Satir etiket="Ticari ad" deger={MARKA.ad} />
-            <Satir etiket="NAP adı" deger={napAdi()} />
-            <Satir
-              etiket="MEB kurum adı (oyun evi)"
-              deger={MARKA.kurumAdiOyunEvi}
-            />
-            <Satir
-              etiket="MEB kurum adı (anaokulu)"
-              deger={MARKA.kurumAdiAnaokulu}
-            />
-            <Satir etiket="MEB ifadesi" deger={MEB_IFADESI} />
-            <Satir etiket="Site adresi" deger={SITE_URL} />
+            <Satir etiket="Ticari ad">{MARKA.ad}</Satir>
+            <Satir etiket="NAP adı">{napAdi()}</Satir>
+            <Satir etiket="MEB kurum adı (oyun evi)">{MARKA.kurumAdiOyunEvi}</Satir>
+            <Satir etiket="MEB kurum adı (anaokulu)">{MARKA.kurumAdiAnaokulu}</Satir>
+            <Satir etiket="MEB ifadesi">{MEB_IFADESI}</Satir>
+            <Satir etiket="Site adresi">{SITE_URL}</Satir>
           </dl>
         </Kutu>
 
         <Kutu baslik="İletişim">
           <dl>
-            <Satir etiket="Adres" deger={ILETISIM.adres} />
-            <Satir etiket="Posta kodu" deger={ILETISIM.postaKodu} />
-            <Satir etiket="Telefon" deger={ILETISIM.telefon} />
-            <Satir
-              etiket="WhatsApp"
-              deger={ILETISIM.whatsapp ? `+${ILETISIM.whatsapp}` : null}
-            />
-            <Satir etiket="E-posta" deger={ILETISIM.eposta} />
-            <Satir etiket="Instagram" deger={ILETISIM.instagram} />
-            <Satir etiket="Google kaydı" deger={ILETISIM.googleAdi} />
-            <Satir
-              etiket="Koordinat"
-              deger={
+            <Satir etiket="Adres">{ILETISIM.adres}</Satir>
+            <Satir etiket="Posta kodu">{ILETISIM.postaKodu}</Satir>
+            <Satir etiket="Telefon">{ILETISIM.telefon}</Satir>
+            <Satir etiket="WhatsApp">{ILETISIM.whatsapp ? `+${ILETISIM.whatsapp}` : null}</Satir>
+            <Satir etiket="E-posta">{ILETISIM.eposta}</Satir>
+            <Satir etiket="Instagram">{ILETISIM.instagram}</Satir>
+            <Satir etiket="Google kaydı">{ILETISIM.googleAdi}</Satir>
+            <Satir etiket="Koordinat">{
                 ILETISIM.konum
                   ? `${ILETISIM.konum.enlem}, ${ILETISIM.konum.boylam}`
                   : null
-              }
-            />
+              }</Satir>
           </dl>
         </Kutu>
 
         <Kutu baslik="Çalışma saatleri">
           <dl>
             {saatler.map(({ gun, metin }) => (
-              <Satir
-                key={gun}
-                etiket={GUN_ADI[gun]}
-                deger={metin ?? "Grup programı yok"}
-              />
+              <Satir key={gun} etiket={GUN_ADI[gun]}>
+                {metin ?? "Grup programı yok"}
+              </Satir>
             ))}
           </dl>
-          <p className="mt-3 text-xs leading-relaxed text-murekkep-soluk">
+          <p className="mt-3 text-xs leading-relaxed text-panel-silik">
             Saatler haftalık programdan hesaplanıyor, elle girilmiyor.
           </p>
         </Kutu>
 
         <Kutu baslik="Düzenleme">
-          <p className="text-sm leading-relaxed text-murekkep-soluk">
-            Bu bilgiler şu an <strong>salt okunur</strong>. Kaynak
-            <code className="mx-1 rounded bg-krem px-1.5 py-0.5 font-mono text-xs">
+          <Bildirim ton="bilgi" ikon={<Ikon.Ampul boyut={16} />}>
+            Bu bilgiler şu an <strong>salt okunur</strong>. Kaynak{" "}
+            <code className="rounded bg-panel-yuzey px-1.5 py-0.5 font-mono text-xs">
               src/lib/site.ts
-            </code>
+            </code>{" "}
             dosyasında; site, PDF fiyat listesi, üyelik formu ve schema.org
             hepsi oradan besleniyor.
-          </p>
-          <p className="mt-3 text-sm leading-relaxed text-murekkep-soluk">
+          </Bildirim>
+          <p className="mt-3 text-sm leading-relaxed text-panel-soluk">
             Panelden düzenlenebilir yapmak, bu kaynağı veritabanına taşımak
             demek. Yarım yapmak en kötüsü olurdu: panelde değiştirilip sitede
             görünmeyen bir alan, yanlış bilgiyi sessizce yayar.

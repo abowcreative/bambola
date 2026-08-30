@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { sinifaKaydet } from "@/lib/kampus/ogrenci-islemleri";
-import { Buton } from "@/components/ui/buton";
+import { ALAN, Bildirim, Dugme } from "./ui";
+import { Firildak } from "./ui-istemci";
 
 /** Sinifa ogrenci kaydeder. */
 export function SinifaEkle({
@@ -37,9 +38,9 @@ export function SinifaEkle({
   return (
     <div className="space-y-2.5">
       {dolu && (
-        <p className="rounded-yumusak border-2 border-dashed border-cizgi bg-krem px-3 py-2 text-sm text-murekkep">
+        <Bildirim ton="uyari">
           Sınıf dolu. Kontenjanı artırmadan kayıt eklenemez.
-        </p>
+        </Bildirim>
       )}
 
       <select
@@ -47,7 +48,7 @@ export function SinifaEkle({
         onChange={(e) => setSecili(e.target.value)}
         disabled={bekliyor || dolu}
         aria-label="Öğrenci seç"
-        className="w-full rounded-yumusak border-2 border-cizgi bg-white px-3.5 py-2 text-sm text-murekkep outline-none focus:border-yesil disabled:opacity-60"
+        className={ALAN}
       >
         <option value="">Öğrenci seçin</option>
         {adaylar.map((a) => (
@@ -57,21 +58,18 @@ export function SinifaEkle({
         ))}
       </select>
 
-      <Buton
+      <Dugme
         type="button"
-        olcu="sm"
+        gorunum="birincil"
         onClick={ekle}
         disabled={bekliyor || dolu || !secili}
         className="w-full"
       >
-        {bekliyor ? "Ekleniyor..." : "Sınıfa ekle"}
-      </Buton>
+        {bekliyor && <Firildak />}
+        {bekliyor ? "Ekleniyor…" : "Sınıfa ekle"}
+      </Dugme>
 
-      {hata && (
-        <p role="alert" className="text-sm text-murekkep">
-          {hata}
-        </p>
-      )}
+      {hata && <Bildirim ton="tehlike">{hata}</Bildirim>}
     </div>
   );
 }

@@ -3,8 +3,9 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { tarayiciIstemcisi } from "@/lib/supabase/client";
-import { Buton } from "@/components/ui/buton";
 import { Ikon } from "@/components/ui/ikon";
+import { ALAN, AlanKutusu, Bildirim, Dugme } from "@/components/kampus/ui";
+import { Firildak } from "@/components/kampus/ui-istemci";
 
 /**
  * Giris formu. Supabase Auth ile e-posta + sifre.
@@ -13,22 +14,18 @@ import { Ikon } from "@/components/ui/ikon";
  * cerezlerini kendisi yaziyor; sunucu action'indan yapilsaydi cerezleri
  * elle tasimak gerekirdi. Yetki karari yine sunucuda (bkz. oturum.ts).
  */
-
-const ALAN =
-  "w-full rounded-yumusak border-2 border-cizgi bg-white px-4 py-3 text-murekkep " +
-  "outline-none transition-colors placeholder:text-murekkep-soluk/60 " +
-  "focus:border-yesil disabled:opacity-60";
-
 export function GirisFormu() {
   const yonlendirici = useRouter();
   const [eposta, setEposta] = useState("");
   const [sifre, setSifre] = useState("");
   const [hata, setHata] = useState<string | null>(null);
   const [bekliyor, basla] = useTransition();
+  const [gidiyor, setGidiyor] = useState(false);
 
   async function gonder(olay: React.FormEvent) {
     olay.preventDefault();
     setHata(null);
+    setGidiyor(true);
 
     const db = tarayiciIstemcisi();
     const { error } = await db.auth.signInWithPassword({
@@ -42,6 +39,7 @@ export function GirisFormu() {
         adreslerin sistemde oldugunu disariya soyler. Kurum calisanlarinin
         ve velilerin adresleri bu sekilde sizmasin.
       */
+      setGidiyor(false);
       setHata("E-posta veya şifre hatalı.");
       return;
     }
@@ -57,15 +55,11 @@ export function GirisFormu() {
     });
   }
 
+  const mesgul = bekliyor || gidiyor;
+
   return (
-    <form onSubmit={gonder} className="space-y-4">
-      <div>
-        <label
-          htmlFor="eposta"
-          className="mb-1.5 block font-baslik text-sm font-semibold text-murekkep"
-        >
-          E-posta
-        </label>
+    <form onSubmit={gonder} className="space-y-3.5">
+      <AlanKutusu etiket="E-posta" htmlFor="eposta" gerekli>
         <input
           id="eposta"
           type="email"
@@ -73,19 +67,13 @@ export function GirisFormu() {
           required
           value={eposta}
           onChange={(e) => setEposta(e.target.value)}
-          disabled={bekliyor}
-          className={ALAN}
+          disabled={mesgul}
+          className={`${ALAN} py-2.5`}
           placeholder="ornek@bambola.com.tr"
         />
-      </div>
+      </AlanKutusu>
 
-      <div>
-        <label
-          htmlFor="sifre"
-          className="mb-1.5 block font-baslik text-sm font-semibold text-murekkep"
-        >
-          Şifre
-        </label>
+      <AlanKutusu etiket="Şifre" htmlFor="sifre" gerekli>
         <input
           id="sifre"
           type="password"
@@ -93,24 +81,23 @@ export function GirisFormu() {
           required
           value={sifre}
           onChange={(e) => setSifre(e.target.value)}
-          disabled={bekliyor}
-          className={ALAN}
+          disabled={mesgul}
+          className={`${ALAN} py-2.5`}
         />
-      </div>
+      </AlanKutusu>
 
-      {hata && (
-        <p
-          role="alert"
-          className="rounded-yumusak border-2 border-dashed border-cizgi bg-krem px-4 py-3 text-sm text-murekkep"
-        >
-          {hata}
-        </p>
-      )}
+      {hata && <Bildirim ton="tehlike">{hata}</Bildirim>}
 
-      <Buton type="submit" disabled={bekliyor} className="w-full">
-        {bekliyor ? "Giriliyor..." : "Giriş yap"}
-        {!bekliyor && <Ikon.Ok boyut={17} />}
-      </Buton>
+      <Dugme
+        type="submit"
+        gorunum="birincil"
+        disabled={mesgul}
+        className="h-10 w-full"
+      >
+        {mesgul ? <Firildak /> : null}
+        {mesgul ? "Giriliyor…" : "Giriş yap"}
+        {!mesgul && <Ikon.Ok boyut={16} />}
+      </Dugme>
     </form>
   );
 }

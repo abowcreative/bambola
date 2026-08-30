@@ -10,8 +10,18 @@ import {
 import { OgrenciFormu } from "@/components/kampus/ogrenci-formu";
 import { leadGetir } from "@/lib/kampus/yoklama";
 import { z } from "zod";
-import { Kabuk, SayfaBasi, Kutu, Sayac, BosDurum } from "@/components/kampus/kabuk";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
+import {
+  BosDurum,
+  Rozet,
+  Sayac,
+  TabloSarmal,
+  Th,
+  Td,
+  Tr,
+} from "@/components/kampus/ui";
 import { OgrenciSuzgeci } from "@/components/kampus/ogrenci-suzgeci";
+import { OGRENCI_TONU } from "@/lib/kampus/tonlar";
 import { yasMetni, ayHesapla } from "@/lib/yas";
 import { KURUM_ETIKET } from "@/lib/supabase/types";
 import type { Kurum } from "@/lib/supabase/types";
@@ -19,13 +29,6 @@ import { Ikon } from "@/components/ui/ikon";
 
 export const metadata = { title: "Öğrenciler", robots: { index: false } };
 export const dynamic = "force-dynamic";
-
-const DURUM_RENGI: Record<OgrenciDurumu, string> = {
-  aktif: "bg-lime-rozet text-black",
-  aday: "bg-krem-koyu text-murekkep",
-  dondurdu: "bg-cizgi text-murekkep-soluk",
-  ayrildi: "bg-cizgi text-murekkep-soluk",
-};
 
 export default async function OgrencilerSayfasi({
   searchParams,
@@ -44,7 +47,8 @@ export default async function OgrencilerSayfasi({
     `lead` lead'ler sayfasindaki "Ogrenciye donustur" baglantisindan gelir:
     form dolu ve acik baslar, kayit tamamlandiginda lead'e baglanir.
   */
-  const leadId = oturum.rol === "admin" ? z.uuid().safeParse(tek(p.lead)).data : undefined;
+  const leadId =
+    oturum.rol === "admin" ? z.uuid().safeParse(tek(p.lead)).data : undefined;
 
   const [liste, hepsi, siniflar, lead] = await Promise.all([
     ogrencileriGetir({ durum, ara }),
@@ -64,6 +68,13 @@ export default async function OgrencilerSayfasi({
     }));
 
   const say = (d: OgrenciDurumu) => hepsi.filter((o) => o.durum === d).length;
+  const sayilar = {
+    aktif: say("aktif"),
+    aday: say("aday"),
+    dondurdu: say("dondurdu"),
+    ayrildi: say("ayrildi"),
+    hepsi: hepsi.length,
+  };
 
   return (
     <Kabuk oturum={oturum} aktifYol="/kampus/ogrenciler">
@@ -74,33 +85,33 @@ export default async function OgrencilerSayfasi({
             ? "Kendi sınıflarınızdaki çocuklar."
             : "Kayıtlı çocuklar, grupları ve durumları."
         }
+        cocuklar={
+          oturum.rol === "admin" ? (
+            <OgrenciFormu
+              siniflar={sinifSecenekleri}
+              // Zaten donusturulmus lead ikinci kez form acmasin.
+              leadId={lead && !lead.ogrenci_id ? lead.id : undefined}
+              acikBaslasin={Boolean(lead && !lead.ogrenci_id)}
+              baslangic={
+                lead
+                  ? {
+                      ad: lead.cocuk_adi ?? "",
+                      dogumTarihi: lead.cocuk_dogum ?? "",
+                      veliAdSoyad: lead.ad_soyad,
+                      veliTelefon: lead.telefon ?? "",
+                      notlar: lead.notlar ?? "",
+                    }
+                  : undefined
+              }
+            />
+          ) : undefined
+        }
       />
-
-      {oturum.rol === "admin" && (
-        <div className="mb-5">
-          <OgrenciFormu
-            siniflar={sinifSecenekleri}
-            // Zaten donusturulmus lead ikinci kez form acmasin.
-            leadId={lead && !lead.ogrenci_id ? lead.id : undefined}
-            acikBaslasin={Boolean(lead && !lead.ogrenci_id)}
-            baslangic={
-              lead
-                ? {
-                    ad: lead.cocuk_adi ?? "",
-                    dogumTarihi: lead.cocuk_dogum ?? "",
-                    veliAdSoyad: lead.ad_soyad,
-                    veliTelefon: lead.telefon ?? "",
-                    notlar: lead.notlar ?? "",
-                  }
-                : undefined
-            }
-          />
-        </div>
-      )}
 
       {hepsi.length === 0 ? (
         <BosDurum
           baslik="Henüz öğrenci yok"
+          ikon={<Ikon.Bebek boyut={22} />}
           aciklama={
             oturum.rol === "admin"
               ? "Yukarıdan öğrenci ekleyebilir ya da Başvurular bölümünden bir talebi öğrenciye dönüştürebilirsiniz."
@@ -109,66 +120,72 @@ export default async function OgrencilerSayfasi({
         />
       ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-4">
-            <Sayac etiket="Aktif" deger={say("aktif")} />
-            <Sayac etiket="Aday" deger={say("aday")} />
-            <Sayac etiket="Donduran" deger={say("dondurdu")} />
-            <Sayac etiket="Ayrılan" deger={say("ayrildi")} />
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Sayac etiket="Aktif" deger={sayilar.aktif} ton="basari" />
+            <Sayac etiket="Aday" deger={sayilar.aday} ton="bilgi" />
+            <Sayac etiket="Donduran" deger={sayilar.dondurdu} />
+            <Sayac etiket="Ayrılan" deger={sayilar.ayrildi} />
           </div>
 
-          <div className="mt-5">
-            <OgrenciSuzgeci durum={durum} ara={ara} />
+          <div className="mt-4">
+            <OgrenciSuzgeci durum={durum} ara={ara} sayilar={sayilar} />
           </div>
 
           {liste.length === 0 ? (
-            <div className="mt-5">
+            <div className="mt-4">
               <BosDurum
                 baslik="Bu filtrede öğrenci yok"
                 aciklama="Durum filtresini değiştirin veya aramayı temizleyin."
               />
             </div>
           ) : (
-            <Kutu className="mt-5">
-              <ul className="divide-y divide-cizgi">
-                {liste.map((o) => (
-                  <li key={o.id}>
-                    <Link
-                      href={`/kampus/ogrenciler/${o.id}`}
-                      className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 transition-colors hover:bg-krem"
-                    >
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-baslik text-sm font-bold text-murekkep">
-                          {ogrenciAdi(o)}
-                        </span>
-                        <span className="mt-0.5 block text-xs text-murekkep-soluk">
-                          {yasMetni(ayHesapla(o.dogum_tarihi))} ·{" "}
-                          {KURUM_ETIKET[o.kurum as Kurum] ?? o.kurum}
-                        </span>
-                      </span>
-
-                      {o.alerji && (
-                        <span
-                          title={o.alerji}
-                          className="inline-flex shrink-0 items-center gap-1 rounded-full bg-krem-koyu px-2.5 py-0.5 text-xs font-semibold text-murekkep"
+            <Kutu className="mt-4" dolgusuz>
+              <TabloSarmal enAz="38rem">
+                <thead>
+                  <tr>
+                    <Th>Çocuk</Th>
+                    <Th>Yaş</Th>
+                    <Th>Kurum</Th>
+                    <Th>Kayıt</Th>
+                    <Th sag>Durum</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {liste.map((o) => (
+                    <Tr key={o.id}>
+                      <Td>
+                        <Link
+                          href={`/kampus/ogrenciler/${o.id}`}
+                          className="font-semibold text-murekkep hover:text-yesil-derin hover:underline"
                         >
-                          <Ikon.Kalp boyut={12} />
-                          Alerji
-                        </span>
-                      )}
-
-                      <span className="shrink-0 text-xs text-murekkep-soluk">
+                          {ogrenciAdi(o)}
+                        </Link>
+                        {o.alerji && (
+                          <span className="ml-2 align-middle">
+                            <Rozet ton="uyari" ikon={<Ikon.Kalp boyut={11} />}>
+                              alerji
+                            </Rozet>
+                          </span>
+                        )}
+                      </Td>
+                      <Td className="text-panel-soluk">
+                        {yasMetni(ayHesapla(o.dogum_tarihi))}
+                      </Td>
+                      <Td className="text-panel-soluk">
+                        {KURUM_ETIKET[o.kurum as Kurum] ?? o.kurum}
+                      </Td>
+                      <Td sayi className="text-panel-silik">
                         {new Date(o.kayit_tarihi).toLocaleDateString("tr-TR")}
-                      </span>
-
-                      <span
-                        className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${DURUM_RENGI[o.durum]}`}
-                      >
-                        {OGRENCI_DURUM_ETIKET[o.durum]}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+                      </Td>
+                      <Td sag>
+                        <Rozet ton={OGRENCI_TONU[o.durum] ?? "notr"}>
+                          {OGRENCI_DURUM_ETIKET[o.durum]}
+                        </Rozet>
+                      </Td>
+                    </Tr>
+                  ))}
+                </tbody>
+              </TabloSarmal>
             </Kutu>
           )}
         </>

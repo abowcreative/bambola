@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { adminZorunlu } from "@/lib/kampus/oturum";
 import {
@@ -6,8 +5,11 @@ import {
   basvuruNotlariGetir,
   basvurununOgrencisi,
 } from "@/lib/kampus/basvurular";
+import { basvuruSil } from "@/lib/kampus/basvuru-islemleri";
 import { OgrenciyeDonustur } from "@/components/kampus/ogrenciye-donustur";
-import { Kabuk } from "@/components/kampus/kabuk";
+import { Kabuk, Kutu, GeriBaglantisi } from "@/components/kampus/kabuk";
+import { Bildirim, DugmeLink, Rozet, Satir } from "@/components/kampus/ui";
+import { SilDugmesi } from "@/components/kampus/ui-istemci";
 import { Ikon } from "@/components/ui/ikon";
 import { DurumSecici } from "@/components/kampus/durum-secici";
 import { NotKutusu } from "@/components/kampus/not-kutusu";
@@ -22,8 +24,9 @@ import { atolyeBul } from "@/lib/data/atolyeler";
 import { tlYaz } from "@/lib/data/ucretler";
 import { GUN_ADI } from "@/lib/data/types";
 import type { Gun } from "@/lib/data/types";
-import { KURUM_ETIKET } from "@/lib/supabase/types";
+import { DURUM_ETIKET, KURUM_ETIKET } from "@/lib/supabase/types";
 import type { Kurum } from "@/lib/supabase/types";
+import { BASVURU_TONU } from "@/lib/kampus/tonlar";
 
 export const metadata = {
   title: "Başvuru",
@@ -31,24 +34,6 @@ export const metadata = {
 };
 
 export const dynamic = "force-dynamic";
-
-/** Kunye satiri. Bos deger yerine tire, "bilgi yok" demek de bir bilgi. */
-function Satir({
-  etiket,
-  children,
-}: {
-  etiket: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-wrap justify-between gap-3 border-b border-cizgi py-2.5 last:border-b-0">
-      <dt className="text-sm text-murekkep-soluk">{etiket}</dt>
-      <dd className="text-right text-sm font-medium text-murekkep">
-        {children ?? <span className="text-murekkep-soluk">—</span>}
-      </dd>
-    </div>
-  );
-}
 
 export default async function BasvuruDetaySayfasi({
   params,
@@ -67,83 +52,67 @@ export default async function BasvuruDetaySayfasi({
   ]);
   const aile = basvuru.program_slug ? aileBul(basvuru.program_slug) : undefined;
 
-  const telefonDuz = basvuru.telefon.replace(/\D/g, "");
-  const wa = `https://wa.me/90${telefonDuz.replace(/^(90|0)/, "")}`;
+  const telefonDuz = basvuru.telefon.replace(/\D/g, "").replace(/^(90|0)/, "");
+  const wa = `https://wa.me/90${telefonDuz}`;
 
   return (
     <Kabuk oturum={oturum} aktifYol="/kampus/basvurular">
-      <Link
-        href="/kampus/basvurular"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-yesil-koyu hover:underline"
-      >
-        <Ikon.OkGeri boyut={16} />
-        Başvurular
-      </Link>
+      <GeriBaglantisi yol="/kampus/basvurular" etiket="Başvurular" />
 
-      <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-baslik text-2xl font-bold text-murekkep sm:text-3xl">
-            {basvuru.veli_adi}
-          </h1>
-          <p className="mt-1 text-murekkep-soluk">
+      <div className="mt-3 flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="font-baslik text-xl font-bold text-murekkep sm:text-2xl">
+              {basvuru.veli_adi}
+            </h1>
+            <Rozet ton={BASVURU_TONU[basvuru.durum] ?? "notr"}>
+              {DURUM_ETIKET[basvuru.durum]}
+            </Rozet>
+          </div>
+          <p className="mt-1 text-sm text-panel-soluk">
             {tarihYaz(basvuru.created_at)} · {gecenSure(basvuru.created_at)}
           </p>
         </div>
-        <DurumSecici id={basvuru.id} durum={basvuru.durum} />
+
+        {/*
+          Donusturme cagrisi en gorunur yerde: bir basvuruyla yapilacak asil
+          is bu. Zaten donusturulmusse baglanti gosteriliyor, ikinci kayit
+          olusmasin.
+        */}
+        <div className="flex flex-wrap items-center gap-2">
+          <OgrenciyeDonustur
+            basvuruId={basvuru.id}
+            mevcutOgrenciId={ogrenciId}
+          />
+        </div>
       </div>
 
-      {/*
-        Donusturme cagrisi ustte: bir basvuruyla yapilacak asil is bu.
-        Zaten donusturulmusse baglanti gosteriliyor, ikinci kayit olusmasin.
-      */}
-      <div className="mt-5">
-        <OgrenciyeDonustur
-          basvuruId={basvuru.id}
-          mevcutOgrenciId={ogrenciId}
-        />
-      </div>
-
-      <div className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="mt-5 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         {/* ---------------------------------------------------- sol sutun */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/*
             Iletisim en uste: panelin ilk isi "bu kisiyi nasil ararim".
             Telefon ve WhatsApp tek tikla aciliyor, kopyalamaya gerek yok.
           */}
-          <section className="rounded-blok border-2 border-cizgi bg-white p-6">
-            <h2 className="font-baslik text-lg font-bold text-murekkep">
-              İletişim
-            </h2>
-
-            <div className="mt-4 flex flex-wrap gap-2.5">
-              <a
-                href={`tel:0${telefonDuz.replace(/^(90|0)/, "")}`}
-                className="inline-flex items-center gap-2 rounded-full bg-[var(--kol-ana)] px-4 py-2.5 font-baslik text-sm font-semibold text-white shadow-kart transition-transform duration-200 ease-yayli hover:-translate-y-0.5"
-              >
-                <Ikon.Telefon boyut={16} />
+          <Kutu baslik="İletişim">
+            <div className="flex flex-wrap gap-2">
+              <DugmeLink href={`tel:0${telefonDuz}`} gorunum="birincil">
+                <Ikon.Telefon boyut={15} />
                 {telefonYaz(basvuru.telefon)}
-              </a>
-              <a
-                href={wa}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border-2 border-cizgi bg-white px-4 py-2.5 font-baslik text-sm font-semibold text-murekkep transition-colors hover:border-yesil"
-              >
-                <Ikon.Whatsapp boyut={16} />
+              </DugmeLink>
+              <DugmeLink href={wa} target="_blank" rel="noopener noreferrer">
+                <Ikon.Whatsapp boyut={15} />
                 WhatsApp
-              </a>
+              </DugmeLink>
               {basvuru.eposta && (
-                <a
-                  href={`mailto:${basvuru.eposta}`}
-                  className="inline-flex items-center gap-2 rounded-full border-2 border-cizgi bg-white px-4 py-2.5 font-baslik text-sm font-semibold text-murekkep transition-colors hover:border-yesil"
-                >
-                  <Ikon.Posta boyut={16} />
+                <DugmeLink href={`mailto:${basvuru.eposta}`}>
+                  <Ikon.Posta boyut={15} />
                   E-posta
-                </a>
+                </DugmeLink>
               )}
             </div>
 
-            <dl className="mt-5">
+            <dl className="mt-4">
               <Satir etiket="Tercih ettiği kanal">
                 {basvuru.iletisim_tercihi}
               </Satir>
@@ -153,24 +122,22 @@ export default async function BasvuruDetaySayfasi({
                 {basvuru.ticari_ileti_onay ? "Verdi" : "Vermedi"}
               </Satir>
             </dl>
-          </section>
+          </Kutu>
+
+          <Kutu baslik="Durum">
+            <DurumSecici id={basvuru.id} durum={basvuru.durum} />
+          </Kutu>
 
           {/* --- secilen seanslar --- */}
           {basvuru.secilen_slotlar.length > 0 && (
-            <section className="rounded-blok border-2 border-cizgi bg-white p-6">
-              <h2 className="font-baslik text-lg font-bold text-murekkep">
-                Seçilen seanslar
-              </h2>
-              <ul className="mt-4 space-y-2.5">
+            <Kutu baslik="Seçilen seanslar" dolgusuz>
+              <ul className="divide-y divide-panel-cizgi">
                 {basvuru.secilen_slotlar.map((s) => (
-                  <li
-                    key={s.id}
-                    className="rounded-kart border-2 border-cizgi px-4 py-3"
-                  >
-                    <p className="font-baslik font-bold text-murekkep">
+                  <li key={s.id} className="px-4 py-2.5">
+                    <p className="text-sm font-semibold text-murekkep">
                       {GUN_ADI[s.gun as Gun] ?? s.gun} · {s.bas} - {s.bit}
                     </p>
-                    <p className="mt-0.5 text-sm text-murekkep-soluk">
+                    <p className="mt-0.5 text-xs text-panel-soluk">
                       {atolyeBul(
                         s.atolye as Parameters<typeof atolyeBul>[0],
                       )?.ad ?? s.atolye}
@@ -180,7 +147,7 @@ export default async function BasvuruDetaySayfasi({
                   </li>
                 ))}
               </ul>
-            </section>
+            </Kutu>
           )}
 
           {/*
@@ -188,39 +155,31 @@ export default async function BasvuruDetaySayfasi({
             once programa bakilmasi gereken bir talep demek.
           */}
           {basvuru.saat_uymuyor && (
-            <section className="rounded-blok border-2 border-yesil bg-white p-6">
-              <h2 className="flex items-center gap-2 font-baslik text-lg font-bold text-murekkep">
-                <Ikon.Saat boyut={19} />
-                Saatler uymuyor
-              </h2>
-              <p className="mt-2 leading-relaxed text-murekkep-soluk">
-                {basvuru.saat_notu ||
-                  "Veli uygun saat belirtmemiş, aranırken sorulmalı."}
-              </p>
-            </section>
+            <Bildirim
+              ton="uyari"
+              baslik="Saatler uymuyor"
+              ikon={<Ikon.Saat boyut={16} />}
+            >
+              {basvuru.saat_notu ||
+                "Veli uygun saat belirtmemiş, aranırken sorulmalı."}
+            </Bildirim>
           )}
 
           {basvuru.not_metni && (
-            <section className="rounded-blok border-2 border-cizgi bg-white p-6">
-              <h2 className="font-baslik text-lg font-bold text-murekkep">
-                Velinin notu
-              </h2>
-              <p className="mt-2 whitespace-pre-line leading-relaxed text-murekkep-soluk">
+            <Kutu baslik="Velinin notu">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-panel-soluk">
                 {basvuru.not_metni}
               </p>
-            </section>
+            </Kutu>
           )}
 
           <NotKutusu basvuruId={basvuru.id} notlar={notlar} />
         </div>
 
         {/* ---------------------------------------------------- sag sutun */}
-        <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
-          <section className="rounded-blok border-2 border-cizgi bg-white p-6">
-            <h2 className="font-baslik text-lg font-bold text-murekkep">
-              Çocuk
-            </h2>
-            <dl className="mt-3">
+        <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+          <Kutu baslik="Çocuk">
+            <dl>
               <Satir etiket="Ad">{basvuru.cocuk_adi}</Satir>
               <Satir etiket="Doğum tarihi">
                 {new Date(basvuru.dogum_tarihi).toLocaleDateString("tr-TR", {
@@ -231,7 +190,7 @@ export default async function BasvuruDetaySayfasi({
               </Satir>
               {/*
                 Yas basvuru anindaki degeriyle saklaniyor, simdiki yasla
-                karistirilmasin diye ikisi birden gosteriliyor.
+                karistirilmasin diye etiketinde acikca yaziyor.
               */}
               <Satir etiket="Başvuru anındaki yaş">
                 {yasMetni(basvuru.yas_ay)}
@@ -240,13 +199,13 @@ export default async function BasvuruDetaySayfasi({
                 {KURUM_ETIKET[basvuru.kurum as Kurum]}
               </Satir>
             </dl>
-          </section>
+          </Kutu>
 
-          <section className="rounded-blok border-2 border-cizgi bg-white p-6">
-            <h2 className="font-baslik text-lg font-bold text-murekkep">
-              Program ve ücret
-            </h2>
-            <dl className="mt-3">
+          <Kutu
+            baslik="Program ve ücret"
+            aciklama="Başvuru anındaki tarife. Tarife sonradan değişse de bu kayıt değişmez."
+          >
+            <dl>
               <Satir etiket="Program">{aile?.ad}</Satir>
               <Satir etiket="Paket">{basvuru.paket_kod}</Satir>
               <Satir etiket="Normal fiyat">
@@ -260,17 +219,10 @@ export default async function BasvuruDetaySayfasi({
                 {basvuru.erken_kayit_uygulandi ? "Evet" : "Hayır"}
               </Satir>
             </dl>
-            <p className="mt-3 text-xs leading-relaxed text-murekkep-soluk">
-              Fiyatlar başvuru anındaki tarifeden alınmıştır. Tarife sonradan
-              değişse de bu kayıt değişmez.
-            </p>
-          </section>
+          </Kutu>
 
-          <section className="rounded-blok border-2 border-cizgi bg-white p-6">
-            <h2 className="font-baslik text-lg font-bold text-murekkep">
-              Kayıt bilgisi
-            </h2>
-            <dl className="mt-3">
+          <Kutu baslik="Kayıt bilgisi">
+            <dl>
               <Satir etiket="KVKK onayı">
                 {basvuru.kvkk_onay ? "Verildi" : "Yok"}
               </Satir>
@@ -280,7 +232,31 @@ export default async function BasvuruDetaySayfasi({
               </Satir>
               <Satir etiket="Geldiği sayfa">{basvuru.referrer}</Satir>
             </dl>
-          </section>
+          </Kutu>
+
+          {/*
+            Silme en altta ve ayri kutuda: formdan gelen bir talep, sonu ne
+            olursa olsun bir kayittir ve donusum oranini o kayitlar
+            olusturuyor. Silme yalniz bot/deneme kaydi icin.
+          */}
+          {!ogrenciId && (
+            <Kutu baslik="Kaydı sil">
+              <p className="text-xs leading-relaxed text-panel-soluk">
+                Normal yol durumu değiştirmek. Silme yalnız bot doldurması,
+                deneme kaydı ya da aynı kişinin iki kez gönderdiği form için.
+              </p>
+              <div className="mt-2 flex justify-end">
+                <SilDugmesi
+                  etiket="Başvuruyu sil"
+                  onayEtiketi="Kalıcı olarak sil"
+                  islem={async () => {
+                    "use server";
+                    return basvuruSil(id);
+                  }}
+                />
+              </div>
+            </Kutu>
+          )}
         </aside>
       </div>
     </Kabuk>

@@ -3,11 +3,8 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { tarayiciIstemcisi } from "@/lib/supabase/client";
-import { Buton } from "@/components/ui/buton";
-
-const ALAN =
-  "w-full rounded-yumusak border-2 border-cizgi bg-white px-4 py-3 text-murekkep " +
-  "outline-none transition-colors focus:border-yesil disabled:opacity-60";
+import { ALAN, AlanKutusu, Bildirim, Dugme } from "@/components/kampus/ui";
+import { Firildak } from "@/components/kampus/ui-istemci";
 
 /** Kisa sifre en sik guvenlik acigi. Sekiz karakter alt sinir. */
 const EN_AZ = 8;
@@ -93,7 +90,19 @@ export function SifreFormu() {
     const { error } = await db.auth.updateUser({ password: sifre });
 
     if (error) {
-      setHata("Şifre kaydedilemedi. Bağlantının süresi dolmuş olabilir.");
+      /*
+        Sebep GIZLENMIYOR. Onceki hali her hatada "baglantinin suresi dolmus
+        olabilir" diyordu; oysa en sik sebep bu degil: Supabase ayni sifreyi
+        tekrar kabul etmiyor ("New password should be different from the old
+        password") ve proje ayarindaki uzunluk/karmasiklik kurallarini da
+        burada uyguluyor. Tek bir genel cumle, calisan bir baglantiyi bozuk
+        sanmaya yol aciyordu.
+      */
+      setHata(
+        error.message === "New password should be different from the old password."
+          ? "Yeni şifre eskisiyle aynı olamaz."
+          : `Şifre kaydedilemedi: ${error.message}`,
+      );
       return;
     }
 
@@ -105,22 +114,24 @@ export function SifreFormu() {
   }
 
   if (hazir === null) {
-    return <p className="text-murekkep-soluk">Bağlantı kontrol ediliyor...</p>;
+    return (
+      <p className="flex items-center gap-2 text-sm text-panel-soluk">
+        <Firildak />
+        Bağlantı kontrol ediliyor…
+      </p>
+    );
   }
 
   if (!hazir) {
     return (
       <div className="space-y-3">
-        <p className="leading-relaxed text-murekkep">
-          Bu bağlantı geçersiz veya süresi dolmuş.
-        </p>
-        <p className="text-sm leading-relaxed text-murekkep-soluk">
+        <Bildirim ton="tehlike" baslik="Bu bağlantı geçersiz veya süresi dolmuş">
           Bağlantılar tek kullanımlıktır: bir kez açıldıktan sonra ikinci kez
           çalışmaz. Yeni bağlantı için kurum yöneticisine başvurun.
-        </p>
+        </Bildirim>
         {/* Sebep gizlenmiyor: "gecersiz" demek sorunu teshis ettirmiyor. */}
         {sebep && (
-          <p className="rounded-yumusak bg-krem px-3 py-2 font-mono text-xs text-murekkep-soluk">
+          <p className="rounded-panel-sm border border-panel-cizgi bg-panel-yuzey-alt px-3 py-2 font-mono text-xs text-panel-soluk">
             {sebep}
           </p>
         )}
@@ -130,21 +141,20 @@ export function SifreFormu() {
 
   if (bitti) {
     return (
-      <p className="leading-relaxed text-murekkep">
+      <Bildirim ton="basari">
         Şifreniz kaydedildi, panele yönlendiriliyorsunuz.
-      </p>
+      </Bildirim>
     );
   }
 
   return (
-    <form onSubmit={gonder} className="space-y-4">
-      <div>
-        <label
-          htmlFor="sifre"
-          className="mb-1.5 block font-baslik text-sm font-semibold text-murekkep"
-        >
-          Yeni şifre
-        </label>
+    <form onSubmit={gonder} className="space-y-3.5">
+      <AlanKutusu
+        etiket="Yeni şifre"
+        htmlFor="sifre"
+        gerekli
+        ipucu={`En az ${EN_AZ} karakter.`}
+      >
         <input
           id="sifre"
           type="password"
@@ -154,20 +164,11 @@ export function SifreFormu() {
           value={sifre}
           onChange={(e) => setSifre(e.target.value)}
           disabled={bekliyor}
-          className={ALAN}
+          className={`${ALAN} py-2.5`}
         />
-        <p className="mt-1.5 text-xs text-murekkep-soluk">
-          En az {EN_AZ} karakter.
-        </p>
-      </div>
+      </AlanKutusu>
 
-      <div>
-        <label
-          htmlFor="tekrar"
-          className="mb-1.5 block font-baslik text-sm font-semibold text-murekkep"
-        >
-          Şifre tekrar
-        </label>
+      <AlanKutusu etiket="Şifre tekrar" htmlFor="tekrar" gerekli>
         <input
           id="tekrar"
           type="password"
@@ -176,22 +177,21 @@ export function SifreFormu() {
           value={tekrar}
           onChange={(e) => setTekrar(e.target.value)}
           disabled={bekliyor}
-          className={ALAN}
+          className={`${ALAN} py-2.5`}
         />
-      </div>
+      </AlanKutusu>
 
-      {hata && (
-        <p
-          role="alert"
-          className="rounded-yumusak border-2 border-dashed border-cizgi bg-krem px-4 py-3 text-sm text-murekkep"
-        >
-          {hata}
-        </p>
-      )}
+      {hata && <Bildirim ton="tehlike">{hata}</Bildirim>}
 
-      <Buton type="submit" disabled={bekliyor} className="w-full">
-        {bekliyor ? "Kaydediliyor..." : "Şifreyi kaydet"}
-      </Buton>
+      <Dugme
+        type="submit"
+        gorunum="birincil"
+        disabled={bekliyor}
+        className="h-10 w-full"
+      >
+        {bekliyor && <Firildak />}
+        {bekliyor ? "Kaydediliyor…" : "Şifreyi kaydet"}
+      </Dugme>
     </form>
   );
 }

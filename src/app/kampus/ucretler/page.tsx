@@ -1,5 +1,12 @@
 ﻿import { adminZorunlu } from "@/lib/kampus/oturum";
-import { Kabuk, SayfaBasi, Kutu, Sayac } from "@/components/kampus/kabuk";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
+import {
+  Sayac,
+  TabloSarmal,
+  Th,
+  Td,
+  Tr,
+} from "@/components/kampus/ui";
 import { AILELER } from "@/lib/data/gruplar";
 import {
   PAKETLER,
@@ -40,7 +47,7 @@ export default async function UcretlerSayfasi() {
           etiket="Erken kayıt"
           deger={acik ? "Açık" : "Kapalı"}
           alt={KAMPANYA_PENCERESI.metin}
-          vurgu={acik}
+          ton={acik ? "basari" : "notr"}
         />
         <Sayac
           etiket="İndirim oranı"
@@ -54,57 +61,49 @@ export default async function UcretlerSayfasi() {
         />
       </div>
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-4 space-y-3">
         {AILELER.map((aile) => {
           const paketler = PAKETLER[aile.slug] ?? [];
           return (
-            <Kutu key={aile.slug} baslik={aile.ad}>
-              <p className="-mt-2 mb-3 text-sm text-murekkep-soluk">
-                {aile.yasEtiket} · {aile.sure}
-              </p>
-
-              <div className="-mx-5 overflow-x-auto px-5">
-                <table className="w-full min-w-[30rem] text-sm">
-                  <thead>
-                    <tr className="border-b-2 border-cizgi text-left">
-                      <th className="pb-2 font-baslik text-xs uppercase tracking-wide text-murekkep-soluk">
-                        Paket
-                      </th>
-                      <th className="pb-2 text-right font-baslik text-xs uppercase tracking-wide text-murekkep-soluk">
-                        Normal
-                      </th>
-                      <th className="pb-2 text-right font-baslik text-xs uppercase tracking-wide text-murekkep-soluk">
-                        Erken kayıt
-                      </th>
-                      <th className="pb-2 text-right font-baslik text-xs uppercase tracking-wide text-murekkep-soluk">
-                        Şu an geçerli
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-cizgi">
-                    {paketler.map((p) => {
-                      const indirim = indirimVarMi(p);
-                      const gecerli = acik && indirim ? p.erkenKayit : p.normal;
-                      return (
-                        <tr key={p.kod}>
-                          <td className="py-2.5 font-medium text-murekkep">
-                            {p.etiket}
-                          </td>
-                          <td className="py-2.5 text-right tabular-nums text-murekkep-soluk">
-                            {tlYaz(p.normal)}
-                          </td>
-                          <td className="py-2.5 text-right tabular-nums text-murekkep-soluk">
-                            {indirim ? tlYaz(p.erkenKayit) : "—"}
-                          </td>
-                          <td className="py-2.5 text-right font-baslik font-bold tabular-nums text-yesil-koyu">
-                            {tlYaz(gecerli)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+            <Kutu
+              key={aile.slug}
+              baslik={aile.ad}
+              aciklama={`${aile.yasEtiket} · ${aile.sure}`}
+              dolgusuz
+            >
+              <TabloSarmal enAz="30rem">
+                <thead>
+                  <tr>
+                    <Th>Paket</Th>
+                    <Th sag>Normal</Th>
+                    <Th sag>Erken kayıt</Th>
+                    <Th sag>Şu an geçerli</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paketler.map((p) => {
+                    const indirim = indirimVarMi(p);
+                    const gecerli = acik && indirim ? p.erkenKayit : p.normal;
+                    return (
+                      <Tr key={p.kod}>
+                        <Td className="font-medium">{p.etiket}</Td>
+                        <Td sayi className="text-panel-soluk">
+                          {tlYaz(p.normal)}
+                        </Td>
+                        <Td sayi className="text-panel-soluk">
+                          {indirim ? tlYaz(p.erkenKayit) : "—"}
+                        </Td>
+                        <Td
+                          sayi
+                          className="font-baslik font-bold text-yesil-derin"
+                        >
+                          {tlYaz(gecerli)}
+                        </Td>
+                      </Tr>
+                    );
+                  })}
+                </tbody>
+              </TabloSarmal>
             </Kutu>
           );
         })}
@@ -112,25 +111,29 @@ export default async function UcretlerSayfasi() {
 
       <Kutu baslik="Tek seferlik katılım" className="mt-4">
         <dl className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-kart border-2 border-cizgi px-4 py-3">
-            <dt className="text-sm text-murekkep-soluk">Türkçe seans</dt>
-            <dd className="font-baslik text-lg font-bold text-murekkep">
-              {tlYaz(tekSeferUcreti("tr"))}
-            </dd>
-          </div>
-          <div className="rounded-kart border-2 border-cizgi px-4 py-3">
-            <dt className="text-sm text-murekkep-soluk">İngilizce seans</dt>
-            <dd className="font-baslik text-lg font-bold text-murekkep">
-              {tlYaz(tekSeferUcreti("en"))}
-            </dd>
-          </div>
+          {(
+            [
+              ["Türkçe seans", tekSeferUcreti("tr")],
+              ["İngilizce seans", tekSeferUcreti("en")],
+            ] as const
+          ).map(([etiket, tutar]) => (
+            <div
+              key={etiket}
+              className="rounded-panel-sm border border-panel-cizgi bg-panel-yuzey-alt px-3.5 py-2.5"
+            >
+              <dt className="text-xs font-medium text-panel-soluk">{etiket}</dt>
+              <dd className="mt-0.5 font-baslik text-lg font-bold tabular-nums text-murekkep">
+                {tlYaz(tutar)}
+              </dd>
+            </div>
+          ))}
         </dl>
-        <p className="mt-3 text-xs leading-relaxed text-murekkep-soluk">
+        <p className="mt-3 text-xs leading-relaxed text-panel-silik">
           Tek seferlik katılıma erken kayıt indirimi uygulanmıyor.
         </p>
       </Kutu>
 
-      <p className="mt-4 text-xs leading-relaxed text-murekkep-soluk">
+      <p className="mt-3 text-xs leading-relaxed text-panel-silik">
         Rakamlar site, PDF fiyat listesi ve kayıt formuyla aynı kaynaktan
         geliyor. Değişiklik `src/lib/data/ucretler.ts` içinde yapılır ve her
         yere birden yansır.

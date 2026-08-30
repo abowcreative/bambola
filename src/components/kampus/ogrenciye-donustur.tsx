@@ -2,10 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { basvurudanOgrenciOlustur } from "@/lib/kampus/ogrenci-islemleri";
-import { Buton } from "@/components/ui/buton";
 import { Ikon } from "@/components/ui/ikon";
+import { Bildirim, Dugme, DugmeLink } from "./ui";
+import { Firildak, Kip } from "./ui-istemci";
 
 /**
  * Basvuruyu ogrenci kaydina cevirir.
@@ -23,21 +23,9 @@ export function OgrenciyeDonustur({
   mevcutOgrenciId?: string | null;
 }) {
   const yonlendirici = useRouter();
-  const [onay, setOnay] = useState(false);
+  const [acik, setAcik] = useState(false);
   const [hata, setHata] = useState<string | null>(null);
   const [bekliyor, basla] = useTransition();
-
-  if (mevcutOgrenciId) {
-    return (
-      <Link
-        href={`/kampus/ogrenciler/${mevcutOgrenciId}`}
-        className="inline-flex items-center gap-1.5 rounded-full border-2 border-cizgi bg-white px-4 py-2 font-baslik text-sm font-semibold text-murekkep transition-colors hover:border-yesil"
-      >
-        <Ikon.Bebek boyut={16} />
-        Öğrenci kaydına git
-      </Link>
-    );
-  }
 
   function donustur() {
     setHata(null);
@@ -51,53 +39,59 @@ export function OgrenciyeDonustur({
     });
   }
 
-  if (!onay) {
+  if (mevcutOgrenciId) {
     return (
-      <div>
-        <Buton type="button" olcu="sm" onClick={() => setOnay(true)}>
-          <Ikon.Bebek boyut={16} />
-          Öğrenciye dönüştür
-        </Buton>
-        {hata && (
-          <p role="alert" className="mt-2 text-sm text-murekkep">
-            {hata}
-          </p>
-        )}
-      </div>
+      <DugmeLink href={`/kampus/ogrenciler/${mevcutOgrenciId}`}>
+        <Ikon.Bebek boyut={15} />
+        Öğrenci kaydına git
+      </DugmeLink>
     );
   }
 
   return (
-    <div className="rounded-kart border-2 border-yesil bg-white p-4">
-      <p className="text-sm leading-relaxed text-murekkep">
-        Bu başvurudan bir <strong>öğrenci</strong> ve bir{" "}
-        <strong>veli</strong> kaydı oluşturulacak, başvurunun durumu
-        &quot;Kayıt oldu&quot; olacak. Başvuru silinmez; ilk talep ve notlar
-        yerinde kalır.
-      </p>
-      <p className="mt-2 text-xs leading-relaxed text-murekkep-soluk">
-        Aynı telefonla kayıtlı veli varsa yeni kayıt açılmaz, mevcut veliye
-        bağlanır.
-      </p>
-      <div className="mt-3 flex gap-2">
-        <Buton type="button" olcu="sm" onClick={donustur} disabled={bekliyor}>
-          {bekliyor ? "Oluşturuluyor..." : "Evet, dönüştür"}
-        </Buton>
-        <Buton
-          type="button"
-          olcu="sm"
-          gorunum="cizgili"
-          onClick={() => setOnay(false)}
-          disabled={bekliyor}
-        >
-          Vazgeç
-        </Buton>
-      </div>
-      {hata && (
-        <p role="alert" className="mt-2 text-sm text-murekkep">
-          {hata}
+    <>
+      <Dugme type="button" gorunum="birincil" onClick={() => setAcik(true)}>
+        <Ikon.Bebek boyut={15} />
+        Öğrenciye dönüştür
+      </Dugme>
+
+      <Kip
+        acik={acik}
+        kapat={() => setAcik(false)}
+        genislik="30rem"
+        baslik="Öğrenciye dönüştür"
+      >
+        <p className="text-sm leading-relaxed text-murekkep">
+          Bu başvurudan bir <strong>öğrenci</strong> ve bir{" "}
+          <strong>veli</strong> kaydı oluşturulacak, başvurunun durumu “Kayıt
+          oldu” olacak. Başvuru silinmez; ilk talep ve notlar yerinde kalır.
         </p>
-      )}
-    </div>
+        <p className="mt-2 text-xs leading-relaxed text-panel-soluk">
+          Aynı telefonla kayıtlı veli varsa yeni kayıt açılmaz, mevcut veliye
+          bağlanır.
+        </p>
+
+        {hata && (
+          <div className="mt-3">
+            <Bildirim ton="tehlike">{hata}</Bildirim>
+          </div>
+        )}
+
+        <div className="mt-4 flex justify-end gap-2 border-t border-panel-cizgi pt-4">
+          <Dugme type="button" onClick={() => setAcik(false)} disabled={bekliyor}>
+            Vazgeç
+          </Dugme>
+          <Dugme
+            type="button"
+            gorunum="birincil"
+            onClick={donustur}
+            disabled={bekliyor}
+          >
+            {bekliyor && <Firildak />}
+            {bekliyor ? "Oluşturuluyor…" : "Evet, dönüştür"}
+          </Dugme>
+        </div>
+      </Kip>
+    </>
   );
 }

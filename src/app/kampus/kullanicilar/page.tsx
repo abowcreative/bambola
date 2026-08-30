@@ -1,7 +1,22 @@
 import { adminZorunlu } from "@/lib/kampus/oturum";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
-import { Kabuk, SayfaBasi, Kutu, Sayac } from "@/components/kampus/kabuk";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
+import {
+  Bildirim,
+  Rozet,
+  Sayac,
+  TabloSarmal,
+  Th,
+  Td,
+  Tr,
+} from "@/components/kampus/ui";
+import {
+  HesapAcFormu,
+  HesapDuzenle,
+} from "@/components/kampus/kullanici-formu";
+import { HESAP_TONU } from "@/lib/kampus/tonlar";
 import { EKIP } from "@/lib/data/ekip";
+import { Ikon } from "@/components/ui/ikon";
 
 export const metadata = { title: "Kullanıcılar", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -25,11 +40,14 @@ type Profil = {
 /**
  * Kampus hesaplari ve rolleri.
  *
- * Hesap ACMA burada degil, `npm run kampus:kullanici` betiginde. Sebebi:
- * hesap acmak Supabase yonetici anahtarini gerektiriyor ve o anahtar
- * tarayiciya asla gitmemeli. Panelden acilabilir hale getirmek, sunucuda
- * ayri bir yetkili uc nokta yazmak demek; oncelikli isler bitmeden bu
- * yuzeyi acmiyoruz.
+ * Hesap acma, rol degistirme, kapatma ve silme BURADAN yapiliyor. Islemler
+ * Supabase yonetici anahtarini kullaniyor ama anahtar sunucuda kaliyor:
+ * `lib/kampus/kullanici-islemleri.ts` bir `"use server"` dosyasi ve hicbir
+ * zaman tarayici paketine girmiyor.
+ *
+ * `npm run kampus:kullanici` betigi duruyor ve durmali: panele girip hesap
+ * acabilmek icin once bir yonetici hesabi gerekiyor, ILK hesap oradan
+ * aciliyor.
  */
 export default async function KullanicilarSayfasi() {
   const oturum = await adminZorunlu();
@@ -48,99 +66,108 @@ export default async function KullanicilarSayfasi() {
     (o) => !profiller.some((p) => p.ogretmen_ad === o.ad),
   );
 
+  const ogretmenAdlari = EKIP.map((o) => o.ad);
+
   return (
     <Kabuk oturum={oturum} aktifYol="/kampus/kullanicilar">
       <SayfaBasi
         baslik="Kullanıcılar"
         aciklama="Panele giriş yapabilen hesaplar ve rolleri."
+        cocuklar={<HesapAcFormu ogretmenler={ogretmenAdlari} />}
       />
 
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Sayac etiket="Toplam" deger={profiller.length} />
-        <Sayac etiket="Yönetici" deger={say("admin")} />
-        <Sayac etiket="Öğretmen" deger={say("ogretmen")} />
+        <Sayac etiket="Yönetici" deger={say("admin")} ton="bilgi" />
+        <Sayac etiket="Öğretmen" deger={say("ogretmen")} ton="basari" />
         <Sayac etiket="Veli" deger={say("veli")} />
       </div>
 
-      <Kutu baslik="Hesaplar" className="mt-6">
-        <div className="-mx-5 overflow-x-auto px-5">
-          <table className="w-full min-w-[36rem] text-sm">
-            <thead>
-              <tr className="border-b-2 border-cizgi text-left">
-                <th className="pb-2 font-baslik text-xs uppercase tracking-wide text-murekkep-soluk">
-                  Ad soyad
-                </th>
-                <th className="pb-2 font-baslik text-xs uppercase tracking-wide text-murekkep-soluk">
-                  Rol
-                </th>
-                <th className="pb-2 font-baslik text-xs uppercase tracking-wide text-murekkep-soluk">
-                  Program adı
-                </th>
-                <th className="pb-2 text-right font-baslik text-xs uppercase tracking-wide text-murekkep-soluk">
-                  Durum
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-cizgi">
-              {profiller.map((p) => (
-                <tr key={p.id}>
-                  <td className="py-2.5 font-medium text-murekkep">
-                    {p.ad_soyad}
-                  </td>
-                  <td className="py-2.5 text-murekkep-soluk">
-                    {ROL_ETIKET[p.rol] ?? p.rol}
-                  </td>
-                  <td className="py-2.5 text-murekkep-soluk">
-                    {p.ogretmen_ad ?? "—"}
-                  </td>
-                  <td className="py-2.5 text-right">
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                        p.aktif
-                          ? "bg-lime-rozet text-black"
-                          : "bg-cizgi text-murekkep-soluk"
-                      }`}
-                    >
-                      {p.aktif ? "Aktif" : "Kapalı"}
+      <Kutu baslik="Hesaplar" className="mt-4" dolgusuz>
+        <TabloSarmal enAz="40rem">
+          <thead>
+            <tr>
+              <Th>Ad soyad</Th>
+              <Th>Rol</Th>
+              <Th>Program adı</Th>
+              <Th>Telefon</Th>
+              <Th sag>Durum</Th>
+              <Th sag>İşlem</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {profiller.map((p) => (
+              <Tr key={p.id}>
+                <Td className="font-semibold">
+                  {p.ad_soyad}
+                  {p.id === oturum.kullaniciId && (
+                    <span className="ml-2 align-middle">
+                      <Rozet ton="sessiz">siz</Rozet>
                     </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  )}
+                </Td>
+                <Td>
+                  <Rozet ton={HESAP_TONU[p.rol] ?? "notr"}>
+                    {ROL_ETIKET[p.rol] ?? p.rol}
+                  </Rozet>
+                </Td>
+                <Td className="text-panel-soluk">{p.ogretmen_ad ?? "—"}</Td>
+                <Td className="text-panel-soluk">{p.telefon ?? "—"}</Td>
+                <Td sag>
+                  {p.aktif ? (
+                    <Rozet ton="basari">Aktif</Rozet>
+                  ) : (
+                    <Rozet ton="sessiz">Kapalı</Rozet>
+                  )}
+                </Td>
+                <Td sag>
+                  <span className="inline-flex justify-end">
+                    <HesapDuzenle
+                      hesap={p}
+                      ogretmenler={ogretmenAdlari}
+                      kendisi={p.id === oturum.kullaniciId}
+                    />
+                  </span>
+                </Td>
+              </Tr>
+            ))}
+          </tbody>
+        </TabloSarmal>
       </Kutu>
 
       {hesapsiz.length > 0 && (
-        <Kutu baslik="Hesabı olmayan öğretmenler" className="mt-4">
-          <p className="text-sm leading-relaxed text-murekkep-soluk">
+        <div className="mt-4">
+          <Bildirim
+            ton="uyari"
+            baslik="Hesabı olmayan öğretmenler"
+            ikon={<Ikon.Ampul boyut={16} />}
+          >
             Kadroda olup panele girişi olmayanlar:{" "}
             <strong className="text-murekkep">
               {hesapsiz.map((o) => o.ad).join(", ")}
             </strong>
-          </p>
-        </Kutu>
+            . Hesap açarken “Program adı” alanında bu adlardan biri
+            seçilmeli; haftalık programdaki eşleşme onunla kuruluyor.
+          </Bildirim>
+        </div>
       )}
 
-      <Kutu baslik="Yeni hesap açma" className="mt-4">
-        <p className="text-sm leading-relaxed text-murekkep-soluk">
-          Hesaplar terminalden açılıyor:
+      <Kutu baslik="Şifreler nasıl belirleniyor" className="mt-4">
+        <p className="text-sm leading-relaxed text-panel-soluk">
+          Hesap açarken şifre belirlenmiyor. İşlem{" "}
+          <strong className="text-murekkep">tek kullanımlık bir bağlantı</strong>{" "}
+          üretiyor; kişi kendi şifresini kendisi koyuyor. Bağlantı ekranda
+          gösterilir, e-posta gönderilmez — kime verdiğinizi bilerek elden
+          verirsiniz. Şifresini unutan biri için “Şifre bağlantısı üret”
+          yeterli.
         </p>
-        <pre className="mt-2 overflow-x-auto rounded-kart bg-krem px-4 py-3 font-mono text-xs text-murekkep">
-          {`npm run kampus:kullanici -- <eposta> "<ad soyad>" <rol> [öğretmen-adı]
-
-# yönetici
-npm run kampus:kullanici -- ayse@bambola.com.tr "Ayşe Yılmaz" admin
-
-# öğretmen (dördüncü alan ekip verisindeki adla birebir aynı olmalı)
-npm run kampus:kullanici -- emine@bambola.com.tr "Emine Yıldız Keleş" ogretmen Emine`}
+        <p className="mt-2 text-sm leading-relaxed text-panel-soluk">
+          İlk yönetici hesabı hâlâ terminalden açılıyor; panele girip hesap
+          açabilmek için önce bir yönetici gerekiyor:
+        </p>
+        <pre className="mt-2 overflow-x-auto rounded-panel-sm border border-panel-cizgi bg-panel-yuzey-alt px-3.5 py-2.5 font-mono text-xs text-murekkep">
+          {`npm run kampus:kullanici -- <eposta> "<ad soyad>" admin`}
         </pre>
-        <p className="mt-3 text-xs leading-relaxed text-murekkep-soluk">
-          Şifre belirlenmiyor; betik tek kullanımlık bir bağlantı üretiyor,
-          kişi kendi şifresini kendisi koyuyor. Hesap açma panele
-          taşınmadı çünkü Supabase yönetici anahtarını gerektiriyor ve o
-          anahtar tarayıcıya gitmemeli.
-        </p>
       </Kutu>
     </Kabuk>
   );

@@ -39,6 +39,40 @@
   --shadow-kart-hover: 0 4px 0 0 #d9d3c2, 0 18px 40px -16px rgb(88 143 39 / 0.45);
   --shadow-mor: 0 2px 0 0 #e0d6ec, 0 8px 24px -12px rgb(51 2 90 / 0.35);
 
+  /* --- Kampus paneli ---------------------------------------------------
+     Panel ayri bir arayuz: pazarlama sayfalari kalin cerceveli, cok yuvarlak
+     ve oyuncu; panel gun boyu bakilan bir calisma ekrani. Ayni marka renkleri
+     ve ayni iki yazi tipi kullaniliyor ama yuzeyler daha sik, cerceveler ince
+     ve yuvarlaklik daha az. Bu degiskenler YALNIZ /kampus altinda kullanilir,
+     site tarafi hic etkilenmez. */
+  --color-panel-zemin: #f5f4ef; /* uygulama arka plani */
+  --color-panel-yuzey: #ffffff; /* kart zemini */
+  --color-panel-yuzey-alt: #faf9f5; /* tablo basligi, ikincil yuzey */
+  --color-panel-cizgi: #e8e5dc; /* 1px hairline */
+  --color-panel-cizgi-guclu: #d5d1c5; /* girdi cercevesi, ayrac */
+  --color-panel-soluk: #6a665d; /* beyaz uzerinde 6.4:1 */
+  --color-panel-silik: #928d83; /* beyaz uzerinde 3.6:1, yalniz ikon/ipucu */
+
+  /* Durum renkleri. Panelde "gecikmis odeme" ile "islendi" ayni yesille
+     gosterilemez; tabloda kirmizi/amber okunmadan anlasilir. */
+  --color-basari: #3f7a1f; /* beyaz uzerinde 5.0:1 */
+  --color-basari-zemin: #eef6e5;
+  --color-uyari: #96590a; /* beyaz uzerinde 5.1:1 */
+  --color-uyari-zemin: #fdf3e2;
+  --color-tehlike: #b32218; /* beyaz uzerinde 6.0:1 */
+  --color-tehlike-zemin: #fdecea;
+  --color-bilgi: #1a56b8; /* beyaz uzerinde 6.4:1 */
+  --color-bilgi-zemin: #eaf1fd;
+
+  --radius-panel: 0.75rem;
+  --radius-panel-sm: 0.5rem;
+
+  --shadow-panel: 0 1px 2px 0 rgb(28 26 23 / 0.05);
+  --shadow-panel-orta:
+    0 1px 2px 0 rgb(28 26 23 / 0.06), 0 4px 12px -4px rgb(28 26 23 / 0.08);
+  --shadow-panel-yuksek:
+    0 2px 6px -1px rgb(28 26 23 / 0.08), 0 16px 40px -12px rgb(28 26 23 / 0.22);
+
   /* --- Hareket --- */
   --ease-yayli: linear(
     0,
@@ -82,6 +116,34 @@
     --kol-koyu: var(--color-yesil-koyu);
     --kol-vurgu: var(--color-lime-rozet);
     --kol-vurgu-metin: #000000;
+  }
+
+  /*
+    Panel kapsami. Kampus kok duzeni <div data-alan="kampus"> basiyor.
+
+    Odak halkasi burada 2px ve offset 1px: sitede 3px/3px halka bir iki
+    dugme icin dogru, panelde yan yana duran onlarca girdi arasinda tasip
+    komsusunun uzerine biniyordu.
+  */
+  [data-alan="kampus"] {
+    --kol-ana: var(--color-yesil-koyu);
+    --kol-koyu: var(--color-yesil-derin);
+    --kol-vurgu: var(--color-lime-rozet);
+    --kol-vurgu-metin: #000000;
+    background-color: var(--color-panel-zemin);
+    font-size: 0.9375rem; /* 15px: panelde ekrana daha cok satir sigiyor */
+  }
+
+  [data-alan="kampus"] :focus-visible {
+    outline: 2px solid var(--color-yesil-koyu);
+    outline-offset: 1px;
+    border-radius: 3px;
+  }
+
+  /* Ince kaydirma cubugu: sol menu ve tablolar sayfayi bolmesin. */
+  [data-alan="kampus"] * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-panel-cizgi-guclu) transparent;
   }
 
   html {

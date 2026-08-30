@@ -8,16 +8,19 @@ import {
   ogrenciAdi,
   OGRENCI_DURUM_ETIKET,
 } from "@/lib/kampus/ogrenciler";
-import { Kabuk, Kutu, Sayac } from "@/components/kampus/kabuk";
+import { Kabuk, Kutu, GeriBaglantisi } from "@/components/kampus/kabuk";
+import { Rozet, Sayac, Satir } from "@/components/kampus/ui";
+import { SinifFormu, SinifAnahtari } from "@/components/kampus/sinif-formu";
 import { OgretmenSecici } from "@/components/kampus/ogretmen-secici";
 import { KontenjanAlani } from "@/components/kampus/kontenjan-alani";
 import { SinifaEkle } from "@/components/kampus/sinifa-ekle";
 import { EKIP } from "@/lib/data/ekip";
-import { atolyeBul } from "@/lib/data/atolyeler";
+import { atolyeBul, ATOLYELER } from "@/lib/data/atolyeler";
 import { GUN_ADI } from "@/lib/data/types";
 import type { Gun } from "@/lib/data/types";
 import { yasMetni, ayHesapla } from "@/lib/yas";
 import { dersleriGetir, DERS_DURUM_ETIKET } from "@/lib/kampus/yoklama";
+import { DERS_TONU } from "@/lib/kampus/tonlar";
 import { bugununTarihi } from "@/lib/tarih";
 import { DersAcButonu } from "@/components/kampus/ders-ac-butonu";
 import { Ikon } from "@/components/ui/ikon";
@@ -36,6 +39,8 @@ export default async function SinifDetaySayfasi({
   const sinif = await sinifGetir(id);
   if (!sinif) notFound();
 
+  const yonetici = oturum.rol === "admin";
+
   const [kayitlar, dersler] = await Promise.all([
     sinifinOgrencileri(id),
     dersleriGetir({ sinifId: id }),
@@ -46,36 +51,50 @@ export default async function SinifDetaySayfasi({
     Sinifa eklenebilecekler: aktif ogrenciler icinden bu sinifta OLMAYANLAR.
     Yalniz admin gorur; ogretmen kayit ekleyemez.
   */
-  const eklenebilir =
-    oturum.rol === "admin"
-      ? (await ogrencileriGetir({ durum: "aktif" })).filter(
-          (o) => !aktif.some((k) => k.ogrenci_id === o.id),
-        )
-      : [];
+  const eklenebilir = yonetici
+    ? (await ogrencileriGetir({ durum: "aktif" })).filter(
+        (o) => !aktif.some((k) => k.ogrenci_id === o.id),
+      )
+    : [];
 
   const atolye = sinif.atolye_slug
     ? atolyeBul(sinif.atolye_slug as Parameters<typeof atolyeBul>[0])
     : undefined;
 
+  const bosYer = Math.max(0, sinif.kontenjan - aktif.length);
+
   return (
     <Kabuk oturum={oturum} aktifYol="/kampus/siniflar">
-      <Link
-        href="/kampus/siniflar"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-yesil-koyu hover:underline"
-      >
-        <Ikon.OkGeri boyut={16} />
-        Sınıflar
-      </Link>
+      <GeriBaglantisi yol="/kampus/siniflar" etiket="Sınıflar" />
 
-      <h1 className="mt-4 font-baslik text-2xl font-bold text-murekkep">
-        {atolye?.ad ?? sinif.ad}
-      </h1>
-      <p className="mt-1 text-murekkep-soluk">
-        {sinif.gun && GUN_ADI[sinif.gun as Gun]} · {sinif.bas} - {sinif.bit} ·{" "}
-        {sinif.donem}
-      </p>
+      <div className="mt-3 flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="font-baslik text-xl font-bold text-murekkep sm:text-2xl">
+              {atolye?.ad ?? sinif.ad}
+            </h1>
+            {!sinif.aktif && <Rozet ton="sessiz">Kapalı</Rozet>}
+          </div>
+          <p className="mt-1 text-sm text-panel-soluk">
+            {sinif.gun && GUN_ADI[sinif.gun as Gun]} · {sinif.bas} -{" "}
+            {sinif.bit} · {sinif.donem}
+          </p>
+        </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        {yonetici && (
+          <div className="flex flex-wrap items-center gap-2">
+            <SinifAnahtari sinifId={sinif.id} aktif={sinif.aktif} />
+            <SinifFormu
+              sinif={sinif}
+              donem={sinif.donem}
+              atolyeler={ATOLYELER.map((a) => ({ slug: a.slug, ad: a.ad }))}
+              ogretmenler={EKIP.map((o) => o.ad)}
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <Sayac
           etiket="Kayıtlı"
           deger={aktif.length}
@@ -83,53 +102,49 @@ export default async function SinifDetaySayfasi({
         />
         <Sayac
           etiket="Boş yer"
-          deger={Math.max(0, sinif.kontenjan - aktif.length)}
-          vurgu={sinif.kontenjan - aktif.length <= 2}
+          deger={bosYer}
+          ton={bosYer === 0 ? "uyari" : bosYer <= 2 ? "bilgi" : "notr"}
+          alt={bosYer === 0 ? "sınıf dolu" : undefined}
         />
-        <Sayac
-          etiket="Yaş aralığı"
-          deger={atolye?.yasEtiket ?? "—"}
-        />
+        <Sayac etiket="Yaş aralığı" deger={atolye?.yasEtiket ?? "—"} />
       </div>
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+      <div className="mt-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         <Kutu
           baslik="Öğrenciler"
           yanCocuk={
-            <span className="text-sm text-murekkep-soluk">
+            <span className="text-xs text-panel-silik">
               {aktif.length} kişi
             </span>
           }
+          dolgusuz
         >
           {aktif.length === 0 ? (
-            <p className="py-8 text-center text-murekkep-soluk">
+            <p className="px-4 py-8 text-center text-sm text-panel-soluk">
               Bu sınıfta kayıtlı öğrenci yok.
             </p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="divide-y divide-panel-cizgi">
               {aktif.map((k) => (
                 <li
                   key={k.id}
-                  className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-kart border-2 border-cizgi px-4 py-3"
+                  className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5 transition-colors hover:bg-panel-yuzey-alt"
                 >
                   <Link
                     href={`/kampus/ogrenciler/${k.ogrenci_id}`}
-                    className="min-w-0 flex-1 font-baslik text-sm font-bold text-murekkep hover:underline"
+                    className="min-w-0 flex-1 text-sm font-semibold text-murekkep hover:text-yesil-derin hover:underline"
                   >
                     {k.ogrenci ? ogrenciAdi(k.ogrenci) : "—"}
                   </Link>
-                  <span className="shrink-0 text-sm text-murekkep-soluk">
+                  <span className="shrink-0 text-xs text-panel-soluk">
                     {k.ogrenci && yasMetni(ayHesapla(k.ogrenci.dogum_tarihi))}
                   </span>
                   {k.ogrenci?.alerji && (
-                    <span
-                      title={k.ogrenci.alerji}
-                      className="shrink-0 rounded-full bg-krem-koyu px-2.5 py-0.5 text-xs font-semibold text-murekkep"
-                    >
-                      Alerji
-                    </span>
+                    <Rozet ton="uyari" ikon={<Ikon.Kalp boyut={11} />}>
+                      {k.ogrenci.alerji}
+                    </Rozet>
                   )}
-                  <span className="shrink-0 text-xs text-murekkep-soluk">
+                  <span className="shrink-0 text-xs tabular-nums text-panel-silik">
                     {new Date(k.baslangic).toLocaleDateString("tr-TR")}
                   </span>
                 </li>
@@ -138,12 +153,14 @@ export default async function SinifDetaySayfasi({
           )}
         </Kutu>
 
-        <div className="space-y-5">
+        <div className="space-y-4">
           <Kutu baslik="Sınıf ayarları">
-            {oturum.rol === "admin" ? (
-              <div className="space-y-4">
+            {yonetici ? (
+              <div className="space-y-3">
                 <div>
-                  <p className="mb-1.5 text-sm text-murekkep-soluk">Öğretmen</p>
+                  <p className="mb-1 text-xs font-semibold text-panel-soluk">
+                    Öğretmen
+                  </p>
                   <OgretmenSecici
                     sinifId={sinif.id}
                     secili={sinif.ogretmen_ad}
@@ -151,7 +168,7 @@ export default async function SinifDetaySayfasi({
                   />
                 </div>
                 <div>
-                  <p className="mb-1.5 text-sm text-murekkep-soluk">
+                  <p className="mb-1 text-xs font-semibold text-panel-soluk">
                     Kontenjan
                   </p>
                   <KontenjanAlani
@@ -160,33 +177,27 @@ export default async function SinifDetaySayfasi({
                     enAz={aktif.length}
                   />
                 </div>
+                <p className="text-xs leading-relaxed text-panel-silik">
+                  Gün, saat ve atölye “Düzenle” penceresinden değişir.
+                </p>
               </div>
             ) : (
-              <dl className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <dt className="text-murekkep-soluk">Öğretmen</dt>
-                  <dd className="font-medium text-murekkep">
-                    {sinif.ogretmen_ad ?? "—"}
-                  </dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-murekkep-soluk">Kontenjan</dt>
-                  <dd className="font-medium text-murekkep">
-                    {sinif.kontenjan}
-                  </dd>
-                </div>
+              <dl>
+                <Satir etiket="Öğretmen">{sinif.ogretmen_ad}</Satir>
+                <Satir etiket="Kontenjan">{sinif.kontenjan}</Satir>
+                <Satir etiket="Dönem">{sinif.donem}</Satir>
               </dl>
             )}
           </Kutu>
 
-          {oturum.rol === "admin" && (
+          {yonetici && (
             <Kutu baslik="Öğrenci ekle">
               {eklenebilir.length === 0 ? (
-                <p className="text-sm leading-relaxed text-murekkep-soluk">
+                <p className="text-sm leading-relaxed text-panel-soluk">
                   Eklenebilecek öğrenci yok.{" "}
                   <Link
                     href="/kampus/ogrenciler"
-                    className="font-semibold text-yesil-koyu hover:underline"
+                    className="font-semibold text-yesil-derin hover:underline"
                   >
                     Öğrenciler
                   </Link>{" "}
@@ -205,6 +216,14 @@ export default async function SinifDetaySayfasi({
               )}
             </Kutu>
           )}
+
+          {sinif.notlar && (
+            <Kutu baslik="Not">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-panel-soluk">
+                {sinif.notlar}
+              </p>
+            </Kutu>
+          )}
         </div>
       </div>
 
@@ -215,80 +234,83 @@ export default async function SinifDetaySayfasi({
       */}
       <Kutu
         baslik="Dersler"
-        className="mt-5"
+        className="mt-4"
         yanCocuk={
           <div className="flex items-center gap-3">
-            <span className="text-sm text-murekkep-soluk">
+            <span className="text-xs text-panel-silik">
               {dersler.filter((d) => d.durum === "islendi").length} işlendi /{" "}
               {dersler.length}
             </span>
             <DersAcButonu sinifId={sinif.id} tarih={bugununTarihi()} />
           </div>
         }
+        dolgusuz
       >
         {dersler.length === 0 ? (
-          <p className="py-6 text-center text-murekkep-soluk">
-            Bu sınıfta henüz ders açılmadı. &quot;Dersi aç&quot; bugünün
-            yoklamasını başlatır.
+          <p className="px-4 py-6 text-center text-sm text-panel-soluk">
+            Bu sınıfta henüz ders açılmadı. “Dersi aç” bugünün yoklamasını
+            başlatır.
           </p>
         ) : (
-          <ul className="space-y-1.5">
+          <ul className="divide-y divide-panel-cizgi">
             {dersler.slice(0, 20).map((d) => (
               <li
                 key={d.id}
-                className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-cizgi py-2 last:border-b-0"
+                className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2 transition-colors hover:bg-panel-yuzey-alt"
               >
                 <Link
                   href={`/kampus/yoklama/${d.id}`}
-                  className="w-24 shrink-0 font-medium tabular-nums text-yesil-koyu hover:underline"
+                  className="w-20 shrink-0 text-sm font-medium tabular-nums text-yesil-derin hover:underline"
                 >
                   {new Date(d.tarih).toLocaleDateString("tr-TR")}
                 </Link>
                 <span className="min-w-0 flex-1 truncate text-sm text-murekkep">
-                  {d.konu ?? "—"}
+                  {d.konu ?? <span className="text-panel-silik">—</span>}
                 </span>
-                <span className="shrink-0 text-xs text-murekkep-soluk">
+                <span className="shrink-0 text-xs text-panel-soluk">
                   {d.yoklamaSayisi > 0
                     ? `${d.gelenSayisi}/${d.yoklamaSayisi} geldi`
                     : "yoklama yok"}
                 </span>
-                <span className="shrink-0 rounded-full bg-krem-koyu px-2.5 py-0.5 text-xs font-bold text-murekkep">
+                <Rozet ton={DERS_TONU[d.durum] ?? "notr"}>
                   {DERS_DURUM_ETIKET[d.durum]}
-                </span>
+                </Rozet>
               </li>
             ))}
           </ul>
         )}
         {dersler.length > 20 && (
-          <Link
-            href={`/kampus/dersler?sinif=${sinif.id}`}
-            className="mt-3 inline-block text-sm font-semibold text-yesil-koyu hover:underline"
-          >
-            Tüm dersler ({dersler.length})
-          </Link>
+          <div className="border-t border-panel-cizgi px-4 py-2.5">
+            <Link
+              href={`/kampus/dersler?sinif=${sinif.id}`}
+              className="text-sm font-semibold text-yesil-derin hover:underline"
+            >
+              Tüm dersler ({dersler.length})
+            </Link>
+          </div>
         )}
       </Kutu>
 
       {/* Gecmis kayitlar: ayrilanlar ve donduranlar. */}
       {kayitlar.length > aktif.length && (
-        <Kutu baslik="Geçmiş kayıtlar" className="mt-5">
-          <ul className="space-y-1.5">
+        <Kutu baslik="Geçmiş kayıtlar" className="mt-4" dolgusuz>
+          <ul className="divide-y divide-panel-cizgi">
             {kayitlar
               .filter((k) => k.durum !== "aktif")
               .map((k) => (
                 <li
                   key={k.id}
-                  className="flex flex-wrap gap-x-4 text-sm text-murekkep-soluk"
+                  className="flex flex-wrap items-center gap-x-4 px-4 py-2 text-sm"
                 >
                   <span className="min-w-0 flex-1 text-murekkep">
                     {k.ogrenci ? ogrenciAdi(k.ogrenci) : "—"}
                   </span>
-                  <span>
+                  <span className="text-panel-soluk">
                     {OGRENCI_DURUM_ETIKET[
                       k.durum as keyof typeof OGRENCI_DURUM_ETIKET
                     ] ?? k.durum}
                   </span>
-                  <span>
+                  <span className="text-xs tabular-nums text-panel-silik">
                     {k.bitis
                       ? new Date(k.bitis).toLocaleDateString("tr-TR")
                       : "—"}

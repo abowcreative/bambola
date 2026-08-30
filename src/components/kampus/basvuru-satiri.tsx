@@ -3,8 +3,10 @@ import { aileBul } from "@/lib/data/gruplar";
 import { tlYaz } from "@/lib/data/ucretler";
 import { Ikon } from "@/components/ui/ikon";
 import { DURUM_ETIKET, KURUM_ETIKET } from "@/lib/supabase/types";
-import type { BasvuruDurumu, Kurum } from "@/lib/supabase/types";
+import type { Kurum } from "@/lib/supabase/types";
+import { BASVURU_TONU } from "@/lib/kampus/tonlar";
 import type { BasvuruOzet } from "@/lib/kampus/basvurular";
+import { Kart, Rozet } from "./ui";
 
 /**
  * Listedeki bir basvuru satiri.
@@ -13,15 +15,6 @@ import type { BasvuruOzet } from "@/lib/kampus/basvurular";
  * hangi program ve ne zaman geldigi. Panelin ilk isi "kimi arayacagim" ve
  * "ne istiyor" sorularini cevaplamak.
  */
-
-export const DURUM_RENGI: Record<BasvuruDurumu, string> = {
-  // Yeni dikkat cekmeli: islenmemis talep demek.
-  yeni: "bg-lime-rozet text-black",
-  arandi: "bg-yesil-koyu text-white",
-  ulasilamadi: "bg-krem-koyu text-murekkep",
-  kayit_oldu: "bg-yesil text-white",
-  vazgecti: "bg-cizgi text-murekkep-soluk",
-};
 
 /** "3 saat once", "dun", "5 gun once". */
 export function gecenSure(iso: string): string {
@@ -57,6 +50,26 @@ export function telefonYaz(t: string): string {
   return `0${on.slice(0, 3)} ${on.slice(3, 6)} ${on.slice(6, 8)} ${on.slice(8)}`;
 }
 
+/** Kunye kutucugu: kucuk etiket, altinda deger. */
+function Kutucuk({
+  etiket,
+  children,
+}: {
+  etiket: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-[0.7rem] font-semibold uppercase tracking-[0.05em] text-panel-silik">
+        {etiket}
+      </dt>
+      <dd className="mt-0.5 truncate text-sm font-medium text-murekkep">
+        {children}
+      </dd>
+    </div>
+  );
+}
+
 export function BasvuruSatiri({ basvuru }: { basvuru: BasvuruOzet }) {
   const aile = basvuru.program_slug ? aileBul(basvuru.program_slug) : undefined;
   const yeni = basvuru.durum === "yeni";
@@ -66,32 +79,30 @@ export function BasvuruSatiri({ basvuru }: { basvuru: BasvuruOzet }) {
     : basvuru.fiyat_normal;
 
   return (
-    <article
-      className={`rounded-kart border-2 bg-white p-5 transition-colors ${
-        yeni ? "border-yesil" : "border-cizgi hover:border-yesil/50"
+    <Kart
+      className={`p-4 transition-colors ${
+        yeni
+          ? "border-yesil/50 bg-lime-rozet/8"
+          : "hover:border-panel-cizgi-guclu"
       }`}
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-baslik text-lg font-bold leading-tight text-murekkep">
+            <h2 className="font-baslik text-base font-bold leading-tight text-murekkep">
               {basvuru.veli_adi}
             </h2>
-            <span
-              className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${DURUM_RENGI[basvuru.durum]}`}
-            >
+            <Rozet ton={BASVURU_TONU[basvuru.durum] ?? "notr"}>
               {DURUM_ETIKET[basvuru.durum]}
-            </span>
+            </Rozet>
             {basvuru.kurum !== "oyun-evi" && (
-              <span className="rounded-full bg-krem-koyu px-2.5 py-0.5 text-xs font-medium text-murekkep">
-                {KURUM_ETIKET[basvuru.kurum as Kurum]}
-              </span>
+              <Rozet>{KURUM_ETIKET[basvuru.kurum as Kurum]}</Rozet>
             )}
           </div>
 
-          <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-murekkep-soluk">
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-panel-soluk">
             <span className="inline-flex items-center gap-1.5 font-medium text-murekkep">
-              <Ikon.Telefon boyut={14} />
+              <Ikon.Telefon boyut={14} className="text-panel-silik" />
               {telefonYaz(basvuru.telefon)}
             </span>
             {basvuru.iletisim_tercihi && (
@@ -103,7 +114,7 @@ export function BasvuruSatiri({ basvuru }: { basvuru: BasvuruOzet }) {
         </div>
 
         <span
-          className="shrink-0 text-sm text-murekkep-soluk"
+          className="shrink-0 text-xs text-panel-silik"
           title={tarihYaz(basvuru.created_at)}
         >
           {gecenSure(basvuru.created_at)}
@@ -111,56 +122,38 @@ export function BasvuruSatiri({ basvuru }: { basvuru: BasvuruOzet }) {
       </div>
 
       {/* --- cocuk ve program --- */}
-      <dl className="mt-4 grid gap-x-6 gap-y-2 border-t border-cizgi pt-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-murekkep-soluk">
-            Çocuk
-          </dt>
-          <dd className="mt-0.5 font-medium text-murekkep">
-            {basvuru.cocuk_adi || "Ad verilmedi"}
-            <span className="ml-1.5 font-normal text-murekkep-soluk">
-              {yasMetni(basvuru.yas_ay)}
-            </span>
-          </dd>
-        </div>
+      <dl className="mt-3 grid gap-x-5 gap-y-2 border-t border-panel-cizgi pt-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Kutucuk etiket="Çocuk">
+          {basvuru.cocuk_adi || "Ad verilmedi"}
+          <span className="ml-1.5 font-normal text-panel-soluk">
+            {yasMetni(basvuru.yas_ay)}
+          </span>
+        </Kutucuk>
 
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-murekkep-soluk">
-            Program
-          </dt>
-          <dd className="mt-0.5 font-medium text-murekkep">
-            {aile?.kisaAd ?? aile?.ad ?? "Seçilmedi"}
-          </dd>
-        </div>
+        <Kutucuk etiket="Program">
+          {aile?.kisaAd ?? aile?.ad ?? (
+            <span className="text-panel-silik">Seçilmedi</span>
+          )}
+        </Kutucuk>
 
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-murekkep-soluk">
-            Paket
-          </dt>
-          <dd className="mt-0.5 font-medium text-murekkep">
-            {basvuru.paket_kod ? (
-              <>
-                {basvuru.paket_kod}
-                {fiyat != null && (
-                  <span className="ml-1.5 font-normal text-yesil-koyu">
-                    {tlYaz(fiyat)}
-                  </span>
-                )}
-              </>
-            ) : (
-              <span className="text-murekkep-soluk">—</span>
-            )}
-          </dd>
-        </div>
+        <Kutucuk etiket="Paket">
+          {basvuru.paket_kod ? (
+            <>
+              {basvuru.paket_kod}
+              {fiyat != null && (
+                <span className="ml-1.5 font-normal text-basari">
+                  {tlYaz(fiyat)}
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="text-panel-silik">—</span>
+          )}
+        </Kutucuk>
 
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-murekkep-soluk">
-            Nereden
-          </dt>
-          <dd className="mt-0.5 font-medium text-murekkep">
-            {basvuru.kaynak ?? <span className="text-murekkep-soluk">—</span>}
-          </dd>
-        </div>
+        <Kutucuk etiket="Nereden">
+          {basvuru.kaynak ?? <span className="text-panel-silik">—</span>}
+        </Kutucuk>
       </dl>
 
       {/*
@@ -168,11 +161,12 @@ export function BasvuruSatiri({ basvuru }: { basvuru: BasvuruOzet }) {
         demek, yani aranmadan once program bakilmasi gereken bir kayit.
       */}
       {basvuru.saat_uymuyor && (
-        <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-krem-koyu px-3 py-1 text-xs font-semibold text-murekkep">
-          <Ikon.Saat boyut={13} />
-          Saatler uymuyor, alternatif isteniyor
+        <p className="mt-3">
+          <Rozet ton="uyari" ikon={<Ikon.Saat boyut={12} />}>
+            Saatler uymuyor, alternatif isteniyor
+          </Rozet>
         </p>
       )}
-    </article>
+    </Kart>
   );
 }

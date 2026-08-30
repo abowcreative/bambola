@@ -579,3 +579,609 @@ export async function sinifKaydiniBitir(
   revalidatePath("/kampus/ogrenciler");
   return { ok: true };
 }
+
+// ------------------------------------------------------ ogrenci duzenleme
+
+const ogrenciGuncelSemasi = z.object({
+  id: z.uuid("Geçersiz öğrenci."),
+  ad: z.string().trim().min(2, "Çocuğun adı gerekli.").max(60),
+  soyad: z.string().trim().max(60).optional(),
+  dogumTarihi: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Doğum tarihi gerekli."),
+  kurum: z.enum(["oyun-evi", "anaokulu", "parti"]),
+  durum: z.enum(["aday", "aktif", "dondurdu", "ayrildi"]),
+  kayitTarihi: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Kayıt tarihi geçersiz.")
+    .optional()
+    .or(z.literal("")),
+  alerji: z.string().trim().max(300).optional(),
+  saglikNotu: z.string().trim().max(500).optional(),
+  notlar: z.string().trim().max(1000).optional(),
+});
+
+export type OgrenciGuncelGirdisi = z.input<typeof ogrenciGuncelSemasi>;
+
+/**
+ * Ogrenci kunyesini gunceller.
+ *
+ * Veli baglantisi ve sinif kaydi BURADA DEGIL: onlarin kendi islemleri var
+ * (`ogrenciyeVeliBagla`, `sinifaKaydet`). Tek forma sigdirmak, bir alani
+ * duzeltirken baska bir baglantiyi sessizce koparma riski demekti.
+ */
+export async function ogrenciGuncelle(
+  girdi: OgrenciGuncelGirdisi,
+): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = ogrenciGuncelSemasi.safeParse(girdi);
+  if (!g.success) return { ok: false, hata: g.error.issues[0].message };
+  const v = g.data;
+
+  const db = await sunucuIstemcisi();
+  const { error } = await db
+    .from("ogrenciler")
+    .update({
+      ad: v.ad,
+      soyad: v.soyad || null,
+      dogum_tarihi: v.dogumTarihi,
+      kurum: v.kurum,
+      durum: v.durum,
+      ...(v.kayitTarihi ? { kayit_tarihi: v.kayitTarihi } : {}),
+      alerji: v.alerji || null,
+      saglik_notu: v.saglikNotu || null,
+      notlar: v.notlar || null,
+    })
+    .eq("id", v.id);
+
+  if (error) return { ok: false, hata: "Öğrenci kaydedilemedi." };
+
+  revalidatePath("/kampus/ogrenciler");
+  revalidatePath(`/kampus/ogrenciler/${v.id}`);
+  revalidatePath("/kampus/yemek");
+  return { ok: true, id: v.id };
+}
+
+/**
+ * Ogrencinin durumunu degistirir.
+ *
+ * "ayrildi" ve "dondurdu" secildiginde AKTIF SINIF KAYITLARI da kapaniyor:
+ * ayrilmis bir cocugun sinif listesinde durmasi yoklamada her hafta karsiya
+ * cikiyor ve doluluk sayisini yaniltiyor.
+ */
+export async function ogrenciDurumDegistir(
+  id: string,
+  durum: string,
+): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = z
+    .object({
+      id: z.uuid("Geçersiz öğrenci."),
+      durum: z.enum(["aday", "aktif", "dondurdu", "ayrildi"]),
+    })
+    .safeParse({ id, durum });
+  if (!g.success) return { ok: false, hata: g.error.issues[0].message };
+
+  const db = await sunucuIstemcisi();
+  const { error } = await db
+    .from("ogrenciler")
+    .update({ durum: g.data.durum })
+    .eq("id", g.data.id);
+
+  if (error) return { ok: false, hata: "Durum kaydedilemedi." };
+
+  if (g.data.durum === "ayrildi" || g.data.durum === "dondurdu") {
+    await db
+      .from("kayitlar")
+      .update({
+        durum: g.data.durum === "ayrildi" ? "bitti" : "dondurdu",
+        bitis: new Date().toISOString().slice(0, 10),
+      })
+      .eq("ogrenci_id", g.data.id)
+      .eq("durum", "aktif");
+  }
+
+  revalidatePath("/kampus/ogrenciler");
+  revalidatePath(`/kampus/ogrenciler/${g.data.id}`);
+  revalidatePath("/kampus/siniflar");
+  return { ok: true };
+}
+
+/**
+ * Ogrenciyi ve butun bagli kayitlarini siler.
+ *
+ * SILME degil ARSIVLEME beklenen normal is akisi: ayrilan cocuk "ayrildi"
+ * durumuna alinir, gecmisi (yoklama, odeme) durur. Bu islem yalniz YANLIS
+ * ACILMIS kayit icin: test kaydi, iki kez girilmis cocuk, yanlis kisiye
+ * acilmis dosya.
+ *
+ * Cari hareketi olan ogrenci silinmiyor: para gecmisi sessizce yok olmamali.
+ */
+export async function ogrenciSil(id: string): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = z.uuid().safeParse(id);
+  if (!g.success) return { ok: false, hata: "Geçersiz öğrenci." };
+
+  const db = await sunucuIstemcisi();
+
+  const { count } = await db
+    .from("odemeler")
+    .select("id", { count: "exact", head: true })
+    .eq("ogrenci_id", g.data);
+
+  if ((count ?? 0) > 0) {
+    return {
+      ok: false,
+      hata: `Bu öğrencinin ${count} cari hareketi var. Silmek yerine durumunu "ayrıldı" yapın.`,
+    };
+  }
+
+  /* kayitlar, ogrenci_veli ve yoklama satirlari veritabaninda cascade ile
+     dusuyor (0003 ve 0004 gocleri); burada ayrica silmeye gerek yok. */
+  const { error } = await db.from("ogrenciler").delete().eq("id", g.data);
+  if (error) return { ok: false, hata: "Öğrenci silinemedi." };
+
+  revalidatePath("/kampus/ogrenciler");
+  revalidatePath("/kampus/veliler");
+  revalidatePath("/kampus/siniflar");
+  return { ok: true };
+}
+
+// ------------------------------------------------------------------ veli
+
+const veliSemasi = z.object({
+  adSoyad: z.string().trim().min(2, "Veli adı gerekli.").max(80),
+  telefon: z.string().trim().min(10, "Telefon gerekli.").max(20),
+  eposta: z
+    .string()
+    .trim()
+    .email("Geçersiz e-posta.")
+    .optional()
+    .or(z.literal("")),
+  adres: z.string().trim().max(300).optional(),
+  notlar: z.string().trim().max(1000).optional(),
+});
+
+export type VeliGirdisi = z.input<typeof veliSemasi>;
+
+/**
+ * Yeni veli kaydi.
+ *
+ * Ayni telefonlu veli varsa YENISI ACILMIYOR, var olanin kimligi donuyor:
+ * kardes kaydinda ikinci bir veli karti cikmasin. `ogrenciEkle` ile ayni
+ * kural.
+ */
+export async function veliEkle(girdi: VeliGirdisi): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = veliSemasi.safeParse(girdi);
+  if (!g.success) return { ok: false, hata: g.error.issues[0].message };
+
+  const telefon = telefonNormalle(g.data.telefon);
+  if (telefon.length !== 10) {
+    return { ok: false, hata: "Telefon 10 haneli olmalı." };
+  }
+
+  const db = await sunucuIstemcisi();
+
+  const { data: mevcut } = await db
+    .from("veliler")
+    .select("id")
+    .eq("telefon", telefon)
+    .maybeSingle();
+
+  if (mevcut) {
+    revalidatePath("/kampus/veliler");
+    return { ok: true, id: (mevcut as { id: string }).id };
+  }
+
+  const { data, error } = await db
+    .from("veliler")
+    .insert({
+      ad_soyad: g.data.adSoyad,
+      telefon,
+      eposta: g.data.eposta || null,
+      adres: g.data.adres || null,
+      notlar: g.data.notlar || null,
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) return { ok: false, hata: "Veli kaydedilemedi." };
+
+  revalidatePath("/kampus/veliler");
+  return { ok: true, id: (data as { id: string }).id };
+}
+
+export async function veliGuncelle(
+  id: string,
+  girdi: VeliGirdisi,
+): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const k = z.uuid().safeParse(id);
+  if (!k.success) return { ok: false, hata: "Geçersiz veli." };
+
+  const g = veliSemasi.safeParse(girdi);
+  if (!g.success) return { ok: false, hata: g.error.issues[0].message };
+
+  const telefon = telefonNormalle(g.data.telefon);
+  if (telefon.length !== 10) {
+    return { ok: false, hata: "Telefon 10 haneli olmalı." };
+  }
+
+  const db = await sunucuIstemcisi();
+
+  /* Telefon baska bir veliye aitse durduruluyor: iki kayit ayni numaraya
+     dusunce "hangisini arayacagim" sorusu cikiyor ve veli birlestirme
+     mantigi (telefonla eslestirme) bozuluyor. */
+  const { data: cakisan } = await db
+    .from("veliler")
+    .select("id")
+    .eq("telefon", telefon)
+    .neq("id", k.data)
+    .maybeSingle();
+  if (cakisan) {
+    return { ok: false, hata: "Bu telefon başka bir veli kaydında kayıtlı." };
+  }
+
+  const { error } = await db
+    .from("veliler")
+    .update({
+      ad_soyad: g.data.adSoyad,
+      telefon,
+      eposta: g.data.eposta || null,
+      adres: g.data.adres || null,
+      notlar: g.data.notlar || null,
+    })
+    .eq("id", k.data);
+
+  if (error) return { ok: false, hata: "Veli kaydedilemedi." };
+
+  revalidatePath("/kampus/veliler");
+  revalidatePath(`/kampus/veliler/${k.data}`);
+  return { ok: true, id: k.data };
+}
+
+/**
+ * Veli kaydini siler.
+ *
+ * Bagli cocugu varsa silinmiyor: cocuk kaydi velisiz kalirsa kime
+ * ulasilacagi bilinmez olur. Once baglanti kaldirilir.
+ */
+export async function veliSil(id: string): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = z.uuid().safeParse(id);
+  if (!g.success) return { ok: false, hata: "Geçersiz veli." };
+
+  const db = await sunucuIstemcisi();
+
+  const { count } = await db
+    .from("ogrenci_veli")
+    .select("veli_id", { count: "exact", head: true })
+    .eq("veli_id", g.data);
+
+  if ((count ?? 0) > 0) {
+    return {
+      ok: false,
+      hata: `Bu veliye bağlı ${count} çocuk var. Önce çocuk bağlantılarını kaldırın.`,
+    };
+  }
+
+  const { error } = await db.from("veliler").delete().eq("id", g.data);
+  if (error) return { ok: false, hata: "Veli silinemedi." };
+
+  revalidatePath("/kampus/veliler");
+  return { ok: true };
+}
+
+const baglantiSemasi = z.object({
+  ogrenciId: z.uuid("Geçersiz öğrenci."),
+  veliId: z.uuid("Geçersiz veli."),
+  yakinlik: z.enum(["anne", "baba", "vasi", "veli"]),
+  birincil: z.boolean().optional(),
+});
+
+/**
+ * Ogrenciye veli baglar.
+ *
+ * "birincil" tek olabilir: aramada once denenecek numara birden fazlaysa
+ * isaret hicbir sey soylemiyor. Yeni birincil isaretlenirse eskisi
+ * dusuruluyor.
+ */
+export async function ogrenciyeVeliBagla(girdi: {
+  ogrenciId: string;
+  veliId: string;
+  yakinlik: string;
+  birincil?: boolean;
+}): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = baglantiSemasi.safeParse(girdi);
+  if (!g.success) return { ok: false, hata: g.error.issues[0].message };
+
+  const db = await sunucuIstemcisi();
+
+  if (g.data.birincil) {
+    await db
+      .from("ogrenci_veli")
+      .update({ birincil: false })
+      .eq("ogrenci_id", g.data.ogrenciId);
+  }
+
+  const { error } = await db.from("ogrenci_veli").upsert(
+    {
+      ogrenci_id: g.data.ogrenciId,
+      veli_id: g.data.veliId,
+      yakinlik: g.data.yakinlik,
+      birincil: g.data.birincil ?? false,
+    },
+    { onConflict: "ogrenci_id,veli_id" },
+  );
+
+  if (error) return { ok: false, hata: "Bağlantı kurulamadı." };
+
+  revalidatePath(`/kampus/ogrenciler/${g.data.ogrenciId}`);
+  revalidatePath(`/kampus/veliler/${g.data.veliId}`);
+  revalidatePath("/kampus/veliler");
+  return { ok: true };
+}
+
+/**
+ * Ogrenci-veli baglantisini kaldirir.
+ *
+ * Son veli koparilamiyor: velisi olmayan bir cocuk kaydi, ilk gun aranacak
+ * kimsesi olmayan bir kayit demek.
+ */
+export async function veliBagiKaldir(
+  ogrenciId: string,
+  veliId: string,
+): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = z
+    .object({ ogrenciId: z.uuid(), veliId: z.uuid() })
+    .safeParse({ ogrenciId, veliId });
+  if (!g.success) return { ok: false, hata: "Geçersiz bağlantı." };
+
+  const db = await sunucuIstemcisi();
+
+  const { count } = await db
+    .from("ogrenci_veli")
+    .select("veli_id", { count: "exact", head: true })
+    .eq("ogrenci_id", g.data.ogrenciId);
+
+  if ((count ?? 0) <= 1) {
+    return {
+      ok: false,
+      hata: "Öğrencinin tek velisi bu. Önce başka bir veli bağlayın.",
+    };
+  }
+
+  const { error } = await db
+    .from("ogrenci_veli")
+    .delete()
+    .eq("ogrenci_id", g.data.ogrenciId)
+    .eq("veli_id", g.data.veliId);
+
+  if (error) return { ok: false, hata: "Bağlantı kaldırılamadı." };
+
+  revalidatePath(`/kampus/ogrenciler/${g.data.ogrenciId}`);
+  revalidatePath(`/kampus/veliler/${g.data.veliId}`);
+  return { ok: true };
+}
+
+// -------------------------------------------------------- sinif duzenleme
+
+const saatSemasi = z
+  .string()
+  .trim()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Saat 09:30 biçiminde olmalı.");
+
+const sinifSemasi = z.object({
+  ad: z.string().trim().min(2, "Sınıf adı gerekli.").max(80),
+  gun: z.enum([
+    "pazartesi",
+    "sali",
+    "carsamba",
+    "persembe",
+    "cuma",
+    "cumartesi",
+    "pazar",
+  ]),
+  bas: saatSemasi,
+  bit: saatSemasi,
+  atolyeSlug: z.string().trim().max(60).optional(),
+  kontenjan: z.coerce
+    .number()
+    .int()
+    .min(1, "Kontenjan en az 1 olmalı.")
+    .max(40, "Kontenjan en fazla 40 olabilir."),
+  ogretmenAd: z.string().trim().max(60).optional(),
+  donem: donemSemasi,
+  aktif: z.boolean().optional(),
+  notlar: z.string().trim().max(500).optional(),
+});
+
+export type SinifGirdisi = z.input<typeof sinifSemasi>;
+
+/** Atolye slug'indan program ailesi. Bilinmeyen slug'da null. */
+function aileSlugu(slug: string | undefined): string | null {
+  if (!slug) return null;
+  return atolyeBul(slug as Parameters<typeof atolyeBul>[0])?.ailesi ?? null;
+}
+
+/**
+ * Elle sinif acar.
+ *
+ * Normal yol `siniflariProgramdanUret`: kurumun gercek programi zaten kod
+ * icinde. Bu islem programda KARSILIGI OLMAYAN gruplar icin: telafi grubu,
+ * yaz donemi, ozel istek uzerine acilan bir seans. `slot_id` bos kaliyor,
+ * boylece bir sonraki uretim bu kaydi tekrar acmaya calismiyor.
+ */
+export async function sinifEkle(girdi: SinifGirdisi): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = sinifSemasi.safeParse(girdi);
+  if (!g.success) return { ok: false, hata: g.error.issues[0].message };
+  const v = g.data;
+
+  if (v.bit <= v.bas) {
+    return { ok: false, hata: "Bitiş saati başlangıçtan sonra olmalı." };
+  }
+
+  const db = await sunucuIstemcisi();
+  const { data, error } = await db
+    .from("siniflar")
+    .insert({
+      ad: v.ad,
+      slot_id: null,
+      atolye_slug: v.atolyeSlug || null,
+      program_slug: aileSlugu(v.atolyeSlug),
+      gun: v.gun,
+      bas: v.bas,
+      bit: v.bit,
+      kontenjan: v.kontenjan,
+      ogretmen_ad: v.ogretmenAd || null,
+      donem: v.donem,
+      aktif: v.aktif ?? true,
+      notlar: v.notlar || null,
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) return { ok: false, hata: "Sınıf açılamadı." };
+
+  revalidatePath("/kampus/siniflar");
+  revalidatePath("/kampus/yoklama");
+  return { ok: true, id: (data as { id: string }).id };
+}
+
+export async function sinifGuncelle(
+  id: string,
+  girdi: SinifGirdisi,
+): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const k = z.uuid().safeParse(id);
+  if (!k.success) return { ok: false, hata: "Geçersiz sınıf." };
+
+  const g = sinifSemasi.safeParse(girdi);
+  if (!g.success) return { ok: false, hata: g.error.issues[0].message };
+  const v = g.data;
+
+  if (v.bit <= v.bas) {
+    return { ok: false, hata: "Bitiş saati başlangıçtan sonra olmalı." };
+  }
+
+  const db = await sunucuIstemcisi();
+
+  /* Kontenjan kayitli ogrenci sayisinin altina cekilemiyor: 12 kisilik
+     sinifta 15 kayit, doluluk ekranini ve yoklamayi tutarsiz birakiyor. */
+  const { count } = await db
+    .from("kayitlar")
+    .select("id", { count: "exact", head: true })
+    .eq("sinif_id", k.data)
+    .eq("durum", "aktif");
+
+  if (v.kontenjan < (count ?? 0)) {
+    return {
+      ok: false,
+      hata: `Sınıfta ${count} kayıtlı öğrenci var, kontenjan bunun altına indirilemez.`,
+    };
+  }
+
+  const { error } = await db
+    .from("siniflar")
+    .update({
+      ad: v.ad,
+      atolye_slug: v.atolyeSlug || null,
+      program_slug: aileSlugu(v.atolyeSlug),
+      gun: v.gun,
+      bas: v.bas,
+      bit: v.bit,
+      kontenjan: v.kontenjan,
+      ogretmen_ad: v.ogretmenAd || null,
+      donem: v.donem,
+      aktif: v.aktif ?? true,
+      notlar: v.notlar || null,
+    })
+    .eq("id", k.data);
+
+  if (error) return { ok: false, hata: "Sınıf kaydedilemedi." };
+
+  revalidatePath("/kampus/siniflar");
+  revalidatePath(`/kampus/siniflar/${k.data}`);
+  revalidatePath("/kampus/yoklama");
+  return { ok: true, id: k.data };
+}
+
+/** Sinifi kapatir veya yeniden acar. Kapali sinif yoklamada cikmiyor. */
+export async function sinifAktifligiDegistir(
+  id: string,
+  aktif: boolean,
+): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = z.uuid().safeParse(id);
+  if (!g.success) return { ok: false, hata: "Geçersiz sınıf." };
+
+  const db = await sunucuIstemcisi();
+  const { error } = await db.from("siniflar").update({ aktif }).eq("id", g.data);
+
+  if (error) return { ok: false, hata: "Sınıf kaydedilemedi." };
+
+  revalidatePath("/kampus/siniflar");
+  revalidatePath(`/kampus/siniflar/${g.data}`);
+  revalidatePath("/kampus/yoklama");
+  return { ok: true };
+}
+
+/**
+ * Sinifi siler.
+ *
+ * Kaydi veya islenmis dersi olan sinif SILINMIYOR: gecmis yoklama ve
+ * kayitlar ona bagli. Boyle bir sinif kapatilir (`sinifAktifligiDegistir`),
+ * gecmisi durur ama yeni yoklamada cikmaz.
+ */
+export async function sinifSil(id: string): Promise<IslemSonucu> {
+  await adminZorunlu();
+
+  const g = z.uuid().safeParse(id);
+  if (!g.success) return { ok: false, hata: "Geçersiz sınıf." };
+
+  const db = await sunucuIstemcisi();
+
+  const [{ count: kayitSayisi }, { count: dersSayisi }] = await Promise.all([
+    db
+      .from("kayitlar")
+      .select("id", { count: "exact", head: true })
+      .eq("sinif_id", g.data),
+    db
+      .from("dersler")
+      .select("id", { count: "exact", head: true })
+      .eq("sinif_id", g.data),
+  ]);
+
+  if ((kayitSayisi ?? 0) > 0) {
+    return {
+      ok: false,
+      hata: `Bu sınıfta ${kayitSayisi} öğrenci kaydı var. Silmek yerine sınıfı kapatın.`,
+    };
+  }
+  if ((dersSayisi ?? 0) > 0) {
+    return {
+      ok: false,
+      hata: `Bu sınıfın ${dersSayisi} ders kaydı var. Silmek yerine sınıfı kapatın.`,
+    };
+  }
+
+  const { error } = await db.from("siniflar").delete().eq("id", g.data);
+  if (error) return { ok: false, hata: "Sınıf silinemedi." };
+
+  revalidatePath("/kampus/siniflar");
+  revalidatePath("/kampus/yoklama");
+  return { ok: true };
+}

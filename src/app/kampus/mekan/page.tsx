@@ -1,5 +1,6 @@
 import { adminZorunlu } from "@/lib/kampus/oturum";
-import { Kabuk, SayfaBasi, Kutu, Sayac } from "@/components/kampus/kabuk";
+import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
+import { Sayac } from "@/components/kampus/ui";
 import { Foto } from "@/components/site/foto";
 import { FOTOGRAFLAR } from "@/lib/data/fotograflar";
 
@@ -31,25 +32,25 @@ export default async function MekanSayfasi() {
         <Sayac etiket="Alt metni olan" deger={FOTOGRAFLAR.length} alt="hepsi" />
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {FOTOGRAFLAR.map((f) => (
-          <Kutu key={f.slug} className="p-3">
+          <Kutu key={f.slug} dolgusuz>
             <Foto
               foto={f}
               oran="yatay"
               boyutlar="(min-width: 1024px) 320px, (min-width: 640px) 45vw, 90vw"
             />
-            <p className="mt-2.5 text-sm leading-snug text-murekkep">
-              {f.alt}
-            </p>
-            <p className="mt-1 font-mono text-[0.68rem] text-murekkep-soluk">
-              {f.slug}
-            </p>
+            <div className="px-3.5 py-2.5">
+              <p className="text-sm leading-snug text-murekkep">{f.alt}</p>
+              <p className="mt-1 font-mono text-[0.68rem] text-panel-silik">
+                {f.slug}
+              </p>
+            </div>
           </Kutu>
         ))}
       </div>
 
-      <p className="mt-4 text-xs leading-relaxed text-murekkep-soluk">
+      <p className="mt-3 text-xs leading-relaxed text-panel-silik">
         Kareler depo dışındaki kaynak paketten `npm run foto` ile üretiliyor.
         Panelden yükleme yapılmıyor: yüklenen dosya bir sonraki üretimde
         silinirdi.
