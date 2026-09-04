@@ -6,8 +6,9 @@ Yalniz site disindan erisilmesi gereken seyler burada durur:
 - `bambola-logo.png` : schema.org `logo` alani ve sosyal medya paylasimlari.
   Mutlak URL ile referans verildigi icin burada olmak zorunda.
 - `ikon-512.png` : sadelestirilmis ikon, `npm run favicon` uretir.
-- `kibar-anaokulu.png`, `kibar-oyun-merkezi.png` : Kibar tuzel kimlik logolari.
-  Kaynak PDF'te raster oldugu icin en fazla 128px kullanilir.
+
+**Tek amblem var: yesil.** Mor Kibar logolari 4 Eylul 2026'da musteri
+karariyla depodan cikarildi ("oyle bir logomuz yok"). Geri eklenmez.
 
 **Sitenin icinde gorunen logo burada DEGIL.** O `src/assets/bambola-logo.svg`
 dosyasindan geliyor ve `src/components/site/marka-logosu.tsx` uzerinden

@@ -1636,6 +1636,13 @@ Bölüm 3 madde 4 hâlâ *"Geri sayım, 'son gün', 'üç gün kaldı' gibi ifad
 
 Site canlıda: **https://bambola.vercel.app** — geçici adres, alan adı bekleniyor.
 
+> **Güncellendi (21 Ağustos 2026).** Alan adı bağlandı: site artık
+> **https://bambola.com.tr** üzerinde. `NEXT_PUBLIC_SITE_URL` Vercel'de bu
+> adrese ayarlı; kanonik URL'ler, `robots.txt` `Host:` satırı ve sitemap
+> `bambola.com.tr` yazıyor. `bambola.vercel.app` hâlâ 200 dönüyor ama
+> kanoniği `bambola.com.tr`'ye işaret ettiği için yinelenen içerik riski yok.
+> Ayrıntı: Bölüm 39.
+
 ### Supabase
 
 Proje `rxdyyonlreibgavzkgym`, bölge **West EU (Ireland)**. Frankfurt önerilmişti; Ankara'ya ~25 ms daha uzak, form gönderiminde fark etmez, değiştirilmedi.
@@ -2226,3 +2233,204 @@ Yalnız düğmeleri değiştirmek yetmezdi; "formu doldurun" cümlesi on bir yer
 Veri testi 536'dan **557 kontrole** çıktı. Anahtar kapalıyken on iki sayfada `href="/kayit"` ve "formu doldur" metni aranıyor; `/kayit` sayfasının "çok yakında" gösterdiği ve uçnoktanın 503 döndüğü kontrol ediliyor.
 
 Tarayıcıda on iki sayfa gezildi: **hiçbir sayfada forma giden düğme kalmadı**, "çok yakında" uyarısı her sayfada görünüyor, `/kayit` kartı çıkıyor (`robots: noindex`), `/api/kayit` 503 dönüyor.
+
+---
+
+## 39. Google İşletme Profili ile sitenin karşılaştırılması
+
+*(21 Ağustos 2026.)*
+
+Alan adı bağlandıktan sonra kayıt ile site yan yana kondu. Üç şey çıktı;
+ikisi kurumun kararını, biri kurumun hesabını bekliyor.
+
+### Alan adı canlı, teknik taraf temiz
+
+`bambola.com.tr` ve `www.bambola.com.tr` 200 dönüyor, ikisi de Vercel'deki
+aynı projeye düşüyor. `NEXT_PUBLIC_SITE_URL` platformda tanımlanmış: kanonik
+URL, `robots.txt` `Host:` satırı, sitemap ve OG görsel adresleri
+`bambola.com.tr` yazıyor. `bambola.vercel.app` da 200 dönüyor ama kanoniği
+`bambola.com.tr`'ye işaret ediyor, yani arama motoru için tek adres var.
+Google kaydındaki web sitesi alanı da `bambola.com.tr` — burada bir kopukluk
+yok.
+
+Sitemap'teki 25 adresin tamamı ve site menüsündeki bütün sayfalar 200 dönüyor.
+`/git` tek başına 404 veriyor; altındaki `/git/whatsapp` bir yönlendirme
+rotası, dizinin kendisinin sayfası yok ve hiçbir yerden bağlanmıyor.
+
+### Çalışma saatleri: kayıt ile site birbirini yalanlıyor
+
+Google kaydındaki saatler ile `src/lib/site.ts` içindeki `SAATLER` **aynı
+şeyi söylemiyor**, üstelik iki günde tam ters:
+
+| Gün | Google kaydı | Site (`SAATLER` + schema.org) |
+| --- | --- | --- |
+| Pazartesi | **Kapalı** | **09.00 – 18.00** |
+| Salı – Cuma | 09.30 – 19.00 | 09.00 – 18.00 |
+| Cumartesi | 10.00 – 19.30 | 09.00 – 18.00 |
+| Pazar | **10.00 – 19.30** | **Kapalı** |
+
+Bu, PLAN.md Bölüm 14 madde 9'daki NAP tutarlılığı kuralının en görünür
+ihlali. Ad, adres ve telefon üçü de birebir tutuyor — kayıt "OSMANTEMİZ MAH.
+1022. CAD, Dikmen Cd NO:2/A, 06450 Çankaya/Ankara" ve "0542 641 66 08"
+yazıyor, site de aynısını basıyor. Yalnız saatler ayrışmış.
+
+Sorunun ağırlığı şurada: Google'da arayan veli önce **yerel kartı** görüyor,
+siteyi değil. Kart "Pazartesi: Kapalı" diyorsa pazartesi kimse gelmiyor,
+site ne yazarsa yazsın. Aynı şekilde pazar günü kayıt "açık" dediği için
+kapalı kapıya gelen veli oluyor.
+
+Hangisinin doğru olduğuna kod karar veremez. Sitedeki saatler 17 Ağustos
+2026'da kurumun kendi notuyla düzeltilmişti (aynı gün önce 09.00–19.00
+gelmiş, sonra 09.00–18.00 olarak düzeltilmişti); Google kaydındaki saatler
+ise oyun evinin serbest oyun düzenine benziyor — pazartesi kapalı, hafta
+sonu geç saate kadar açık. İkisi farklı dönemlerden kalmış olabilir.
+**Karar müşterinin**; hangi taraf güncellenecekse tek kaynak yine
+`src/lib/site.ts` içindeki `SAATLER`, oradan schema.org ve `/iletisim`
+kendiliğinden düzeliyor.
+
+### Kayıt bu Google hesabından yönetilmiyor
+
+> **DOĞRULANMADI (21 Ağustos 2026).** Aşağıdaki tespit **Brave** tarayıcısında
+> yapıldı; oradaki Google hesabı Bambola'yı yönetmiyor. Kurumun profili
+> Chrome'daki hesapta olabilir. Chrome'dan bakılana kadar bu bölüm geçerli
+> sayılmaz.
+
+`business.google.com/locations` bu hesapta beş işletme listeliyor (Aydın Tur,
+Marda Ahşap, Sakinler Sitesi, Taylan Bağış Gayrimenkul, Vowtech) — **Bambola
+listede yok**. Haritalar'da kayda bakınca da sahip görünümü değil "Düzenleme
+önerin" bağlantısı çıkıyor.
+
+Yani kaydı düzenlemek için önce erişim gerekiyor: kaydın sahibi (kurum)
+`İşletme Profili Yöneticisi > Kullanıcılar` altından yönetici olarak eklemeli,
+ya da hesaptan "Bu işletmenin sahibiyim" ile erişim isteği gönderilip sahibin
+onaylaması beklenmeli. Erişim gelmeden aşağıdaki maddelerin hiçbiri
+yapılamaz.
+
+### Erişim gelince kayıtta düzeltilecekler
+
+1. **Kategori.** Kayıt "Oyun Alanı" (Playground) görünüyor. Bu, parkların ve
+   açık oyun alanlarının kategorisi; kurum MEB'e bağlı bir oyun merkezi,
+   üstelik parti evi ve bu sene anaokulu da var. Birincil kategori "Çocuk
+   oyun merkezi", ikincil kategoriler "Anaokulu" ve "Parti mekânı" olmalı.
+   Kategori, kaydın hangi aramalarda çıkacağını doğrudan belirliyor;
+   tek başına en yüksek etkili alan.
+2. **İşletme açıklaması boş.** "Hakkında" sekmesinde hiçbir metin yok. MEB
+   bağlılığı, yaş aralıkları ve grup büyüklükleri buraya yazılmalı — sitedeki
+   `MEB_ACIKLAMA` cümlesi hazır duruyor.
+3. **Hizmetler / ürünler girilmemiş.** Dokuz program ve atölye tek tek
+   girilebilir; sitemap'teki program sayfaları bire bir karşılık geliyor.
+4. **Saatler**, yukarıdaki karara göre.
+
+Kayıtta iyi durumda olanlar: 115 yorum ve 4,8 ortalama, sahip tarafından
+seçilmiş fotoğraflar, doğru adres ve telefon, doğru web sitesi.
+
+---
+
+## 40. Kampüs paneli: ayrı arayüz katmanı ve eksik işlemlerin tamamlanması
+
+*(30 Ağustos 2026. Müşteri: "kampüs sayfasının UI daha iyi ve modern olmalı, font vs aynı olsa da daha SaaS gibi yapalım, çok sade şu an" ve "tüm modülleri inceler misin, sistemde var olan her modül çalışmalı: ekle, sil, düzenle".)*
+
+Panel bugüne kadar sitenin tasarım diliyle çiziliyordu: 2px çerçeve, 32px yuvarlaklık, renkli gölge, her şey marka yeşili. Pazarlama sayfaları için doğru; **gün boyu bakılan bir çalışma ekranı için değil**. Ekrana az satır sığıyordu ve daha önemlisi renk anlam taşımıyordu — "gelmedi" ile "işlendi", "gecikmiş ödeme" ile "kayıt oldu" aynı koyu yeşille çıkıyordu. Bir tabloda göz önce renge bakar; yanlış renk, yazan metni okuyana kadar yanlış bilgi verir.
+
+### Ayrım nerede yapıldı
+
+Site ile panel **aynı iki yazı tipini ve aynı marka renklerini** kullanmaya devam ediyor. Değişen tek şey yoğunluk.
+
+| | Site | Panel |
+|---|---|---|
+| Çerçeve | 2px | 1px |
+| Yuvarlaklık | 16 / 24 / 32px | 8 / 12px |
+| Gövde | 16px | 15px |
+| Gölge | renkli, yaylı | tek katman, çok hafif |
+| Odak halkası | 3px / 3px offset | 2px / 1px offset |
+
+Bunlar `globals.css` içinde `[data-alan="kampus"]` kapsamında duruyor ve kök düzen bu özniteliği basıyor. **Site tarafı bu değişkenleri hiç görmüyor**; panel için alınan bir karar yanlışlıkla ana sayfaya sızmıyor.
+
+Dar odak halkası küçük bir ayrıntı gibi duruyor ama panelde zorunluydu: sitede yan yana bir iki düğme var, panelde bir formda on beş girdi var ve 3px halka komşusunun üstüne biniyordu.
+
+### Durum renkleri
+
+Panele dört anlam rengi girdi: `basari`, `uyari`, `tehlike`, `bilgi`. Hepsi beyaz üzerinde en az 5:1 kontrast veriyor.
+
+Eşleme `lib/kampus/tonlar.ts` içinde, **tek kaynak**. Hem sunucu sayfaları hem istemci bileşenleri aynı haritaya bakıyor; bir durumun rengi değişecekse tek satır değişiyor. Renk tek başına anlam taşımıyor: her rozette metin de var, renk yalnız tarama hızını artırıyor.
+
+| Durum | Ton | Neden |
+|---|---|---|
+| Yoklama "gelmedi" | tehlike | Aranacak bir iş |
+| Vadesi geçmiş bakiye | tehlike | Öncekinde yeşildi |
+| "Yeni" başvuru / lead | vurgu (lime) | İşlenmemiş talep |
+| Öğretmeni atanmamış sınıf | uyarı | Öğretmen kendi sınıfını göremiyor demek |
+
+### Parçalar
+
+`components/kampus/ui.tsx` kanca kullanmıyor, bu yüzden sunucu bileşeninde de istemci bileşeninde de import edilebiliyor: Kart, Rozet, Düğme, Tablo, Sayaç, İlerleme, Sekme, Bildirim, Boş durum. Etkileşim gerektirenler `ui-istemci.tsx` içinde: Kip (modal), SilDüğmesi, AramaKutusu, Fırıldak.
+
+**`window.confirm` hiç kullanılmıyor.** Tarayıcı kipi sayfayı kilitliyor, uslupla hiç ilgisi yok ve ekran okuyucu tarafında sorun çıkarıyor. Silme onayı iki adımlı satır içi bir düğmeyle alınıyor: ilk tık düğmeyi "Kalıcı olarak sil"e çeviriyor, beş saniye içinde ikinci tık gelmezse kendiliğinden geri dönüyor — yanlışlıkla açık kalmış bir onay düğmesi bir sonraki tıkla kaydı silmesin.
+
+Kabuk yeniden yazıldı: sabit sol sütun (bölüm başlıklı, aktif satırda ince kenar çizgisi), üst çubukta kırılma yolu, sol altta oturum kutusu. `cikis-butonu.tsx` kaldırıldı, yerini `kullanici-kutusu.tsx` aldı — "kimim ve nasıl çıkarım" sabit bilgi, sabit yerde durmalı; üst çubuk gün boyu değişen bilgiye ayrıldı.
+
+### Eksik işlemler
+
+İkinci istek arayüzden büyüktü. Panelde **iki modül tamamen salt okunurdu** ve kimse fark etmemişti çünkü ekranları doluydu.
+
+| Modül | Önce | Eklenen |
+|---|---|---|
+| **Veliler** | salt okunur | ekle, düzenle, sil, öğrenciye bağla / bağı kaldır, panel hesabına bağla |
+| **Kullanıcılar** | salt okunur (yalnız terminal) | hesap aç, rol/ad/telefon düzenle, aç–kapat, sil, şifre bağlantısı üret |
+| Öğrenciler | yalnız ekleme | künye düzenleme, durum değiştirme, silme |
+| Sınıflar | öğretmen + kontenjan | elle sınıf ekleme, gün/saat/atölye düzenleme, aç–kapat, silme |
+| Lead'ler | ekle + durum | düzenleme, silme |
+| Duyurular | ekle + yayınla | düzenleme, silme |
+| Cari | ekle + sil | hareket düzeltme |
+| Yemek | kaydet | menü temizleme |
+| Yoklama | ders aç, işaretle | boş ders silme |
+| Başvurular | durum + not | başvuru ve not silme |
+
+Veli kaydı önceden **yalnız `ogrenciEkle` içinden doğabiliyordu**: velisi değişen, ikinci velisi eklenen ya da telefonu yanlış girilmiş bir aile için panelde yapılacak hiçbir şey yoktu.
+
+### Silme kör değil
+
+Silme, veri kaybı demek. Her silme işlemi önce bağlı kayıtlara bakıyor ve **sebebi yazan** bir hatayla duruyor:
+
+| İşlem | Duruyorsa neden |
+|---|---|
+| Öğrenci | Cari hareketi var — para geçmişi sessizce yok olmamalı |
+| Veli | Bağlı çocuğu var — çocuk velisiz kalırsa kime ulaşılacağı bilinmez |
+| Sınıf | Kaydı ya da ders kaydı var — geçmiş yoklamalar ona bağlı |
+| Ders | Yoklaması alınmış — o gün kimin geldiği başka hiçbir yerde durmuyor |
+| Lead | Öğrenciye dönüşmüş — dönüşüm oranını taşıyan tek kayıt o |
+| Hesap | Son yönetici — panele girebilen kimse kalmaz |
+
+Normal yol her zaman **arşivlemek**: ayrılan çocuk "ayrıldı" olur, ayrılan çalışanın hesabı kapatılır. Silme yalnız yanlış açılmış kayıt için.
+
+### Hesap açma panele taşındı
+
+Önceki not "Supabase yönetici anahtarını gerektiriyor ve o anahtar tarayıcıya gitmemeli" diyordu. Doğru ama eksik: anahtarın tarayıcıya gitmesi gerekmiyor. `lib/kampus/kullanici-islemleri.ts` bir `"use server"` dosyası ve hiçbir zaman tarayıcı paketine girmiyor.
+
+Şifre **belirlenmiyor**: işlem tek kullanımlık bir bağlantı üretiyor, kişi kendi şifresini kendisi koyuyor. Bağlantı ekranda gösteriliyor ve e-posta gönderilmiyor — kime verildiği bilinerek elden veriliyor.
+
+`npm run kampus:kullanici` betiği **duruyor ve durmalı**: panele girip hesap açabilmek için önce bir yönetici gerekiyor, ilk hesap oradan açılıyor.
+
+### İki hata
+
+**Başvuru silme yetkisi yoktu.** 0001 ve 0002 `basvurular` tablosuna yalnız SELECT ve UPDATE politikası koymuştu. Politika olmadan `delete` çağrısı **hata vermiyor, sadece hiçbir satırı silmiyordu**; arayüzde başarıyla silinmiş gibi görünüp liste değişmiyordu. `0006_basvuru_silme.sql` politikayı açıyor; işlem ayrıca silinen satır sayısını geri isteyip sıfırsa "göç çalıştırılmalı" diyor, sessizce başarılı görünmüyor.
+
+**Şifre bağlantısı yanlış alan adına düşüyordu.** Adres `SITE_URL`'den üretiliyordu, yani `bambola.com.tr/kampus/sifre-belirle`. Oysa proxy ana alan adında `/kampus` adresini ana sayfaya yönlendiriyor: bağlantı üretildiği anda doğru görünüp tıklandığında ana sayfaya düşecekti. Artık isteğin kendi host'undan üretiliyor ve `kampus.` önekine göre `/kampus` eki ekleniyor ya da eklenmiyor.
+
+### Doğrulama
+
+Derleme, tip kontrolü, lint ve 557 veri kontrolü geçiyor. Tarayıcıda on iki ekran gezildi; lead için **ekle → düzenle → sil** ve başvuru için **sil** uçtan uca çalıştırıldı (0006 göçünden sonra kayıt gerçekten düştü).
+
+⏳ **Bekleyen:** (1) öğretmen ve veli rolü hiç açılmadı — veritabanında tek hesap var, `veliler.profil_id` bağlantısı hiçbir velide kurulu değil, yani veli portalı bir kez bile görüntülenmedi; (2) `kayitlar` boş olduğu için yoklama işaretleme gerçek öğrenciyle denenmedi (Bölüm 36'daki sınıf ataması kararı bekliyor); (3) veli, sınıf, ödeme, menü ve duyuru işlemleri tarayıcıda tek tek tıklanmadı; (4) mobil görünüm doğrulanmadı — öğretmenin telefondan yoklama alması asıl mobil senaryo.
+
+---
+
+## 41. Mor Kibar logoları kaldırıldı
+
+*(4 Eylül 2026. Müşteri: "mor logoyu her yerden sil, öyle bir logomuz yok".)*
+
+Kurumun tek amblemi var: resmi yeşil amblem (`src/assets/bambola-logo.svg`). Mor Kibar logoları (oyun merkezi, anaokulu ve BAMBOLA'sız anaokulu sürümü) ile kaynak PDF'leri depodan çıkarıldı. Üyelik formu artık fiyat listesiyle aynı yeşil amblemi taşıyor; Bölüm 14 madde 8'deki "oyun merkezinin BAMBOLA'sız hali bekleniyor" maddesi ve "vektör mor logo istenecek" notu **kapandı**, beklenen bir şey kalmadı.
+
+Mor ve kum renk simgeleri (`--color-mor`, `--color-kum`) sitede yalnız karakterler ve konfeti gibi süs öğelerinde geçiyor; logoya bağlı değiller, oldukları gibi duruyor.
+
+Aynı temizlik kurumsal kimlik deposunda (`bambola-kurumsal`) ve claude.ai projesinde de yapıldı.

@@ -20,25 +20,15 @@ const kacis = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /**
- * Amblem. 11 Agustos 2026'da musteri yesil "Kids Zone & Party House"
- * amblemini bu formda istemedi, yerine BAMBOLA wordmark'i kaldirilmis mor
- * Kibar amblemini gonderdi (marka/LOGO KIBAR COCUKLAR ANAOKULU BAMBOLASIZ.pdf).
+ * Amblem: resmi yesil amblem, gercek vektor. Fiyat listesiyle ayni dosya.
  *
- * Kaynak PDF vektor degil, 1024px CMYK JPEG + saydamlik maskesi. Maske
- * logodaki kum rengi harfleri ve piktogrami da deliyor (tasarim onlari
- * arkadaki kum zemine oyuk olarak birakmis), beyaz kagida oldugu gibi
- * basilsa harfler beyaz cikardi. Bu yuzden yalnizca dis cerceve saydam
- * birakilip ic oyuklar kum rengiyle dolduruldu ve 512px PNG olarak
- * cikarildi: belgedeki en buyuk kullanim 19mm, orada ~685 dpi eder.
- * 1024px arsiv kopyasi marka/kibar-anaokulu-bambolasiz.png.
- *
- * DIKKAT: Amblemin halkasinda "KIBAR COCUKLAR ANAOKULU" yaziyor, formun
- * baslgindaki tuzel ad ise "Kibar Cocuk Etkinlik ve Oyun Merkezi".
- * Musteri 11 Agustos 2026'da bunun boyle kalmasini onayladi.
+ * 4 Eylul 2026 musteri karari: mor Kibar amblemi KULLANILMAZ, "oyle bir
+ * logomuz yok". Form bir sure BAMBOLA'siz mor anaokulu amblemini tasimisti
+ * (11 Agustos 2026); o dosyalar depodan cikarildi. Tek amblem var: yesil.
  */
 const AMBLEM_SRC =
-  "data:image/png;base64," +
-  readFileSync("src/assets/kibar-anaokulu-bambolasiz.png").toString("base64");
+  "data:image/svg+xml;base64," +
+  readFileSync("src/assets/bambola-logo.svg").toString("base64");
 
 function ikon(yol: string, renk = "#ffffff") {
   const svg =
