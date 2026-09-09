@@ -146,33 +146,57 @@ esit(PAKETLER.bebek[1].erkenKayit, 5600, "bebek ayda 4 indirimli");
 
 // ----------------------------------------------------- tek seferlik atolyeler
 
-// PLAN.md Bolum 6.2 tablo C: 7 kalem, hepsi hafta ici veya Cumartesi,
-// ama Cumartesi 14.00-16.00 ve 16.00-18.00 tek seferlik DEGIL (duzeltme).
+/*
+  9 Eylul 2026 program listesi tek seferlik atolyeleri takvimden cikardi
+  (Sarkili Masal, Matematik, Minik Beyinler). Geriye tek katilimla
+  girilebilen tek program olarak Ingilizce Oyun Grubu kaldi: dort seans.
+*/
 const tekSefer = tekSeferlikSlotlar();
-esit(tekSefer.length, 9, "tek seferlik slot sayisi");
+esit(tekSefer.length, 4, "tek seferlik slot sayisi");
 dogru(
-  !tekSefer.some((s) => s.id === "cmt-1400-gelisim"),
-  "Cumartesi 14.00 tek seferlik olmamali, sabit grubun hafta sonu secenegi",
+  tekSefer.every((s) => s.atolyeSlug === "ingilizce-oyun-grubu"),
+  "tek seferlik seanslarin hepsi Ingilizce Oyun Grubu olmali",
 );
 dogru(
-  !tekSefer.some((s) => s.id === "cmt-1600-bebek"),
-  "Cumartesi 16.00 tek seferlik olmamali, sabit grubun hafta sonu secenegi",
+  !tekSefer.some((s) => s.id === "cmt-1030-gelisim"),
+  "Cumartesi 10.30 tek seferlik olmamali, sabit grubun hafta sonu secenegi",
+);
+dogru(
+  !tekSefer.some((s) => s.id === "cmt-1500-bebek"),
+  "Cumartesi 15.00 tek seferlik olmamali, sabit grubun hafta sonu secenegi",
 );
 
-// Hafta sonu secenekleri kombinasyonlarda var mi (10 Agustos duzeltmesi).
+// Hafta sonu secenekleri kombinasyonlarda var mi (9 Eylul listesine gore).
 const gelisim = AILELER.find((a) => a.slug === "gelisim-odakli-oyun")!;
 dogru(
   gelisim.sabitKombinasyonlar.some(
-    (k) => k.haftaSonu && k.slotIdler.includes("cmt-1400-gelisim"),
+    (k) => k.haftaSonu && k.slotIdler.includes("cmt-1030-gelisim"),
   ),
-  "24-36 ay Cumartesi 14.00 hafta sonu secenegi eksik",
+  "24-36 ay Cumartesi 10.30 hafta sonu secenegi eksik",
 );
 const bebek = AILELER.find((a) => a.slug === "bebek")!;
 dogru(
   bebek.sabitKombinasyonlar.some(
-    (k) => k.haftaSonu && k.slotIdler.includes("cmt-1600-bebek"),
+    (k) => k.haftaSonu && k.slotIdler.includes("cmt-1500-bebek"),
   ),
-  "6-12 ay Cumartesi 16.00 hafta sonu secenegi eksik",
+  "12-24 ay Cumartesi 15.00 hafta sonu secenegi eksik",
+);
+dogru(
+  bebek.sabitKombinasyonlar.some(
+    (k) => k.haftaSonu && k.slotIdler.includes("cmt-1330-bebek"),
+  ),
+  "8-16 ay Cumartesi 13.30 hafta sonu secenegi eksik",
+);
+/*
+  6-12 ay grubunun hafta sonu secenegi 9 Eylul listesinde YOK: o yasin tek
+  seansi Sali 14.00. Bilerek bos, bir sonraki listede geri gelirse buraya
+  yeniden bir kontrol yazilir.
+*/
+dogru(
+  bebek.sabitKombinasyonlar.some((k) =>
+    k.slotIdler.includes("sali-1400-bebek"),
+  ),
+  "6-12 ay Sali 14.00 secenegi eksik",
 );
 
 // ------------------------------------------------------------- yas hesabi
@@ -189,8 +213,12 @@ esit(yasMetni(38), "3 yaş 2 aylık", "yas metni yil ve ay");
 
 // ------------------------------------------------------------- uygunluk
 
-// 19 aylik cocuk: gelisim odakli (16-36) + bebek (6-24) = 2 aile.
-esit(uygunAileler(19).length, 2, "19 aylik icin aile sayisi");
+/*
+  19 aylik cocuk: gelisim odakli (16-36) + bebek (6-24) + ingilizce (12-36).
+  Ingilizce ailesi 9 Eylul 2026'da 24 aydan 12 aya indi, cunku yeni programda
+  Persembe 14.00 Ingilizce seansi 12-24 ay grubuna aciliyor.
+*/
+esit(uygunAileler(19).length, 3, "19 aylik icin aile sayisi");
 // 8 aylik: yalniz bebek.
 esit(uygunAileler(8).length, 1, "8 aylik icin aile sayisi");
 esit(uygunAileler(8)[0].slug, "bebek", "8 aylik icin bebek grubu");
@@ -221,7 +249,7 @@ esit(
     .map((a) => a.slug)
     .sort()
     .join(","),
-  "bebek,gelisim-odakli-oyun",
+  "bebek,gelisim-odakli-oyun,ingilizce",
   "12-24 ay bandi",
 );
 esit(
@@ -238,17 +266,14 @@ dogru(
   "24-36 ay sayfasinda bebek grubu GORUNMEMELI",
 );
 
-// 40 aylik cocuk icin tek seferlik: matematik (Sali, Cmt) + minik beyinler.
+/*
+  40 aylik cocuk icin tek seferlik seans YOK. Matematik ve Minik Beyinler
+  atolyeleri 9 Eylul 2026 listesiyle takvimden cikti; 3 yas ustune yalnizca
+  Okula Hazirlik Gruplari aciliyor ve orada tek seferlik katilim yok.
+  Atolyelerin tanitim sayfalari duruyor, seanslari yok.
+*/
 const besTek = uygunTekSeferlikSlotlar(40);
-esit(besTek.length, 3, "3 yas ustu tek seferlik slot sayisi");
-dogru(
-  besTek.every((s) =>
-    ["oyunlarla-matematik-atolyesi", "minik-beyinler-laboratuvari"].includes(
-      s.atolyeSlug,
-    ),
-  ),
-  "3 yas ustu tek seferlikler yalniz matematik ve minik beyinler olmali",
-);
+esit(besTek.length, 0, "3 yas ustu tek seferlik slot sayisi");
 
 // ----------------------------------------------------------- dogrulama
 
@@ -422,7 +447,18 @@ for (const o of gorevliler) {
   bolumu bu iki fonksiyondan besleniyor. Bos donerlerse ekranda hata cikmaz,
   bolum sessizce KAYBOLUR -- gozle fark edilmeyen tam olarak bu.
 */
-for (const aile of AILELER) {
+/*
+  ACIK EKSIK, 9 Eylul 2026: kurumdan gelen program listesinde ogretmen
+  sutunu yoktu. Gunu, saati ve atolyesi eski programla birebir tutan
+  seanslarda eski ogretmen korundu; Ingilizce Oyun Grubunun butun seanslari
+  yenilendigi icin o ailenin kadrosu bos kaldi. Kurum adlari verince bu
+  istisna KALDIRILMALI, kontrol yeniden butun aileleri kapsamali.
+*/
+const OGRETMENI_BEKLENEN_AILELER = AILELER.filter(
+  (a) => a.slug !== "ingilizce",
+);
+
+for (const aile of OGRETMENI_BEKLENEN_AILELER) {
   const kadro = aileOgretmenleri(aile.slug);
   dogru(kadro.length > 0, `${aile.slug}: program ailesinin ogretmeni yok`);
   for (const o of kadro) {
@@ -434,10 +470,13 @@ for (const aile of AILELER) {
 }
 
 /*
-  Seansi olup ogretmeni olmayan TEK atolye serbest oyun olmali. Serbest oyun
-  atanmis ogretmeni olmayan bir zaman dilimi (her grup gununun ilk saati),
-  Excel'de de ogretmen yazmiyor. Baska bir programin ogretmensiz kalmasi ise
-  hata: sayfasindaki "kim veriyor" bolumu sessizce kaybolur.
+  Seansi olup ogretmeni olmayan atolye, sayfasindaki "kim veriyor" bolumunu
+  sessizce kaybeder. O yuzden liste tek tek yaziliyor.
+
+  9 Eylul 2026: serbest oyunun artik hic seansi yok, listeden dustu. Yerine
+  Ingilizce Oyun Grubu geldi, cunku yeni programdaki dort Ingilizce seansi
+  da yeni ve kurum listesi ogretmen adi tasimiyordu. Kurum adlari verince
+  bu liste BOSALMALI.
 
   Guvenli Ayrilma Programi bu listede yok cunku kendi seansi hic yok; Okula
   Hazirlik Gruplarinin icinde yuruyor ve sayfasi ailenin kadrosunu gosteriyor.
@@ -450,7 +489,7 @@ const ogretmensiz = ATOLYELER.filter(
 
 esit(
   ogretmensiz.join(", "),
-  "serbest-oyun",
+  "ingilizce-oyun-grubu",
   "ogretmensiz seansi olan atolyeler beklenenden farkli",
 );
 
@@ -850,6 +889,13 @@ for (const slug of Object.keys(GOSTERILMEYEN)) {
   bir grup eklenirken kolayca "24-36 ay" yazilabilir; test onu yakaliyor.
 */
 const AY_ARALIGI = /\d+\s*(-|–)\s*\d+\s*ay\b|\d+\+\s*ay\b/;
+
+/*
+  KAPSAM: aile etiketleri, kombinasyon etiketleri, atolye etiketleri ve yas
+  sayfasi adlari. Haftalik takvimdeki SLOT etiketleri bilerek disarida:
+  9 Eylul 2026 musteri karari o tabloyu kurumun gonderdigi gibi ay olarak
+  yaziyor (lib/data/program.ts, YAS).
+*/
 
 for (const a of AILELER) {
   dogru(

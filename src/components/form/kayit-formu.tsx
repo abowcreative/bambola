@@ -7,7 +7,11 @@ import { AnimatePresence } from "motion/react";
 
 import { AILELER, aileBul } from "@/lib/data/gruplar";
 import { atolyeBul } from "@/lib/data/atolyeler";
-import { slotBul } from "@/lib/data/program";
+import {
+  slotBul,
+  slotDoluMu,
+  kombinasyonDoluMu,
+} from "@/lib/data/program";
 import { GUN_ADI, type ProgramAilesiSlug } from "@/lib/data/types";
 import {
   paketBul,
@@ -688,11 +692,14 @@ export function KayitFormu({
                       );
                     const ilk = slotBul(k.slotIdler[0]);
                     const ogretmenler = ilk?.ogretmenler ?? [];
+                    // Kombinasyonun bir gunu bile doluysa tamami secilemez.
+                    const dolu = kombinasyonDoluMu(k.slotIdler);
                     return (
                       <SecimKarti
                         key={k.etiket}
                         ad="saat"
                         secili={secili}
+                        pasif={dolu}
                         onSec={() =>
                           guncelle({
                             secilenSlotIdler: k.slotIdler,
@@ -706,6 +713,7 @@ export function KayitFormu({
                             : undefined
                         }
                         rozetler={[
+                          ...(dolu ? ["Dolu"] : []),
                           ...(k.haftaSonu ? ["Hafta sonu"] : []),
                           ...(ilk && ilk.dil !== "tr"
                             ? [
@@ -724,11 +732,13 @@ export function KayitFormu({
                 {d.secim?.tur === "tek-seferlik" &&
                   tekSeferlikler.map((s) => {
                     const atolye = atolyeBul(s.atolyeSlug);
+                    const dolu = slotDoluMu(s);
                     return (
                       <SecimKarti
                         key={s.id}
                         ad="saat"
                         secili={d.secilenSlotIdler[0] === s.id}
+                        pasif={dolu}
                         onSec={() =>
                           guncelle({
                             secilenSlotIdler: [s.id],
@@ -738,6 +748,7 @@ export function KayitFormu({
                         baslik={`${GUN_ADI[s.gun]} · ${s.bas} - ${s.bit}`}
                         altBaslik={atolye?.ad}
                         rozetler={[
+                          ...(dolu ? ["Dolu"] : []),
                           s.yas.etiket,
                           ...(s.dil === "en" ? ["İngilizce"] : []),
                           ...(s.yas.ebeveynsiz ? ["Ebeveynsiz"] : []),

@@ -99,8 +99,8 @@ export const AILELER: ProgramAilesi[] = [
         haftaSonu: false,
       },
       {
-        etiket: "2 - 3 yaş · Cumartesi · 14.00 - 16.00",
-        slotIdler: ["cmt-1400-gelisim"],
+        etiket: "2 - 3 yaş · Cumartesi · 10.30 - 12.30",
+        slotIdler: ["cmt-1030-gelisim"],
         haftaSonu: true,
       },
     ],
@@ -129,23 +129,23 @@ export const AILELER: ProgramAilesi[] = [
     paketler: PAKETLER.bebek,
     sabitKombinasyonlar: [
       {
-        etiket: "1 - 2 yaş · Pazartesi + Cuma · 15.00 - 17.00",
-        slotIdler: ["pzt-1500-bebek", "cuma-1500-bebek"],
+        etiket: "1 - 2 yaş · Pazartesi + Çarşamba · 15.00 - 17.00",
+        slotIdler: ["pzt-1500-bebek", "crs-1500-bebek"],
         haftaSonu: false,
       },
       {
-        etiket: "6 aylık - 1 yaş · Salı · 16.00 - 18.00",
-        slotIdler: ["sali-1600-bebek"],
+        etiket: "6 aylık - 1 yaş · Salı · 14.00 - 16.00",
+        slotIdler: ["sali-1400-bebek"],
         haftaSonu: false,
       },
       {
-        etiket: "6 aylık - 1 yaş · Cuma · 10.00 - 12.00",
-        slotIdler: ["cuma-1000-bebek"],
-        haftaSonu: false,
+        etiket: "8 aylık - 1,5 yaş · Cumartesi · 13.30 - 15.30",
+        slotIdler: ["cmt-1330-bebek"],
+        haftaSonu: true,
       },
       {
-        etiket: "6 aylık - 1 yaş · Cumartesi · 16.00 - 18.00",
-        slotIdler: ["cmt-1600-bebek"],
+        etiket: "1 - 2 yaş · Cumartesi · 15.00 - 17.00",
+        slotIdler: ["cmt-1500-bebek"],
         haftaSonu: true,
       },
     ],
@@ -170,27 +170,43 @@ export const AILELER: ProgramAilesi[] = [
     ad: "İngilizce Oyun Grubu",
     kisaAd: "İngilizce Grubu",
     ozet: "Seans tamamen İngilizce işlenir.",
-    yasEtiket: "2 - 3 yaş",
-    minAy: 24,
+    /*
+      9 Eylul 2026 program listesi Ingilizce seanslarini 12 aya kadar
+      indirdi (Persembe 14.00 grubu 12-24 ay). Aile araligi programa
+      uyduruldu, yoksa o seans kayit formunda hicbir cocuga gorunmezdi.
+    */
+    yasEtiket: "1 - 3 yaş",
+    minAy: 12,
     maxAy: 36,
     maxKisi: 8,
     sure: "Haftada 2 gün · Günde 2 saat",
     ozellikler: [
       "Etkinlik süresi 2 saat",
       "Hafta içi iki ayrı günde açılır",
+      "Hafta sonu seçeneği",
       "Tek katılımla da girilebilir",
     ],
     paketler: PAKETLER.ingilizce,
     sabitKombinasyonlar: [
       {
-        etiket: "Pazartesi · 14.00 - 16.00",
-        slotIdler: ["pzt-1400-ingilizce"],
+        etiket: "1 - 2 yaş · Perşembe · 14.00 - 16.00",
+        slotIdler: ["prs-1400-ingilizce"],
         haftaSonu: false,
       },
       {
-        etiket: "Cuma · 14.00 - 16.00",
-        slotIdler: ["cuma-1400-ingilizce"],
+        etiket: "1,5 - 2 yaş · Cuma · 10.00 - 12.00",
+        slotIdler: ["cuma-1000-ingilizce"],
         haftaSonu: false,
+      },
+      {
+        etiket: "2 - 3 yaş · Cumartesi · 09.30 - 11.30",
+        slotIdler: ["cmt-0930-ingilizce"],
+        haftaSonu: true,
+      },
+      {
+        etiket: "1,5 - 2 yaş · Cumartesi · 10.00 - 12.00",
+        slotIdler: ["cmt-1000-ingilizce"],
+        haftaSonu: true,
       },
     ],
     notlar: [],

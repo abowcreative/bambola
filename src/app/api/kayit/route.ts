@@ -7,7 +7,7 @@ import {
 } from "@/lib/supabase/server";
 import { ipOzeti, istekIp, sinirAsildiMi } from "@/lib/rate-limit";
 import { ayHesapla, slotUygunMu } from "@/lib/yas";
-import { slotBul } from "@/lib/data/program";
+import { slotBul, slotDoluMu } from "@/lib/data/program";
 import { aileBul } from "@/lib/data/gruplar";
 import { paketBul, kampanyaAcikMi } from "@/lib/data/ucretler";
 import { atolyeBul } from "@/lib/data/atolyeler";
@@ -120,6 +120,19 @@ export async function POST(istek: Request) {
     if (!slot) {
       return NextResponse.json(
         { ok: false, hata: "Seçilen saatlerden biri artık geçerli değil. Lütfen tekrar seçin." },
+        { status: 422 },
+      );
+    }
+    /*
+      Kontenjan sunucuda da bakilir. Istemcideki pasif kart bir kolaylik;
+      dolu bir slotun id'si elle gonderilirse kayit yine reddedilir.
+    */
+    if (slotDoluMu(slot)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          hata: "Seçilen grubun kontenjanı doldu. Lütfen başka bir gün ve saat seçin.",
+        },
         { status: 422 },
       );
     }

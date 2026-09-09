@@ -131,6 +131,7 @@ export function SecimKarti({
   sag,
   ikon,
   ad,
+  pasif,
 }: {
   secili: boolean;
   onSec: () => void;
@@ -141,13 +142,22 @@ export function SecimKarti({
   ikon?: ReactNode;
   /** Ayni gruptaki kartlar icin radyo adi. */
   ad: string;
+  /**
+   * Secilemez kart. Kontenjani dolan gun ve saatler icin: kart listede
+   * KALIR, cunku veli "bu saat vardi, ne oldu" diye aramasin; ama
+   * isaretlenemez. Sunucu ayrica reddeder, bu gorsel bir onlemdir.
+   */
+  pasif?: boolean;
 }) {
   return (
     <label
-      className={`group relative flex cursor-pointer items-start gap-4 rounded-kart border-2 p-4 transition-all duration-200 ease-yayli hover:-translate-y-0.5 ${
-        secili
-          ? "border-[var(--kol-ana)] bg-[var(--kol-vurgu)]/25 shadow-kart"
-          : "border-cizgi bg-white hover:border-[var(--kol-ana)]/50"
+      aria-disabled={pasif || undefined}
+      className={`group relative flex items-start gap-4 rounded-kart border-2 p-4 transition-all duration-200 ease-yayli ${
+        pasif
+          ? "cursor-not-allowed border-cizgi bg-krem-koyu/70"
+          : secili
+            ? "cursor-pointer border-[var(--kol-ana)] bg-[var(--kol-vurgu)]/25 shadow-kart hover:-translate-y-0.5"
+            : "cursor-pointer border-cizgi bg-white hover:-translate-y-0.5 hover:border-[var(--kol-ana)]/50"
       }`}
     >
       <input
@@ -155,15 +165,18 @@ export function SecimKarti({
         name={ad}
         checked={secili}
         onChange={onSec}
+        disabled={pasif}
         className="sr-only"
       />
 
       {ikon && (
         <span
           className={`mt-0.5 grid size-11 shrink-0 place-items-center rounded-full transition-colors ${
-            secili
-              ? "bg-[var(--kol-ana)] text-white"
-              : "bg-krem-koyu text-[var(--kol-koyu)]"
+            pasif
+              ? "bg-krem-koyu text-murekkep-soluk"
+              : secili
+                ? "bg-[var(--kol-ana)] text-white"
+                : "bg-krem-koyu text-[var(--kol-koyu)]"
           }`}
           aria-hidden="true"
         >

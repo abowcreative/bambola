@@ -101,6 +101,23 @@ export type Slot = {
   ogretmenler: string[];
   /** Bu slota tek katilimla girilebilir mi (PLAN.md Bolum 6.2 tablo C). */
   tekSeferMumkun: boolean;
+  /** O andaki kontenjan hali. Programin kendisi degil, doluluk bilgisi. */
+  durum: SlotDurumu;
+};
+
+/**
+ * Kontenjan durumu. Kurumdan gelen haftalik listeyle guncellenir,
+ * Excel'de karsiligi yoktur.
+ *
+ * "dolu" olan slot sitede pasif gorunur ve kayit formunda secilemez;
+ * sunucu da ayrica reddeder (api/kayit).
+ */
+export type SlotDurumu = "acik" | "son1" | "dolu";
+
+export const DURUM_ETIKET: Record<SlotDurumu, string> = {
+  acik: "Kayıt açık",
+  son1: "Son 1 kontenjan",
+  dolu: "Dolu",
 };
 
 export type AtolyeSlug =

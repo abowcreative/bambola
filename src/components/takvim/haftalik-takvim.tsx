@@ -7,12 +7,21 @@ import {
   GUNLER,
   GUN_ADI,
   GUN_KISA,
+  DURUM_ETIKET,
   type Gun,
   type Slot,
+  type SlotDurumu,
 } from "@/lib/data/types";
-import { gunSlotlari, SLOTLAR, PAZAR_NOTU, OGLE_ARASI } from "@/lib/data/program";
+import {
+  gunSlotlari,
+  SLOTLAR,
+  PAZAR_NOTU,
+  OGLE_ARASI,
+  slotDoluMu,
+} from "@/lib/data/program";
 import { atolyeBul } from "@/lib/data/atolyeler";
 import { YAS_SAYFALARI } from "@/lib/yas";
+import { KAYIT_FORMU_ACIK } from "@/lib/site";
 import { Ikon, DinamikIkon } from "@/components/ui/ikon";
 
 /**
@@ -265,38 +274,53 @@ function ZamanIzgarasi({
  */
 function IzgaraKarti({ slot }: { slot: Slot }) {
   const atolye = atolyeBul(slot.atolyeSlug);
+  const dolu = slotDoluMu(slot);
 
-  // `block`, `h-full` degil: kart kendi icerigi kadar yuksek olur, satirin en
-  // uzun hucresi kadar uzamaz. Uzasaydi tek kartli satirlarda rozetlerle
-  // ogretmen adi arasinda acikta bir bosluk kalirdi.
+  /*
+    Kart artik tek bir baglanti degil: kayit dugmesi ikinci bir baglanti
+    oldugu icin ic ice anchor cikmasin diye dis katman div oldu. Kalkma
+    efekti bu yuzden hover ile degil has-[a:hover] ile veriliyor.
+
+    h-full yok: kart kendi icerigi kadar yuksek olur, satirin en uzun
+    hucresi kadar uzamaz.
+  */
   return (
-    <Link
-      href={`/oyun-evi/programlar/${slot.atolyeSlug}`}
-      className="group block rounded-yumusak border border-cizgi bg-white p-2.5 transition-all duration-200 ease-yayli hover:-translate-y-0.5 hover:border-yesil hover:shadow-kart"
+    <div
+      className={`rounded-yumusak border p-2.5 transition-all duration-200 ease-yayli has-[a:hover]:-translate-y-0.5 has-[a:hover]:border-yesil has-[a:hover]:shadow-kart ${
+        dolu ? "border-cizgi bg-krem-koyu/70" : "border-cizgi bg-white"
+      }`}
     >
-      <div className="flex items-start gap-2">
-        <span className="mt-px grid size-6 shrink-0 place-items-center rounded-full bg-krem-koyu text-yesil-koyu transition-colors group-hover:bg-lime-rozet">
-          <DinamikIkon ad={atolye?.ikon ?? "Grup"} boyut={13} />
-        </span>
-        <p className="min-w-0 text-[0.82rem] font-semibold leading-tight text-murekkep">
-          {atolye?.kisaAd ?? slot.atolyeSlug}
-        </p>
-      </div>
+      <Link
+        href={`/oyun-evi/programlar/${slot.atolyeSlug}`}
+        className="group block"
+      >
+        <div className="flex items-start gap-2">
+          <span className="mt-px grid size-6 shrink-0 place-items-center rounded-full bg-krem-koyu text-yesil-koyu transition-colors group-hover:bg-lime-rozet">
+            <DinamikIkon ad={atolye?.ikon ?? "Grup"} boyut={13} />
+          </span>
+          <p className="min-w-0 text-[0.82rem] font-semibold leading-tight text-murekkep">
+            {atolye?.kisaAd ?? slot.atolyeSlug}
+          </p>
+        </div>
 
-      <div className="mt-2 flex flex-wrap gap-1">
-        <Rozet>{slot.yas.etiket}</Rozet>
-        {slot.yas.ebeveynsiz && <Rozet vurgu>Ebeveynsiz</Rozet>}
-        {slot.dil === "en" && <Rozet vurgu>İngilizce</Rozet>}
-        {slot.dil === "karma" && <Rozet vurgu>1 sa. İngilizce</Rozet>}
-        {slot.tekSeferMumkun && <Rozet>Tek seferlik</Rozet>}
-      </div>
+        <div className="mt-2 flex flex-wrap gap-1">
+          <Rozet ton={slot.durum}>{DURUM_ETIKET[slot.durum]}</Rozet>
+          <Rozet>{slot.yas.etiket}</Rozet>
+          {slot.yas.ebeveynsiz && <Rozet ton="vurgu">Ebeveynsiz</Rozet>}
+          {slot.dil === "en" && <Rozet ton="vurgu">İngilizce</Rozet>}
+          {slot.dil === "karma" && <Rozet ton="vurgu">1 sa. İngilizce</Rozet>}
+          {slot.tekSeferMumkun && <Rozet>Tek seferlik</Rozet>}
+        </div>
 
-      {slot.ogretmenler.length > 0 && (
-        <p className="mt-1.5 text-[0.7rem] leading-tight text-murekkep-soluk">
-          {slot.ogretmenler.join(", ")}
-        </p>
-      )}
-    </Link>
+        {slot.ogretmenler.length > 0 && (
+          <p className="mt-1.5 text-[0.7rem] leading-tight text-murekkep-soluk">
+            {slot.ogretmenler.join(", ")}
+          </p>
+        )}
+      </Link>
+
+      <KayitDugmesi slot={slot} dar />
+    </div>
   );
 }
 
@@ -390,55 +414,118 @@ function GunListesi({
 
 export function SlotKarti({ slot }: { slot: Slot }) {
   const atolye = atolyeBul(slot.atolyeSlug);
+  const dolu = slotDoluMu(slot);
+
+  return (
+    <div
+      className={`rounded-kart border-2 p-3.5 transition-all duration-200 ease-yayli has-[a:hover]:-translate-y-0.5 has-[a:hover]:border-yesil has-[a:hover]:shadow-kart ${
+        dolu ? "border-cizgi bg-krem-koyu/70" : "border-cizgi bg-white"
+      }`}
+    >
+      <Link
+        href={`/oyun-evi/programlar/${slot.atolyeSlug}`}
+        className="group block"
+      >
+        <div className="flex items-start gap-2.5">
+          <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-krem-koyu text-yesil-koyu transition-colors group-hover:bg-lime-rozet">
+            <DinamikIkon ad={atolye?.ikon ?? "Grup"} boyut={17} />
+          </span>
+          <div className="min-w-0">
+            <p className="font-baslik text-sm font-bold tabular-nums text-murekkep">
+              {slot.bas} - {slot.bit}
+            </p>
+            <p className="mt-0.5 text-sm leading-snug text-murekkep">
+              {atolye?.kisaAd ?? slot.atolyeSlug}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
+          <Rozet ton={slot.durum}>{DURUM_ETIKET[slot.durum]}</Rozet>
+          <Rozet>{slot.yas.etiket}</Rozet>
+          {slot.yas.ebeveynsiz && <Rozet ton="vurgu">Ebeveynsiz</Rozet>}
+          {slot.dil === "en" && <Rozet ton="vurgu">İngilizce</Rozet>}
+          {slot.dil === "karma" && <Rozet ton="vurgu">1 saat İngilizce</Rozet>}
+          {slot.tekSeferMumkun && <Rozet>Tek seferlik</Rozet>}
+        </div>
+
+        {slot.ogretmenler.length > 0 && (
+          <p className="mt-2 text-xs text-murekkep-soluk">
+            {slot.ogretmenler.join(", ")}
+          </p>
+        )}
+      </Link>
+
+      <KayitDugmesi slot={slot} />
+    </div>
+  );
+}
+
+/**
+ * Slot bazinda kayit dugmesi.
+ *
+ * Uc kapi ayni cevabi verir: dolu slotta dugme pasiftir, kayit formunda o
+ * secim kapalidir (components/form/kayit-formu) ve sunucu reddeder
+ * (api/kayit). Istemcideki pasiflik tek basina bir kontrol degildir.
+ *
+ * KAYIT_FORMU_ACIK false iken hic dugme cikmaz: sitenin geri kalaninda da
+ * forma giden dugme yok, takvim tek basina "cok yakinda" sayfasina goturen
+ * bir kapi acmasin.
+ */
+function KayitDugmesi({ slot, dar }: { slot: Slot; dar?: boolean }) {
+  if (!KAYIT_FORMU_ACIK) return null;
+
+  const olcu = dar
+    ? "mt-2 px-2 py-1 text-[0.7rem]"
+    : "mt-3 px-3 py-1.5 text-xs";
+
+  if (slotDoluMu(slot)) {
+    return (
+      <span
+        aria-disabled="true"
+        className={`block cursor-not-allowed rounded-full bg-krem-koyu text-center font-semibold text-murekkep-soluk ${olcu}`}
+      >
+        Kayıt kapalı
+      </span>
+    );
+  }
+
+  const ailesi = atolyeBul(slot.atolyeSlug)?.ailesi;
 
   return (
     <Link
-      href={`/oyun-evi/programlar/${slot.atolyeSlug}`}
-      className="group block rounded-kart border-2 border-cizgi bg-white p-3.5 transition-all duration-200 ease-yayli hover:-translate-y-0.5 hover:border-yesil hover:shadow-kart"
+      href={ailesi ? `/kayit?program=${ailesi}` : "/kayit"}
+      className={`block rounded-full bg-yesil-koyu text-center font-semibold text-white transition-colors hover:bg-yesil-derin ${olcu}`}
     >
-      <div className="flex items-start gap-2.5">
-        <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-krem-koyu text-yesil-koyu transition-colors group-hover:bg-lime-rozet">
-          <DinamikIkon ad={atolye?.ikon ?? "Grup"} boyut={17} />
-        </span>
-        <div className="min-w-0">
-          <p className="font-baslik text-sm font-bold tabular-nums text-murekkep">
-            {slot.bas} - {slot.bit}
-          </p>
-          <p className="mt-0.5 text-sm leading-snug text-murekkep">
-            {atolye?.kisaAd ?? slot.atolyeSlug}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-2.5 flex flex-wrap gap-1.5">
-        <Rozet>{slot.yas.etiket}</Rozet>
-        {slot.yas.ebeveynsiz && <Rozet vurgu>Ebeveynsiz</Rozet>}
-        {slot.dil === "en" && <Rozet vurgu>İngilizce</Rozet>}
-        {slot.dil === "karma" && <Rozet vurgu>1 saat İngilizce</Rozet>}
-        {slot.tekSeferMumkun && <Rozet>Tek seferlik</Rozet>}
-      </div>
-
-      {slot.ogretmenler.length > 0 && (
-        <p className="mt-2 text-xs text-murekkep-soluk">
-          {slot.ogretmenler.join(", ")}
-        </p>
-      )}
+      Kayıt ol
     </Link>
   );
 }
 
+/**
+ * Rozet tonlari. "acik" / "son1" / "dolu" dogrudan SlotDurumu ile ayni
+ * anahtarlar, boylece durum rozeti ayri bir esleme tablosu istemiyor.
+ */
+type RozetTonu = "notr" | "vurgu" | SlotDurumu;
+
+const ROZET_TONU: Record<RozetTonu, string> = {
+  notr: "bg-krem-koyu text-murekkep-soluk",
+  vurgu: "bg-lime-rozet text-black",
+  acik: "bg-yesil-koyu text-white",
+  son1: "bg-amber-100 text-amber-900",
+  dolu: "bg-red-100 text-red-800",
+};
+
 function Rozet({
   children,
-  vurgu,
+  ton = "notr",
 }: {
   children: React.ReactNode;
-  vurgu?: boolean;
+  ton?: RozetTonu;
 }) {
   return (
     <span
-      className={`rounded-full px-2 py-0.5 text-[0.7rem] font-medium ${
-        vurgu ? "bg-lime-rozet text-black" : "bg-krem-koyu text-murekkep-soluk"
-      }`}
+      className={`rounded-full px-2 py-0.5 text-[0.7rem] font-medium ${ROZET_TONU[ton]}`}
     >
       {children}
     </span>
