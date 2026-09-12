@@ -587,6 +587,33 @@ body {
 /* Koyu kartta (grup surumunun ilk karti) zemin ters cevriliyor. */
 .blok.koyu .sure { background: var(--kehribar); color: var(--yesil-koyu); }
 
+
+/* ---------------- 12 Eylul 2026: yas surumu birinci sayfa ----------------
+   Birinci sayfa uc bant tasiyor (6-12, 12-24, 16-24) ve musteri 16-24'un
+   12-24 ile ayni sayfada durmasini istiyor, yani bant baska sayfaya
+   tasinamiyor. Kutu A4'u asinca Chrome sayfayi ortadan boluyor ve bir grup
+   karti ikiye ayriliyor; scripts/bas.ts bunu her basimda olcuyor ve 12 Eylul
+   2026'dan onceki hal 21mm tasiyordu.
+
+   Cozum bant tasimak degil, yas surumunde ic bosluklari kismak. Olculen
+   katkilar (birinci sayfa, 297mm sinir):
+     kart ic boslugu ve fiyat satirlari  -11mm
+     ust blok (amblem 22mm, h1 24pt)      -6mm
+     bant araligi ve ust blok bosluklari  -4mm
+
+   KURALLARIN HEPSI .surum-yas ILE SINIRLI; grup surumu etkilenmiyor.
+   Ucret rakamlari degistiginde kart yuksekligi degisebilir, o yuzden
+   "npm run bas" ciktisindaki tasma uyarisi her seferinde okunmali. */
+.surum-yas .bloklar { gap: 1.8mm; }
+.surum-yas .blok { padding: 3mm; gap: 1.4mm; }
+.surum-yas .fiyat li { padding: 1mm 0; }
+.surum-yas .saatler { padding-top: 1.6mm; }
+.surum-yas .saatler li { line-height: 1.32; }
+.surum-yas .yas-not { margin-top: 0.6mm; }
+.surum-yas .ust { padding-bottom: 2mm; margin-bottom: 1mm; }
+.surum-yas .amblem { width: 22mm; height: 22mm; }
+.surum-yas .ust h1 { font-size: 24pt; }
+
 /* Uyelik formu. pdf-stil.css uzerine biner, ayni palet ve tipografi.
    Fark: burasi elle doldurulacak bir belge, o yuzden yazma cizgileri,
    onay kutulari ve imza alanlari var. */
