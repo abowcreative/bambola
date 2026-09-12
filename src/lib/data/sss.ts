@@ -24,19 +24,19 @@ export const SORULAR: Soru[] = [
   {
     soru: "Çocuğum kaç aylıkken başlayabilir?",
     cevap:
-      "Bebek Oyun Grubu 6 aydan itibaren başlar. 12 aydan sonra oyun grupları, 30 aydan sonra Okula Hazırlık Grupları açılır. Atölyeler 3-5 yaş aralığına kadar sürer.",
+      "Bebek Grubu 6 aydan itibaren başlar. 12 aydan sonra Gelişim Odaklı Bebek Oyun Grubu ve diğer oyun grupları, 30 aydan sonra Okula Hazırlık Grupları açılır. Atölyeler 3-5 yaş aralığına kadar sürer.",
     kategori: "genel",
   },
   {
     soru: "Ebeveyn etkinliğe katılıyor mu?",
     cevap:
-      "Evet. Oyun gruplarında ve bebek gruplarında ebeveyn çocuğa eşlik eder; çocuk güvenli ayrılmayı sağlayana kadar bu böyle sürer. Okula Hazırlık Gruplarında çocuk gruba tek başına katılır.",
+      "Evet. Oyun gruplarında ve bebek gruplarında ebeveyn çocuğa eşlik eder. Okula Hazırlık Gruplarında da ilk aşamada ebeveyn çocuğuna eşlik edebilir; çocuk ortama ve öğretmenine güven kazandıkça süreç adım adım ebeveynsiz devam eder.",
     kategori: "program",
   },
   {
     soru: "Güvenli ayrılma programı nedir?",
     cevap:
-      "Çocuğun ebeveyninden ayrılarak gruba tek başına katılmaya hazırlandığı süreçtir. Oyun gruplarından Okula Hazırlık Gruplarına geçiş bu program üzerinden yapılır.",
+      "Çocuğun ebeveyninden ayrılarak gruba tek başına katılmaya hazırlandığı süreçtir. İlk aşamada ebeveyn çocuğuna eşlik eder; çocuk öğretmeniyle ve yeni ortamıyla tanışırken ebeveyninin yakınında olduğunu bilir. Güven kazandıkça süreç adım adım ebeveynsiz devam eder. Böylece ayrılık bir anda gerçekleşen zorlayıcı bir deneyim olmaktan çıkar. Oyun gruplarından Okula Hazırlık Gruplarına geçiş bu program üzerinden yapılır.",
     kategori: "program",
     atolyeler: ["guvenli-ayrilma-programi", "okula-hazirlik-grubu"],
   },

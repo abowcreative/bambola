@@ -147,11 +147,12 @@ export const SLOTLAR: Slot[] = [
     durum: "dolu",
   },
   {
+    /* 12 Eylul 2026: 6-12 ay kendi sayfasina ayrildi, seans oraya bagli. */
     id: "sali-1400-bebek",
     gun: "sali",
     bas: "14.00",
     bit: "16.00",
-    atolyeSlug: "bebek-oyun-grubu",
+    atolyeSlug: "bebek-grubu-6-12",
     yas: YAS.bebek6_12,
     dil: "tr",
     ogretmenler: [],

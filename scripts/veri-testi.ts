@@ -293,7 +293,16 @@ dogru(!dogumTarihiGecerliMi("abc", bugun).gecerli, "bozuk tarih reddedilmeli");
 const tumMetin = [
   ...SORULAR.flatMap((s) => [s.soru, s.cevap]),
   ...AILELER.flatMap((a) => [a.ad, a.ozet, ...a.ozellikler, ...a.notlar]),
-  ...ATOLYELER.flatMap((a) => [a.ad, ...a.olgular]),
+  ...ATOLYELER.flatMap((a) => [
+    a.ad,
+    ...a.olgular,
+    // Kurumdan gelen uzun anlatim da ev uslubuna tabi.
+    ...a.anlatim.flatMap((b) => [
+      b.baslik ?? "",
+      ...b.paragraflar,
+      ...b.maddeler,
+    ]),
+  ]),
   // Ogretmen metinleri de ev uslubuna tabi. Metinler onlarin kaleminden
   // ama uzun tire ve emoji yayin kurali (PLAN.md Bolum 3).
   ...EKIP.flatMap((o) => [
@@ -494,7 +503,7 @@ const ogretmensiz = ATOLYELER.filter(
 
 esit(
   ogretmensiz.join(", "),
-  "gelisim-odakli-bebek-oyun-grubu, ingilizce-oyun-grubu",
+  "bebek-grubu-6-12, gelisim-odakli-bebek-oyun-grubu, ingilizce-oyun-grubu",
   "ogretmensiz seansi olan atolyeler beklenenden farkli",
 );
 
@@ -924,7 +933,11 @@ for (const a of AILELER) {
   Bu istisna YAYILMASIN: kombinasyon etiketleri, aile etiketleri ve yas
   sayfasi adlari yas yazmaya devam ediyor.
 */
-const AY_ADLI_ATOLYELER = new Set(["gelisim-odakli-bebek-oyun-grubu"]);
+const AY_ADLI_ATOLYELER = new Set([
+  "gelisim-odakli-bebek-oyun-grubu",
+  // "6-12 Ay Bebek Grubu" da reklamda ayla aniliyor, ayni gerekce.
+  "bebek-grubu-6-12",
+]);
 
 for (const a of ATOLYELER) {
   if (AY_ADLI_ATOLYELER.has(a.slug)) continue;

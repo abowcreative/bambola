@@ -128,8 +128,11 @@ export default async function ProgramDetaySayfasi({
             ? [
                 kursSemasi({
                   ad: atolye.ad,
+                  /* Kurumun anlatimi varsa ilk paragraf schema'ya gider;
+                     olgular listesinden daha iyi bir ozet. */
                   aciklama:
                     atolye.aciklama ??
+                    atolye.anlatim[0]?.paragraflar[0] ??
                     `${atolye.ad}, ${atolye.yasEtiket}. ${atolye.olgular[0] ?? ""}`,
                   yol: `/oyun-evi/programlar/${atolye.slug}`,
                   slotlar,
@@ -181,11 +184,17 @@ export default async function ProgramDetaySayfasi({
               Bu programda ne yapılıyor?
             </h2>
 
-            {atolye.aciklama ? (
+            {atolye.aciklama && (
               <p className="mt-4 text-lg leading-relaxed text-murekkep-soluk">
                 {atolye.aciklama}
               </p>
-            ) : (
+            )}
+
+            {/*
+              Kurumdan anlatim gelmediyse sayfa bunu ACIKCA soyler. Uydurma
+              pedagojik metin yazilmaz (PLAN.md Bolum 14 madde 5).
+            */}
+            {!atolye.aciklama && atolye.anlatim.length === 0 && (
               <p className="mt-4 leading-relaxed text-murekkep-soluk">
                 Programın ayrıntılı anlatımı hazırlanıyor. Aşağıdaki bilgiler
                 programın kesinleşmiş çerçevesidir; merak ettiğiniz her şeyi
@@ -205,6 +214,52 @@ export default async function ProgramDetaySayfasi({
               ))}
             </ul>
           </Belir>
+
+          {/*
+            Kurumun kendi anlatimi. Baslikli bolumler halinde geliyor, tek
+            bir paragrafa sikistirilmiyor: on paragraflik duz metni kimse
+            okumaz. Basliksiz bolum (baslik === null) acilis ve kapanis
+            bloklari icin.
+          */}
+          {atolye.anlatim.length > 0 && (
+            <Belir className="space-y-8">
+              {atolye.anlatim.map((b, i) => (
+                <div key={b.baslik ?? `blok-${i}`}>
+                  {b.baslik && (
+                    <h3 className="font-baslik text-xl font-bold text-murekkep">
+                      {b.baslik}
+                    </h3>
+                  )}
+                  {b.paragraflar.map((par) => (
+                    <p
+                      key={par}
+                      className={`leading-relaxed text-murekkep-soluk ${
+                        b.baslik ? "mt-3" : "mt-4 first:mt-0"
+                      }`}
+                    >
+                      {par}
+                    </p>
+                  ))}
+                  {b.maddeler.length > 0 && (
+                    <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                      {b.maddeler.map((m) => (
+                        <li
+                          key={m}
+                          className="flex gap-2.5 rounded-yumusak bg-white p-3 leading-snug text-murekkep"
+                        >
+                          <Ikon.Tik
+                            boyut={17}
+                            className="mt-0.5 shrink-0 text-yesil"
+                          />
+                          {m}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </Belir>
+          )}
 
           {/*
             Tarihli etkinlikler. Haftalik seansi olmayan bir atolyenin

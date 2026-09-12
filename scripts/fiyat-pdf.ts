@@ -21,12 +21,29 @@ import {
   KAMPANYA_KOSULLARI,
   PAKET_KOSULLARI,
   KAMPANYA_PENCERESI,
-  indirimVarMi,
+  kampanyaAcikMi,
+  erkenKayitGosterilirMi,
+  gecerliFiyat,
   tekSeferUcreti,
 } from "../src/lib/data/ucretler";
 import { GUN_ADI } from "../src/lib/data/types";
 import { ILETISIM, MARKA, MEB_IFADESI } from "../src/lib/site";
 import type { Dil, ProgramAilesi } from "../src/lib/data/types";
+
+/**
+ * BELGE URETILDIGI GUN kampanya acik mi.
+ *
+ * 12 Eylul 2026'da eklendi. Betik o gune kadar `indirimVarMi()` kullaniyordu;
+ * o fonksiyon yalnizca "bu pakette indirimli bir rakam TANIMLI mi" diye
+ * bakiyor, takvime bakmiyor. Sonuc: kampanya 1 Eylul'de kapandigi halde
+ * belge ustunde hala "Erken kayit %20 indirim, son gun 1 Eylul" rozeti ve
+ * her satirda ustu cizili fiyat cikiyordu. Site ayni gun dogru davraniyordu,
+ * cunku o `kampanyaAcikMi()` okuyor; belge geride kalmisti.
+ *
+ * Kampanya kapaliyken: rozet basilmaz, fiyatlar tek ve indirimsiz yazilir,
+ * kampanyaya ozel kosullar listeden duser.
+ */
+const KAMPANYA_ACIK = kampanyaAcikMi();
 
 const tl = (n: number) => n.toLocaleString("tr-TR");
 const kacis = (s: string) =>
@@ -125,10 +142,62 @@ const YAS_BANTLARI = [
 
 type YasBandi = (typeof YAS_BANTLARI)[number];
 
-/** Kombinasyon etiketinin basindaki yas on eki. Yoksa null. */
-function kombinasyonYasi(etiket: string): string | null {
-  const e = etiket.split(" · ")[0].trim();
-  return YAS_BANTLARI.some((b) => b.etiket === e) ? e : null;
+type AyAraligi = { minAy: number; maxAy: number };
+
+/**
+ * Bir yas on ekini AY araligina cevirir. Tanimadigi bicimde null doner.
+ *
+ * Kabul ettigi yazimlar, hepsi veride gecen gercek ornekler:
+ *   "1 - 2 yas"        -> 12-24     "1,5 - 2 yas"   -> 18-24
+ *   "8 aylik - 1,5 yas"-> 8-18      "6 aylik - 1 yas" -> 6-12
+ *   "12-24 ay"         -> 12-24     "30+ ay"        -> 30-72
+ *
+ * NEDEN GEREKLI: onceki hal on eki bant adiyla DIZE OLARAK karsilastiriyordu
+ * ("12-24 ay" === "12-24 ay"). 17 Agustos 2026'da kombinasyon etiketleri
+ * aya degil yasa cevrildi ("1 - 2 yas") ve o gunden beri hicbir on ek
+ * eslesmiyordu. Sonuc: bant filtresi sessizce devre disi kaldi ve her bant,
+ * ailenin BUTUN saatlerini listeledi. 6-12 ay blogunda 12-24 ay seanslari
+ * gorunuyordu; belge 8 aylik bebegin velisine uymayan saatler okutuyordu.
+ */
+function onekiAyaCevir(onek: string): AyAraligi | null {
+  const e = onek.trim().toLocaleLowerCase("tr");
+
+  const artiAy = e.match(/^(\d+)\+\s*ay$/);
+  if (artiAy) return { minAy: Number(artiAy[1]), maxAy: 72 };
+
+  const duzAy = e.match(/^(\d+)\s*-\s*(\d+)\s*ay$/);
+  if (duzAy) return { minAy: Number(duzAy[1]), maxAy: Number(duzAy[2]) };
+
+  const ikiUc = e.match(/^(.+?)\s+-\s+(.+)$/);
+  if (!ikiUc) return null;
+
+  /* Sag uc birimini tasir ("1 - 2 yas"); sol uc birimsizse ondan devralir. */
+  const birim = (x: string): "ay" | "yas" | null =>
+    /ayl[ıi]k|(^|\s)ay$/.test(x) ? "ay" : /ya[şs]/.test(x) ? "yas" : null;
+  const sayi = (x: string) => {
+    const m = x.match(/^([\d]+(?:[.,][\d]+)?)/);
+    return m ? Number(m[1].replace(",", ".")) : null;
+  };
+
+  const sagBirim = birim(ikiUc[2]);
+  if (!sagBirim) return null;
+  const solBirim = birim(ikiUc[1]) ?? sagBirim;
+  const sol = sayi(ikiUc[1]);
+  const sag = sayi(ikiUc[2]);
+  if (sol === null || sag === null) return null;
+
+  const aya = (n: number, b: "ay" | "yas") => Math.round(b === "ay" ? n : n * 12);
+  return { minAy: aya(sol, solBirim), maxAy: aya(sag, sagBirim) };
+}
+
+/** Kombinasyon etiketinin basindaki yas on eki, ay araligi olarak. */
+function kombinasyonYasi(etiket: string): AyAraligi | null {
+  return onekiAyaCevir(etiket.split(" · ")[0]);
+}
+
+/** Iki aralik ortusuyor mu. Ust sinir haric: 12-24 ile 24-36 bulusmaz. */
+function ortusuyorMu(a: AyAraligi, b: { minAy: number; maxAy: number }): boolean {
+  return a.minAy < b.maxAy && a.maxAy > b.minAy;
 }
 
 /** Bandin gosterecegi saat satirlari. Bos donerse aile o banda girmez. */
@@ -137,10 +206,13 @@ function bantSaatleri(a: ProgramAilesi, bant: YasBandi): string[] {
     (k) => kombinasyonYasi(k.etiket) !== null,
   );
 
-  // Butun saatleri yas etiketli olan aile: yalniz kendi bandinda gorunur.
+  // Butun saatleri yas on ekli olan aile: yalniz bandla ortusen saatler.
   if (yasli.length === a.sabitKombinasyonlar.length && yasli.length > 0) {
     return a.sabitKombinasyonlar
-      .filter((k) => kombinasyonYasi(k.etiket) === bant.etiket)
+      .filter((k) => {
+        const y = kombinasyonYasi(k.etiket);
+        return y ? ortusuyorMu(y, bant) : false;
+      })
       .map((k) => kisaKombinasyon(k.etiket));
   }
 
@@ -219,9 +291,9 @@ for (const bant of YAS_BANTLARI) {
 function fiyatSatirlari(a: ProgramAilesi): string {
   return a.paketler
     .map((p) => {
-      const sag = indirimVarMi(p)
+      const sag = erkenKayitGosterilirMi(p, KAMPANYA_ACIK)
         ? `<s>${tl(p.normal)}</s><b>${tl(p.erkenKayit)} TL</b>`
-        : `<b class="duz">${tl(p.normal)} TL</b>`;
+        : `<b class="duz">${tl(gecerliFiyat(p, KAMPANYA_ACIK))} TL</b>`;
       // 10 Agustos 2026: "indirim yok" ibaresi kaldirildi. Tek seferlik
       // fiyat neyse odur, aciklama gerekmiyor.
       return `<li><span>${kacis(p.etiket)}</span><em>${sag}</em></li>`;
@@ -323,13 +395,17 @@ function ustBlok(baslik: string, altBaslik: string) {
           : ""
       }
     </div>
-    <div class="indirim">
+    ${
+      KAMPANYA_ACIK
+        ? `<div class="indirim">
       <p class="indirim-ust">Erken kayıt</p>
       <p class="indirim-oran">%20</p>
       <p class="indirim-alt">indirim</p>
       <p class="indirim-tarih">${kacis(KAMPANYA_PENCERESI.metin)}</p>
       <p class="indirim-songun">Son gün ${kacis(KAMPANYA_PENCERESI.sonGun)}</p>
-    </div>
+    </div>`
+        : ""
+    }
   </header>`;
 }
 
@@ -404,7 +480,7 @@ ${satirlar}
 const KOSUL_BLOK = `  <section class="kosullar">
     <h2>Koşullar</h2>
     <ol>
-${[...KAMPANYA_KOSULLARI, ...PAKET_KOSULLARI].map((k) => `      <li>${kacis(k)}</li>`).join("\n")}
+${[...(KAMPANYA_ACIK ? KAMPANYA_KOSULLARI : []), ...PAKET_KOSULLARI].map((k) => `      <li>${kacis(k)}</li>`).join("\n")}
     </ol>
     <p class="kosul-ek">İki saatlik oyun gruplarının bir saati serbest oyundur. Öğle arası
       her gün 12.30 - 13.30. Ara öğün verilir. Hafta sonu belirlenen zaman diliminde

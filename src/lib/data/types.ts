@@ -128,6 +128,7 @@ export const DURUM_ETIKET: Record<SlotDurumu, string> = {
 export type AtolyeSlug =
   | "okula-hazirlik-grubu"
   | "gelisim-odakli-oyun-grubu"
+  | "bebek-grubu-6-12"
   | "bebek-oyun-grubu"
   | "gelisim-odakli-bebek-oyun-grubu"
   | "ingilizce-oyun-grubu"
@@ -135,6 +136,22 @@ export type AtolyeSlug =
   | "minik-beyinler-laboratuvari"
   | "guvenli-ayrilma-programi"
   | "serbest-oyun";
+
+/**
+ * Kurumdan gelen uzun program anlatiminin tek bolumu.
+ *
+ * NEDEN DUZ METIN DEGIL: metinler 12 Eylul 2026'da geldi ve baslikli
+ * bolumlerden olusuyor ("Guvenli Ayrilma", "Egzersiz Rutini", "1 Saat
+ * Atolye"...). Tek bir `aciklama` dizesine sikistirilsaydi sayfada
+ * baslik hiyerarsisi olmazdi ve veli on paragrafi ust uste okurdu.
+ */
+export type AnlatimBolumu = {
+  /** null = basliksiz acilis blogu. */
+  baslik: string | null;
+  paragraflar: string[];
+  /** Madde listesi. Bos dizi = liste yok. */
+  maddeler: string[];
+};
 
 export type Atolye = {
   slug: AtolyeSlug;
@@ -152,6 +169,12 @@ export type Atolye = {
   aciklama: string | null;
   /** Excel'den dogrudan cikan, uydurulmamis olgular. */
   olgular: string[];
+  /**
+   * Kurumdan gelen uzun anlatim. Bos dizi = henuz gelmedi, sayfa
+   * "hazirlaniyor" der. `olgular` ile CAKISMAZ: olgular ozet kutusu,
+   * anlatim sayfanin govdesi.
+   */
+  anlatim: AnlatimBolumu[];
   ikon: string;
 };
 

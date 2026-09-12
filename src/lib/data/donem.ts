@@ -224,7 +224,7 @@ export const DONEM_GRUPLARI: DonemGrubu[] = [
     genis: false,
     sayacAilesi: "bebek",
     sayacAtolyesi: null,
-    programSayfasi: "bebek-oyun-grubu",
+    programSayfasi: "bebek-grubu-6-12",
     ikon: "Bebek",
   },
   {

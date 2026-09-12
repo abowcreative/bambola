@@ -16,19 +16,25 @@ export const AILELER: ProgramAilesi[] = [
     slug: "okula-hazirlik",
     ad: "Okula Hazırlık Grupları",
     kisaAd: "Okula Hazırlık",
-    ozet: "Çocuk gruba ebeveynsiz katılır, güvenli ayrılma programıyla.",
+    /*
+      12 Eylul 2026: ozet "cocuk gruba ebeveynsiz katilir" diyordu. Kurumun
+      uzun metnine gore ilk asamada ebeveyn eslik ediyor; ebeveynsizlik
+      guvenli ayrilma programinin sonucu, giris sarti degil.
+    */
+    ozet:
+      "Güvenli ayrılma programıyla, çocuk kendi hızında ebeveynsiz katılıma geçer.",
     yasEtiket: "2,5 yaş ve üzeri",
     minAy: 30,
     maxAy: 71,
     maxKisi: 12,
     sure: "Haftada 3 gün · Günde 3 saat",
     ozellikler: [
-      "Güvenli ayrılma programı, ebeveynsiz",
+      "Güvenli ayrılma programı, ebeveyn önce eşlik eder",
       "3 gün, 3 saat, bütünleştirilmiş etkinlikler",
-      "Her gün 1 saat İngilizce",
+      "Her gün 1 saat İngilizce, 1 saat Türkçe ve tematik atölye",
+      "Güne başlama, egzersiz ve ara öğün rutinleri",
+      "Serbest oyun alanı",
       "Gelişim takibi",
-      "1 ara öğün",
-      "Hafta sonları 1 saat serbest oyun alanı kullanım zamanı",
     ],
     paketler: PAKETLER["okula-hazirlik"],
     sabitKombinasyonlar: [
@@ -54,6 +60,7 @@ export const AILELER: ProgramAilesi[] = [
     notlar: [
       "Tek seferlik katılım yoktur.",
       "1 katılım 3 saattir ve 1 saati İngilizce oyun grubu olacak şekilde programlanmıştır.",
+      "Güvenli ayrılma sürecinde ilk aşamada ebeveyn çocuğuna eşlik edebilir; çocuk güven kazandıkça süreç ebeveynsiz devam eder.",
       "Ara öğün verilir. Kayıtlı çocuklara hafta sonu belirlenen zaman diliminde 1 saat serbest oyun ücretsizdir.",
     ],
     ikon: "Ampul",
@@ -121,7 +128,7 @@ export const AILELER: ProgramAilesi[] = [
     sure: "Haftada 1-2 gün · Günde 2 saat",
     ozellikler: [
       "Etkinlik süresi 2 saat: 1 saat atölye, 1 saat serbest oyun",
-      "6-12 ay haftanın tek günü",
+      "6-12 ay Bebek Grubu, haftanın tek günü",
       "12-16 ay Gelişim Odaklı Bebek Oyun Grubu, Çarşamba",
       "12-24 ay: haftada 2 gün katılana haftada 1 İngilizce hediye",
       "Hafta sonu seçeneği",
@@ -140,7 +147,13 @@ export const AILELER: ProgramAilesi[] = [
         haftaSonu: false,
       },
       {
-        etiket: "1 - 1,5 yaş · Gelişim Odaklı Bebek Oyun · Çarşamba · 15.00 - 17.00",
+        /*
+          Etiket UC parcali olmali: "yas · gun · saat". Fiyat listesi betigi
+          (scripts/fiyat-pdf.ts, kisaKombinasyon) tam bu bicimi ayristiriyor;
+          araya program adi konuldugunda satir "1 - 1,5 yas Gelisim Odakli
+          Bebek Oyun: Crs: 15.00" diye bozuluyordu.
+        */
+        etiket: "1 - 1,5 yaş · Çarşamba · 15.00 - 17.00",
         slotIdler: ["crs-1500-bebek"],
         haftaSonu: false,
       },
