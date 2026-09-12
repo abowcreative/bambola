@@ -217,6 +217,37 @@
     animation-play-state: paused;
   }
 
+  /*
+    Hero slaytlarinin sayac cizgisi. Etkin noktanin icini, slaytin suresi
+    boyunca soldan saga dolduruyor.
+
+    NEDEN VAR: slaytlar arasinda alti saniye geciyor ve o alti saniye
+    boyunca ekranda hicbir sey degismiyordu. Bekleyen bir sey oldugu
+    gorunmeyince bekleme "yavas" degil "bozuk" gibi okunuyor. Sure
+    kisaltilarak degil, surenin gorunur kilinmasiyla cozuldu: en uzun
+    slaytin metni zaten alti saniyelik okuma.
+
+    Suresi JS'ten geliyor (--hero-sure), boylece tek bir sabit hem gecisi
+    hem cizgiyi suruyor; ikisi ayri yazilsaydi bir gun ayrisirlardi.
+
+    prefers-reduced-motion aciksa bu cizgi HIC BASILMIYOR (bkz.
+    components/site/hero-slaytlari.tsx): orada otomatik gecis de kapali,
+    dolan bir sayac yanlis soz verirdi.
+  */
+  @keyframes bambola-hero-ilerle {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  .hero-ilerleme {
+    transform-origin: left;
+    animation: bambola-hero-ilerle var(--hero-sure, 6s) linear forwards;
+  }
+
   /* Sonsuz donguli hareketler. PLAN Bolum 11: sayfa basina en fazla iki adet. */
   @keyframes bambola-sallan {
     0%,

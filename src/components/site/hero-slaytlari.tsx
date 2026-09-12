@@ -21,7 +21,19 @@ import type { HeroSlayti } from "@/lib/data/hero";
  * biri de oteki slaytlara ulasabiliyor. PLAN.md Bolum 11, Hareket.
  */
 
-const GECIS_SN = 6.5;
+/**
+ * Bir slaytin ekranda kalma suresi.
+ *
+ * 4 SANIYE DENENDI, OLMADI. En uzun slayt basligiyla birlikte 25 kelime ve
+ * dakikada 200 kelimelik sakin bir okumada bu 7 saniye tutuyor; dort
+ * saniyede cumle veli daha bitirmeden altindan cekiliyor. Alti saniye, en
+ * uzun slayti okumaya yeten en kisa sure.
+ *
+ * "Yavas" hissini suren sey aslinda sure degil, ekranda hicbir seyin
+ * degismiyor olmasiydi. Cozum sureyi kismak degil, gorunur kilmak oldu:
+ * etkin nokta bu sure boyunca doluyor (globals.css, .hero-ilerleme).
+ */
+const GECIS_SN = 6;
 
 export function HeroSlaytlari({ slaytlar }: { slaytlar: HeroSlayti[] }) {
   const azHareket = useReducedMotion();
@@ -126,11 +138,38 @@ export function HeroSlaytlari({ slaytlar }: { slaytlar: HeroSlayti[] }) {
             type="button"
             onClick={() => setI(n)}
             aria-current={n === i ? "true" : undefined}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              n === i ? "w-8 bg-yesil" : "w-2 bg-cizgi hover:bg-yesil/50"
+            className={`h-2 overflow-hidden rounded-full transition-all duration-300 ${
+              n === i ? "w-8 bg-cizgi" : "w-2 bg-cizgi hover:bg-yesil/50"
             }`}
           >
             <span className="sr-only">{`${k.etiket}: ${k.baslikVurgu}`}</span>
+            {/*
+              Sayac cizgisi. `key` hem slayta hem duraklatmaya bagli:
+              duraklatma bitince asagidaki interval de bastan basliyor,
+              cizgi de bastan baslamali. Ayri ayri sayarlarsa cizgi dolar
+              ama slayt donmez, ya da tersi.
+            */}
+            {n === i && !azHareket && (
+              <span
+                key={`${i}-${duraklat}`}
+                aria-hidden="true"
+                className="hero-ilerleme block h-full w-full rounded-full bg-yesil"
+                style={
+                  {
+                    "--hero-sure": `${GECIS_SN}s`,
+                    animationPlayState: duraklat ? "paused" : "running",
+                  } as React.CSSProperties
+                }
+              />
+            )}
+            {/* Hareketi kapatmis kullanicida dolan bir cizgi olmaz; etkin
+                nokta yine de dolu gorunmeli. */}
+            {n === i && azHareket && (
+              <span
+                aria-hidden="true"
+                className="block h-full w-full rounded-full bg-yesil"
+              />
+            )}
           </button>
         ))}
       </div>
