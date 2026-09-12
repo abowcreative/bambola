@@ -93,7 +93,7 @@ export default function EkipSayfasi() {
           12 Eylul 2026'da kaldirildi. Kurum ogretmenlerin gruplar arasinda
           degisebildigini bildirdi; sitede tutulamayacak bir soz duruyordu.
         */
-        aciklama="Kadro sabit, üç öğretmen bütün grupları birlikte yürütüyor. Aşağıdaki metinler öğretmenlerimizin kendi kalemlerinden."
+        aciklama="Programlar öğretmen ekibimiz tarafından yürütülür; görev dağılımı programa göre değişebilir. Aşağıdaki metinler öğretmenlerimizin kendi kalemlerinden."
       />
 
       {kadro.map(({ ogretmen, seansSayisi, atolyeler }, i) => (

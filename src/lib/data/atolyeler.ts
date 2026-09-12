@@ -11,19 +11,30 @@ import type { Atolye, AtolyeSlug } from "./types";
 
 export const ATOLYELER: Atolye[] = [
   {
+    /*
+      12 Eylul 2026, IKINCI TUR: yas etiketi "2,5 yas ve uzeri, ebeveynsiz"
+      ve olgu satiri "Cocuk gruba ebeveyni olmadan katilir" BURADA KALMISTI.
+      Ayni turda aile metni (gruplar.ts) ve Guvenli Ayrilma olgulari
+      duzeltilmisti; bu iki satir gozden kacti ve sayfanin kendi anlatimiyla
+      celisiyordu: anlatim "ilk asamada ebeveyn eslik edebilir" diyor,
+      basligin yanindaki etiket "ebeveynsiz" diyordu.
+
+      Ebeveynsizlik programin SONUCU, giris sarti degil. Etiket bunu artik
+      iddia etmiyor, olgu satiri sureci anlatiyor.
+    */
     slug: "okula-hazirlik-grubu",
     ad: "Okula Hazırlık Grubu",
     kisaAd: "Okula Hazırlık",
-    yasEtiket: "2,5 yaş ve üzeri, ebeveynsiz",
+    yasEtiket: "2,5 yaş ve üzeri",
     dil: "karma",
     ailesi: "okula-hazirlik",
     aciklama: null,
     olgular: [
       "Haftada 3 gün, günde 3 saat, bütünleştirilmiş etkinlikler",
-      "Her gün 1 saat İngilizce oyun grubu",
-      "Çocuk gruba ebeveyni olmadan katılır",
+      "Her gün 1 saat İngilizce, 1 saat Türkçe ve tematik atölye",
+      "Güvenli ayrılma: ilk aşamada ebeveyn eşlik edebilir, çocuk güven kazandıkça süreç ebeveynsiz devam eder",
+      "Güne başlama, egzersiz ve ara öğün rutinleri",
       "Gelişim takibi yapılır",
-      "1 ara öğün verilir",
       "Tek seferlik katılım yoktur",
     ],
     /* Kurumdan gelen uzun anlatim, 12 Eylul 2026. Metin kurumun kalemiyle;

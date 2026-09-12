@@ -751,7 +751,7 @@ export function KayitFormu({
                           ...(dolu ? ["Dolu"] : []),
                           s.yas.etiket,
                           ...(s.dil === "en" ? ["İngilizce"] : []),
-                          ...(s.yas.ebeveynsiz ? ["Ebeveynsiz"] : []),
+                          ...(s.yas.ebeveynsiz ? ["Güvenli ayrılma"] : []),
                           ...(s.ogretmenler.length
                             ? [s.ogretmenler.join(", ")]
                             : []),

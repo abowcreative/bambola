@@ -306,7 +306,7 @@ function IzgaraKarti({ slot }: { slot: Slot }) {
         <div className="mt-2 flex flex-wrap gap-1">
           <Rozet ton={slot.durum}>{DURUM_ETIKET[slot.durum]}</Rozet>
           <Rozet>{slot.yas.etiket}</Rozet>
-          {slot.yas.ebeveynsiz && <Rozet ton="vurgu">Ebeveynsiz</Rozet>}
+          {slot.yas.ebeveynsiz && <Rozet ton="vurgu">Güvenli ayrılma</Rozet>}
           {slot.dil === "en" && <Rozet ton="vurgu">İngilizce</Rozet>}
           {slot.dil === "karma" && <Rozet ton="vurgu">1 sa. İngilizce</Rozet>}
           {slot.tekSeferMumkun && <Rozet>Tek seferlik</Rozet>}
@@ -443,7 +443,7 @@ export function SlotKarti({ slot }: { slot: Slot }) {
         <div className="mt-2.5 flex flex-wrap gap-1.5">
           <Rozet ton={slot.durum}>{DURUM_ETIKET[slot.durum]}</Rozet>
           <Rozet>{slot.yas.etiket}</Rozet>
-          {slot.yas.ebeveynsiz && <Rozet ton="vurgu">Ebeveynsiz</Rozet>}
+          {slot.yas.ebeveynsiz && <Rozet ton="vurgu">Güvenli ayrılma</Rozet>}
           {slot.dil === "en" && <Rozet ton="vurgu">İngilizce</Rozet>}
           {slot.dil === "karma" && <Rozet ton="vurgu">1 saat İngilizce</Rozet>}
           {slot.tekSeferMumkun && <Rozet>Tek seferlik</Rozet>}
