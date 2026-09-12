@@ -30,7 +30,7 @@ const FROBEL = [
   { sol: "Oyun merkezli öğrenme", sag: "Kurumun kökeni bir oyun evi" },
   {
     sol: "Şarkı ve hareket",
-    sag: "Şarkılı masal atölyeleri, müzik odası, piyano",
+    sag: "Şarkılı masal ve müzik etkinlikleri, müzik odası, piyano",
   },
   { sol: "Bahçe", sag: "Giriş katı bahçesi" },
   { sol: "Hediyeler", sag: "Atölye katları" },
@@ -66,9 +66,9 @@ export default function HakkimizdaSayfasi() {
               </p>
               <p>
                 Bambola bu yüzden bir oyun evi olarak kuruldu. Gruplar en fazla
-                on iki kişi, çünkü on üçüncü çocuk sıranın sonunda kalıyor.
-                Günün ilk saati serbest oyun, çünkü çocuk kendi hızında ısınmak
-                istiyor.
+                on iki kişi, çünkü on üçüncü çocuk sıranın sonunda kalıyor. Her
+                seansın bir saati serbest oyun, çünkü çocuk kendi hızında
+                ısınmak istiyor.
               </p>
               <p>
                 {MARKA.ilce}, {MARKA.sehir}&apos;dayız. Oyun evinde başlayan

@@ -149,11 +149,17 @@ export const DONEM_GRUPLARI: DonemGrubu[] = [
     ikon: "Ampul",
   },
   {
+    /*
+      12 Eylul 2026: gunler "Pazartesi ve Cuma" yaziyordu, program verisinde
+      boyle bir Cuma seansi yok. 9 Eylul listesindeki gercek seanslar
+      Pazartesi 15.00 ve Cumartesi 15.00; Carsamba 15.00 ise ayrildi ve
+      12-16 Ay Gelisim Odakli Bebek Oyun Grubu oldu (asagidaki kart).
+    */
     slug: "bebek-12-24",
     ad: "12–24 Ay Bebek Oyun Grubu",
     yasEtiket: "12–24 ay",
     yasBantlari: [],
-    gunler: "Pazartesi ve Cuma",
+    gunler: "Pazartesi ve Cumartesi",
     saatler: [],
     secenek: null,
     durum: { etiket: "Grubumuz başladı", ton: "vurgu" },
@@ -198,24 +204,49 @@ export const DONEM_GRUPLARI: DonemGrubu[] = [
   },
   {
     /*
-      Programlara AYRI BIR KART olarak eklendi (revize, 18 Agustos 2026).
-      Kendi ucret ailesi yok; tek seferlik atolye fiyatiyla yuruyor, o yuzden
-      sayac atolye slug'ina yaziliyor.
+      12 Eylul 2026: burada "6-12 Ay Sarkili Masal ve Sanat Atolyesi" karti
+      duruyordu. O atolye ayri bir program olmaktan cikti (icerigi Ingilizce
+      Oyun Grubuna tasindi) ve tanitim sayfasi kalkti; kart oldugu gibi
+      birakilsaydi 404'e baglanirdi.
+
+      Yerine kurumun yeni marka dilindeki ad geldi: 6-12 ay artik
+      "Bebek Grubu". Tek seansi Sali 14.00 - 16.00.
     */
-    slug: "sarkili-masal-6-12",
-    ad: "6–12 Ay Şarkılı Masal ve Sanat Atölyesi",
+    slug: "bebek-6-12",
+    ad: "6–12 Ay Bebek Grubu",
     yasEtiket: "6–12 ay",
     yasBantlari: [],
-    gunler: null,
+    gunler: "Salı",
     saatler: [],
     secenek: null,
     durum: null,
     donemDuyurusu: false,
     genis: false,
-    sayacAilesi: null,
-    sayacAtolyesi: "sarkili-masal-ve-sanat-atolyesi",
-    programSayfasi: "sarkili-masal-ve-sanat-atolyesi",
-    ikon: "Muzik",
+    sayacAilesi: "bebek",
+    sayacAtolyesi: null,
+    programSayfasi: "bebek-oyun-grubu",
+    ikon: "Bebek",
+  },
+  {
+    /*
+      Yeni grup, 12 Eylul 2026 kurum bildirimi. Carsamba 15.00 - 17.00
+      seansi "12-24 Ay Bebek Oyun Grubu" iken bu ada ve 12-16 ay bandina
+      gecti.
+    */
+    slug: "gelisim-odakli-bebek-12-16",
+    ad: "12–16 Ay Gelişim Odaklı Bebek Oyun Grubu",
+    yasEtiket: "12–16 ay",
+    yasBantlari: [],
+    gunler: "Çarşamba",
+    saatler: ["15.00 - 17.00"],
+    secenek: null,
+    durum: { etiket: "Yeni grup", ton: "vurgu" },
+    donemDuyurusu: false,
+    genis: false,
+    sayacAilesi: "bebek",
+    sayacAtolyesi: null,
+    programSayfasi: "gelisim-odakli-bebek-oyun-grubu",
+    ikon: "Bebek",
   },
 ];
 

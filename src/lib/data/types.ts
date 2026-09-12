@@ -120,12 +120,17 @@ export const DURUM_ETIKET: Record<SlotDurumu, string> = {
   dolu: "Dolu",
 };
 
+/*
+  "sarkili-masal-ve-sanat-atolyesi" 12 Eylul 2026'da KALDIRILDI. Ayri bir
+  program degil; sarki, masal, sanat, hareket ve oyun artik Ingilizce Oyun
+  Grubunun icinde anlatiliyor (kurum karari).
+*/
 export type AtolyeSlug =
   | "okula-hazirlik-grubu"
   | "gelisim-odakli-oyun-grubu"
   | "bebek-oyun-grubu"
+  | "gelisim-odakli-bebek-oyun-grubu"
   | "ingilizce-oyun-grubu"
-  | "sarkili-masal-ve-sanat-atolyesi"
   | "oyunlarla-matematik-atolyesi"
   | "minik-beyinler-laboratuvari"
   | "guvenli-ayrilma-programi"

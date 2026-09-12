@@ -120,17 +120,28 @@ export const AILELER: ProgramAilesi[] = [
     maxKisi: 8,
     sure: "Haftada 1-2 gün · Günde 2 saat",
     ozellikler: [
-      "Etkinlik süresi 2 saat",
+      "Etkinlik süresi 2 saat: 1 saat atölye, 1 saat serbest oyun",
       "6-12 ay haftanın tek günü",
-      "12-24 ay haftada 2 gün",
+      "12-16 ay Gelişim Odaklı Bebek Oyun Grubu, Çarşamba",
       "12-24 ay: haftada 2 gün katılana haftada 1 İngilizce hediye",
       "Hafta sonu seçeneği",
     ],
     paketler: PAKETLER.bebek,
     sabitKombinasyonlar: [
       {
-        etiket: "1 - 2 yaş · Pazartesi + Çarşamba · 15.00 - 17.00",
-        slotIdler: ["pzt-1500-bebek", "crs-1500-bebek"],
+        /*
+          12 Eylul 2026: bu secenek onceden "Pazartesi + Carsamba" idi.
+          Carsamba 15.00 seansi 12-16 Ay Gelisim Odakli Bebek Oyun Grubuna
+          gecti ve yas bandi 12-16'ya daraldi; iki gunu tek kombinasyonda
+          tutmak 20 aylik bir cocuga Carsamba'yi da secturuyordu.
+        */
+        etiket: "1 - 2 yaş · Pazartesi · 15.00 - 17.00",
+        slotIdler: ["pzt-1500-bebek"],
+        haftaSonu: false,
+      },
+      {
+        etiket: "1 - 1,5 yaş · Gelişim Odaklı Bebek Oyun · Çarşamba · 15.00 - 17.00",
+        slotIdler: ["crs-1500-bebek"],
         haftaSonu: false,
       },
       {
@@ -169,7 +180,8 @@ export const AILELER: ProgramAilesi[] = [
     slug: "ingilizce",
     ad: "İngilizce Oyun Grubu",
     kisaAd: "İngilizce Grubu",
-    ozet: "Seans tamamen İngilizce işlenir.",
+    ozet:
+      "Seans tamamen İngilizce işlenir: şarkı, masal, sanat, hareket ve oyun.",
     /*
       9 Eylul 2026 program listesi Ingilizce seanslarini 12 aya kadar
       indirdi (Persembe 14.00 grubu 12-24 ay). Aile araligi programa
@@ -182,8 +194,8 @@ export const AILELER: ProgramAilesi[] = [
     sure: "Haftada 2 gün · Günde 2 saat",
     ozellikler: [
       "Etkinlik süresi 2 saat",
-      "Hafta içi iki ayrı günde açılır",
-      "Hafta sonu seçeneği",
+      "Şarkı, masal, sanat, hareket ve oyun bir arada",
+      "Hafta içi ve hafta sonu ayrı günlerde açılır",
       "Tek katılımla da girilebilir",
     ],
     paketler: PAKETLER.ingilizce,
@@ -191,6 +203,12 @@ export const AILELER: ProgramAilesi[] = [
       {
         etiket: "1 - 2 yaş · Perşembe · 14.00 - 16.00",
         slotIdler: ["prs-1400-ingilizce"],
+        haftaSonu: false,
+      },
+      {
+        /* 12 Eylul 2026 kurum bildirimiyle eklendi. */
+        etiket: "2 - 3 yaş · Cuma · 13.30 - 15.30",
+        slotIdler: ["cuma-1330-ingilizce"],
         haftaSonu: false,
       },
       {

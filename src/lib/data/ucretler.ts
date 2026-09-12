@@ -71,12 +71,18 @@ export function kampanyaKalanGun(simdi: Date = new Date()): number {
 }
 
 /**
- * Kampanya kosullari. 10 Agustos 2026'da musteri metinlerini yeniledi,
- * asagidakiler onun verdigi son ifadelerdir.
+ * HER ZAMAN gecerli paket kosullari. Kampanyayla ilgisi yok.
+ *
+ * 12 Eylul 2026'da AYRILDI. Bu dort madde `KAMPANYA_KOSULLARI` icinde
+ * duruyordu ve ucret sayfasi butun bloku yalniz kampanya acikken basiyordu;
+ * kampanya 1 Eylul'de kapaninca sayfa odemeyi, telafiyi ve grup buyuklugunu
+ * ANLATMAYI BIRAKTI. /bilgi sayfasi ise tersini yapiyordu: kampanya
+ * kapandigi halde "kampanyadan pesin odemeyle faydalanilir" demeye devam
+ * ediyordu. Iki hata da ayni sebepten: tek listede iki farkli omur vardi.
+ *
+ * Metinler 10 Agustos 2026'da musterinin verdigi son ifadelerdir, degismedi.
  */
-export const KAMPANYA_KOSULLARI = [
-  "Kampanyadan peşin ödeme koşuluyla faydalanılır. Kredi kartı, havale ve nakit, üç ödeme yöntemi de kabul edilir.",
-  "Kampanyadan en fazla 3 aylık faydalanılabilir.",
+export const PAKET_KOSULLARI = [
   // Firma sahibi bunun yerine su metni onerdi:
   // "4 haftalik paket alimlarinda kullanim suresi 1 aydir. Uyelerimiz
   //  haklarini 1 ay icerisinde tuketmelidir. Devamsizlik durumlarinda kayit
@@ -86,6 +92,15 @@ export const KAMPANYA_KOSULLARI = [
   "Hafta içi öğleden önce ve öğleden sonra iki grup açılır, uygunluk olması durumunda gruplar arasında telafi yapılabilir.",
   "Grupları küçük tutuyoruz: Okula Hazırlık Gruplarında 12, diğer bütün gruplarda 8 çocuk. Böylece her çocuk öğretmenin ilgisini görüyor.",
   "Her 12 katılımda bir çocuk değerlendirme raporu hazırlanır.",
+];
+
+/**
+ * YALNIZ kampanya acikken gecerli kosullar. `kampanyaAcikMi()` false
+ * donerken bu listeden hicbir sey ekranda olmamali.
+ */
+export const KAMPANYA_KOSULLARI = [
+  "Kampanyadan peşin ödeme koşuluyla faydalanılır. Kredi kartı, havale ve nakit, üç ödeme yöntemi de kabul edilir.",
+  "Kampanyadan en fazla 3 aylık faydalanılabilir.",
 ];
 
 /**

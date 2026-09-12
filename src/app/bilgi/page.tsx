@@ -5,6 +5,7 @@ import { AILELER } from "@/lib/data/gruplar";
 import {
   KAMPANYA_PENCERESI,
   KAMPANYA_KOSULLARI,
+  PAKET_KOSULLARI,
   ERKEN_KAYIT_ORANI,
   kampanyaAcikMi,
   tekSeferUcreti,
@@ -390,7 +391,15 @@ export default function BilgiSayfasi() {
           aciklama="Ödeme, telafi ve grup büyüklüğü kuralları."
         >
           <ul className="space-y-2.5">
-            {KAMPANYA_KOSULLARI.map((k) => (
+            {/*
+              12 Eylul 2026: burasi KAMPANYA_KOSULLARI'ni kosulsuz basiyordu
+              ve kampanya 1 Eylul'de kapandigi halde "kampanyadan pesin
+              odemeyle faydalanilir" demeye devam ediyordu.
+            */}
+            {[
+              ...(kampanyaAcik ? KAMPANYA_KOSULLARI : []),
+              ...PAKET_KOSULLARI,
+            ].map((k) => (
               <li key={k} className="flex gap-3 leading-relaxed">
                 <Ikon.Tik
                   boyut={18}

@@ -3,6 +3,7 @@ import { AILELER } from "@/lib/data/gruplar";
 import {
   ERKEN_KAYIT_ORANI,
   KAMPANYA_KOSULLARI,
+  PAKET_KOSULLARI,
   KAMPANYA_PENCERESI,
   kampanyaAcikMi,
 } from "@/lib/data/ucretler";
@@ -101,18 +102,28 @@ export default function UcretlerSayfasi() {
         </Sirali>
       </section>
 
-      {/* --- kosullar. Kampanya kapaninca kosullarin da anlami kalmiyor. --- */}
-      {kampanyaAcik && (
+      {/*
+        Kosullar. 12 Eylul 2026'ya kadar butun blok kampanyaya bagliydi ve
+        kampanya 1 Eylul'de kapaninca sayfa odeme, telafi ve grup buyuklugu
+        kurallarini birden anlatmaz oldu. Artik kampanyadan bagimsiz paket
+        kosullari HER ZAMAN duruyor; kampanya maddeleri yalniz acikken
+        listenin basina ekleniyor.
+      */}
       <section className="border-y border-cizgi bg-white">
         <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
           <BolumBasligi
             ustBaslik="Koşullar"
-            baslik="Erken kayıt nasıl işliyor?"
+            baslik={
+              kampanyaAcik ? "Erken kayıt nasıl işliyor?" : "Paket koşulları"
+            }
             ortala
           />
           <Belir className="mt-8">
             <ul className="space-y-3">
-              {KAMPANYA_KOSULLARI.map((k) => (
+              {[
+                ...(kampanyaAcik ? KAMPANYA_KOSULLARI : []),
+                ...PAKET_KOSULLARI,
+              ].map((k) => (
                 <li
                   key={k}
                   className="flex gap-3 rounded-yumusak bg-krem p-4 leading-relaxed text-murekkep"
@@ -124,13 +135,13 @@ export default function UcretlerSayfasi() {
             </ul>
 
             <p className="mt-6 rounded-yumusak border-2 border-dashed border-cizgi p-4 text-sm text-murekkep-soluk">
-              Tek seferlik katılım fiyatlarına indirim uygulanmaz. Okula
-              Hazırlık Gruplarında tek seferlik katılım seçeneği yoktur.
+              {kampanyaAcik
+                ? "Tek seferlik katılım fiyatlarına indirim uygulanmaz. Okula Hazırlık Gruplarında tek seferlik katılım seçeneği yoktur."
+                : "Okula Hazırlık Gruplarında tek seferlik katılım seçeneği yoktur."}
             </p>
           </Belir>
         </div>
       </section>
-      )}
 
       {/* --- sss --- */}
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">

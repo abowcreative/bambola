@@ -88,7 +88,12 @@ export default function EkipSayfasi() {
       <SayfaBasligi
         ustBaslik="Ekip"
         baslik="Çocuğunuzu kim karşılayacak?"
-        aciklama="Kadro sabit: çocuk her hafta aynı öğretmeni görüyor. Aşağıdaki metinler öğretmenlerimizin kendi kalemlerinden."
+        /*
+          ESKI CUMLE: "Kadro sabit: cocuk her hafta ayni ogretmeni goruyor."
+          12 Eylul 2026'da kaldirildi. Kurum ogretmenlerin gruplar arasinda
+          degisebildigini bildirdi; sitede tutulamayacak bir soz duruyordu.
+        */
+        aciklama="Kadro sabit, üç öğretmen bütün grupları birlikte yürütüyor. Aşağıdaki metinler öğretmenlerimizin kendi kalemlerinden."
       />
 
       {kadro.map(({ ogretmen, seansSayisi, atolyeler }, i) => (

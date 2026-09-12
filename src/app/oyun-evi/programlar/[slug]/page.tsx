@@ -4,6 +4,11 @@ import Image from "next/image";
 import { MARKA } from "@/lib/site";
 import { ATOLYELER, atolyeBul } from "@/lib/data/atolyeler";
 import { SLOTLAR } from "@/lib/data/program";
+import {
+  atolyeEtkinlikleri,
+  etkinlikGunu,
+  etkinlikSaati,
+} from "@/lib/data/etkinlikler";
 import { aileBul } from "@/lib/data/gruplar";
 import {
   aileOgretmenleri,
@@ -83,7 +88,15 @@ export default async function ProgramDetaySayfasi({
       ? kendiOgretmenleri
       : aileOgretmenleri(aile.slug);
   const kadroAileden = kendiOgretmenleri.length === 0 && ogretmenler.length > 0;
-  const tekSeferMumkun = slotlar.some((s) => s.tekSeferMumkun);
+  /* Tarihli, tek seferlik workshop'lar. Haftalik seanslardan ayri durur. */
+  const etkinlikler = atolyeEtkinlikleri(atolye.slug);
+  /*
+    Tarihli bir workshop da tek katilimdir. Bu "|| " olmadan Oyunlarla
+    Matematik sayfasi ozet kutusunda "Tek katilim: Yok" diyordu; sayfanin
+    anlattigi seyin tam tersi.
+  */
+  const tekSeferMumkun =
+    slotlar.some((s) => s.tekSeferMumkun) || etkinlikler.length > 0;
 
   const sorular = [
     ...atolyeSorulari(atolye.slug),
@@ -192,6 +205,42 @@ export default async function ProgramDetaySayfasi({
               ))}
             </ul>
           </Belir>
+
+          {/*
+            Tarihli etkinlikler. Haftalik seansi olmayan bir atolyenin
+            ("Oyunlarla Matematik") sayfasinda tek somut bilgi bu; seansi
+            olan bir atolyede ise haftalik tablonun ustunde duruyor, cunku
+            tarihli olan once okunmali.
+          */}
+          {etkinlikler.length > 0 && (
+            <Belir>
+              <h2 className="font-baslik text-2xl font-bold text-murekkep">
+                Yaklaşan tarih
+              </h2>
+              <ul className="mt-6 space-y-3">
+                {etkinlikler.map((e) => (
+                  <li
+                    key={e.slug}
+                    className="rounded-kart border-2 border-yesil bg-white p-5"
+                  >
+                    <p className="font-baslik text-lg font-bold text-murekkep">
+                      {etkinlikGunu(e)}
+                    </p>
+                    <p className="mt-1 font-baslik font-semibold text-yesil-koyu">
+                      {etkinlikSaati(e)} · {e.yasEtiket}
+                    </p>
+                    <p className="mt-2 leading-relaxed text-murekkep-soluk">
+                      {e.ozet}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-sm text-murekkep-soluk">
+                Kontenjan sınırlı. Yerinizi ayırtmak için WhatsApp&apos;tan
+                yazın.
+              </p>
+            </Belir>
+          )}
 
           {/* Gun ve saatler */}
           {slotlar.length > 0 && (

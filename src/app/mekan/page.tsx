@@ -55,9 +55,9 @@ const BOLUMLER: Bolum[] = [
     no: "01",
     baslik: "Oyun alanları",
     girisi:
-      "Günün ilk saati burada geçiyor. Çocuk gruba girmeden önce serbest oynuyor, mekâna ve öğretmenine kendi hızında ısınıyor. Top havuzunun içinde kaydırak ve ağ korumalı bir tırmanma platformu var; yanındaki bölümde tırmanma duvarı, salıncaklar ve güvenlik ağlı trambolin duruyor. Deniz temalı alanın hemen bitişiğinde ebeveynlerin oturduğu masalar var, yani çocuk gözünüzün önünde.",
+      "Her grubun serbest oyun saati burada geçiyor. Çocuk mekâna ve öğretmenine kendi hızında ısınıyor. Top havuzunun içinde kaydırak ve ağ korumalı bir tırmanma platformu var; yanındaki bölümde tırmanma duvarı, salıncaklar ve güvenlik ağlı trambolin duruyor. Deniz temalı alanın hemen bitişiğinde ebeveynlerin oturduğu masalar var, yani çocuk gözünüzün önünde.",
     olgular: [
-      "İlk bir saat serbest oyun",
+      "Her seansta bir saat serbest oyun",
       "Ağ korumalı tırmanma ve trambolin",
       "Ebeveyn oturma alanı oyun alanının yanında",
     ],

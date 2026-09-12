@@ -55,55 +55,86 @@ export const ATOLYELER: Atolye[] = [
     ailesi: "bebek",
     aciklama: null,
     olgular: [
-      "Etkinlik süresi 2 saat",
-      "6-12 ay grubu haftanın tek günü, 12-24 ay grubu haftada 2 gün",
+      "Etkinlik süresi 2 saat: 1 saat atölye, 1 saat serbest oyun",
+      "6-12 ay grubu haftanın tek günü",
       "Bebek gruplarına ebeveyn eşlik eder",
     ],
     ikon: "Bebek",
   },
   {
+    /*
+      12 Eylul 2026'da kurumun bildirdigi yeni marka dili:
+        6-12 ay  -> Bebek Grubu
+        12-16 ay -> Gelisim Odakli Bebek Oyun Grubu
+      Reklamda gorulen baslik sitede de birebir gorunsun diye ayri bir
+      program sayfasi acildi.
+
+      ADI "Gelisim Odakli Oyun Grubu" ILE KARISTIRMAYIN: o 16-36 ay icin
+      ayri bir program. Ikisini ayirt eden kelime "Bebek"; bu yuzden ad
+      hicbir yerde kisaltilarak yazilmaz.
+
+      Ucret ailesi "bebek" kaldi: fiyat degismedi, yalniz ad ve yas bandi
+      ayrildi.
+    */
+    slug: "gelisim-odakli-bebek-oyun-grubu",
+    ad: "Gelişim Odaklı Bebek Oyun Grubu",
+    kisaAd: "Gelişim Odaklı Bebek Oyun",
+    yasEtiket: "12-16 ay",
+    dil: "tr",
+    ailesi: "bebek",
+    aciklama: null,
+    olgular: [
+      "Etkinlik süresi 2 saat: 1 saat atölye, 1 saat serbest oyun",
+      "Çarşamba günleri 15.00 - 17.00",
+      "Bebeğe ebeveyni eşlik eder",
+      "En fazla 8 bebek",
+    ],
+    ikon: "Bebek",
+  },
+  {
+    /*
+      SARKILI MASAL VE SANAT BURAYA TASINDI (kurum karari, 12 Eylul 2026).
+      Ayri bir atolye karti olarak durmuyor; sarki, masal, sanat, hareket ve
+      oyun bu grubun icerigi olarak anlatiliyor.
+    */
     slug: "ingilizce-oyun-grubu",
     ad: "İngilizce Oyun Grubu",
     kisaAd: "İngilizce Oyun",
-    yasEtiket: "2 - 3 yaş",
+    yasEtiket: "1 - 3 yaş",
     dil: "en",
     ailesi: "ingilizce",
     aciklama: null,
     olgular: [
+      "Seans tamamen İngilizce işlenir",
+      "Şarkı, masal, sanat, hareket ve oyun bir arada",
       "Etkinlik süresi 2 saat",
       "Tek katılımla da girilebilir",
-      "Hafta içi iki ayrı günde açılır",
+      "Hafta içi ve hafta sonu ayrı günlerde açılır",
     ],
     ikon: "Yildiz",
   },
   {
-    slug: "sarkili-masal-ve-sanat-atolyesi",
-    ad: "Şarkılı Masal ve Sanat Atölyesi",
-    kisaAd: "Şarkılı Masal ve Sanat",
-    yasEtiket: "6 aylık - 3 yaş",
-    dil: "karma",
-    ailesi: null,
-    aciklama: null,
-    olgular: [
-      "Etkinlik süresi 2 saat",
-      "Tek katılımla girilebilir",
-      "6-12 ay seansı Türkçe, 12-36 ay seansları İngilizce",
-    ],
-    ikon: "Muzik",
-  },
-  {
+    /*
+      12 Eylul 2026'da TAMAMEN DEGISTI. Onceki hali haftalik programda Sali
+      ve Cumartesi seanslari olan, INGILIZCE islenen 2 saatlik bir atolyeydi;
+      o seanslar 9 Eylul listesiyle zaten takvimden cikmisti.
+
+      Yeni hali tarihli, tek seferlik bir workshop: 27 Eylul 2026 Pazar,
+      17.00 - 18.30, TURKCE. Tarih ve saat etkinlikler.ts'de duruyor, tarih
+      gecince kendiliginden dusuyor; buraya YAZILMAZ, yoksa iki yerde iki
+      tarih olur.
+    */
     slug: "oyunlarla-matematik-atolyesi",
     ad: "Oyunlarla Matematik Atölyesi",
     kisaAd: "Oyunlarla Matematik",
     yasEtiket: "3-5 yaş",
-    dil: "en",
+    dil: "tr",
     ailesi: null,
     aciklama: null,
     olgular: [
-      "Etkinlik süresi 2 saat",
-      "Tek katılımla girilebilir",
-      "İngilizce işlenir",
-      "Salı seansına çocuk ebeveynsiz katılır",
+      "Tek seferlik workshop, haftalık programın parçası değil",
+      "Türkçe işlenir",
+      "Kontenjan sınırlıdır, rezervasyonla katılınır",
     ],
     ikon: "Sayilar",
   },
@@ -145,7 +176,8 @@ export const ATOLYELER: Atolye[] = [
     ailesi: null,
     aciklama: null,
     olgular: [
-      "Her grup gününün ilk bir saati serbest oyundur",
+      "İki saatlik oyun gruplarında bir saat atölye, bir saat serbest oyun yapılır",
+      "Sıralama gruba göre değişir, her grup için sabit değildir",
       "Kayıtlı çocuklara hafta sonu belirlenen zaman diliminde 1 saat serbest oyun ücretsizdir",
     ],
     ikon: "Balon",

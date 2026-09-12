@@ -16,9 +16,15 @@ import type { Slot, YasAraligi, Gun } from "./types";
  *   icin geride birakildi; aile ve atolye sayfalarindaki yas ifadeleri
  *   degismedi.
  *
- * Listede olmayan atolyeler (Sarkili Masal ve Sanat, Oyunlarla Matematik,
- * Minik Beyinler Laboratuvari, Cumartesi serbest oyun saati) takvimden
- * cikti; tanitim sayfalari duruyor (musteri karari, 9 Eylul 2026).
+ * Listede olmayan atolyeler (Oyunlarla Matematik, Minik Beyinler
+ * Laboratuvari, Cumartesi serbest oyun saati) takvimden cikti; tanitim
+ * sayfalari duruyor (musteri karari, 9 Eylul 2026). Sarkili Masal ve Sanat
+ * Atolyesi 12 Eylul 2026'da bir program olmaktan tamamen cikti, icerigi
+ * Ingilizce Oyun Grubuna girdi.
+ *
+ * 12 EYLUL 2026 EKLERI (kurum bildirimi, 9 Eylul listesinin USTUNE):
+ * - Carsamba 15.00 seansi 12-16 Ay Gelisim Odakli Bebek Oyun Grubu oldu.
+ * - Cuma 13.30 - 15.30 / 24-36 ay Ingilizce Oyun Grubu eklendi.
  *
  * Ogretmen adlari listede yok. Gunu, saati VE atolyesi eski bir slotla
  * birebir tutan slotlarda eski ogretmen korundu; kalanlar ogretmensiz.
@@ -26,15 +32,22 @@ import type { Slot, YasAraligi, Gun } from "./types";
  * yalnizca ayni seans oldugu kesin olan yerlere tasindi.
  *
  * Genel kurallar:
- * - Ilk bir saat serbest oyundur.
+ * - Atolye ve serbest oyun sirasi GRUBA GORE degisir. "Ilk bir saat serbest
+ *   oyundur" ifadesi 12 Eylul 2026'da kaldirildi: 6-12 ay ve 12-16 ay
+ *   icerikleri gunu "1 saat atolye + 1 saat serbest oyun" diye anlatiyor,
+ *   yani sira sabit degil. Site genelinde tek dogru ifade asagidaki
+ *   PROGRAM_NOTLARI[0] cumlesidir.
  * - Ogle arasi her gun 12.30 - 13.30.
  * - Ara ogun yalniz Okula Hazirlik Gruplarinda verilir.
+ * - Ayni saatte iki grup gorunmesi HATA DEGIL: bir grup atolyedeyken oteki
+ *   serbest oyun alanini kullanir (kurum aciklamasi, 12 Eylul 2026).
  */
 
 /** Yas bantlari tek yerden gelir, boylece filtre her sayfada ayni davranir. */
 export const YAS: Record<string, YasAraligi> = {
   bebek6_12: { minAy: 6, maxAy: 12, etiket: "6-12 ay", ebeveynsiz: false },
   bebek8_16: { minAy: 8, maxAy: 16, etiket: "8-16 ay", ebeveynsiz: false },
+  bebek12_16: { minAy: 12, maxAy: 16, etiket: "12-16 ay", ebeveynsiz: false },
   bebek12_24: { minAy: 12, maxAy: 24, etiket: "12-24 ay", ebeveynsiz: false },
   yuruyen16_24: { minAy: 16, maxAy: 24, etiket: "16-24 ay", ebeveynsiz: false },
   yuruyen24_36: { minAy: 24, maxAy: 36, etiket: "24-36 ay", ebeveynsiz: false },
@@ -209,12 +222,25 @@ export const SLOTLAR: Slot[] = [
     durum: "acik",
   },
   {
+    /*
+      12 Eylul 2026: bu seans "12-24 Ay Bebek Oyun Grubu" iken
+      "12-16 Ay Gelisim Odakli Bebek Oyun Grubu" oldu (kurum bildirimi).
+      Yas bandi da 12-24'ten 12-16'ya daraldi.
+
+      ID DEGISMEDI. "bebek" eki artik atolye adini degil, kimligi tasiyor;
+      id kayit kayitlarinda ve sosyal post betiginde gecmis veri olarak
+      duruyor, yeniden adlandirilirsa eski basvurular eslesmez.
+
+      10 Eylul postu bu saati 12-24 ay diye duyurmustu (bkz.
+      scripts/sosyal-post.ts). Yeni bildirim onun yerine gecti; o post
+      yeniden uretilirse yas satiri buradan gelir.
+    */
     id: "crs-1500-bebek",
     gun: "carsamba",
     bas: "15.00",
     bit: "17.00",
-    atolyeSlug: "bebek-oyun-grubu",
-    yas: YAS.bebek12_24,
+    atolyeSlug: "gelisim-odakli-bebek-oyun-grubu",
+    yas: YAS.bebek12_16,
     dil: "tr",
     ogretmenler: [],
     tekSeferMumkun: false,
@@ -352,6 +378,23 @@ export const SLOTLAR: Slot[] = [
   },
   {
     /*
+      12 Eylul 2026 kurum bildirimiyle EKLENDI; 9 Eylul listesinde yoktu.
+      Ayni saat araliginda Cuma 14.30 Okula Hazirlik seansi da var; bu bir
+      cakisma degil, bkz. dosya basindaki not.
+    */
+    id: "cuma-1330-ingilizce",
+    gun: "cuma",
+    bas: "13.30",
+    bit: "15.30",
+    atolyeSlug: "ingilizce-oyun-grubu",
+    yas: YAS.yuruyen24_36,
+    dil: "en",
+    ogretmenler: [],
+    tekSeferMumkun: true,
+    durum: "acik",
+  },
+  {
+    /*
       Tek 2 saatlik Okula Hazirlik seansi; digerlerinin hepsi 3 saat.
       Kurum listesi boyle verdi, oldugu gibi duruyor.
     */
@@ -434,10 +477,22 @@ export const SLOTLAR: Slot[] = [
  * Pazar. 10 Agustos 2026 patron karari: Pazar grubu yok, kurum kapali.
  * 9 Eylul 2026 listesi de Pazar'a hicbir seans yazmiyor.
  */
-export const PAZAR_NOTU = "Pazar günü grup programı yoktur.";
+export const PAZAR_NOTU =
+  "Pazar günü grup programı yoktur. Özel etkinlikler ve doğum günü partileri rezervasyonla yapılır.";
 
 export const PROGRAM_NOTLARI = [
-  "İlk bir saat serbest oyundur.",
+  /*
+    ESKI CUMLE: "Ilk bir saat serbest oyundur." 12 Eylul 2026'da kaldirildi.
+    Kurumdan gelen 6-12 ay ve 12-16 ay icerikleri gunu "1 saat atolye +
+    1 saat serbest oyun" diye anlatiyor; sira gruba gore degisiyor, sabit
+    degil. Site genelinde "ilk saat mutlaka serbest oyun" denemez.
+  */
+  "İki saatlik oyun gruplarında atölye ve serbest oyun akışı, grubun programına ve eş zamanlı grupların alan kullanımına göre planlanır.",
+  /*
+    Takvimde birbirine yakin saatlerde iki grup gorunuyor. Veli bunu bir
+    tablo hatasi sanmasin diye aciklama takvimin yaninda duruyor.
+  */
+  "Aynı saatlerde birden fazla grup görebilirsiniz: bir grup atölyedeyken diğeri serbest oyun alanını kullanır, gruplar karışmaz.",
   "Öğle arası her gün 12.30 - 13.30.",
   "Grupları küçük tutuyoruz: Okula Hazırlık Gruplarında 12, diğer gruplarda 8 çocuk.",
   "Ara öğün yalnızca Okula Hazırlık Gruplarında verilir.",

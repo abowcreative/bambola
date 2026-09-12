@@ -6,6 +6,7 @@ import {
   MEB_IFADESI,
   napAdi,
   saatSatirlari,
+  PAZAR_ISTISNASI,
   whatsappBaglantisi,
 } from "@/lib/site";
 import { YASAL_SAYFALAR } from "@/lib/yasal";
@@ -179,6 +180,9 @@ export function SiteFooter() {
                 </div>
               ))}
             </dl>
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-murekkep-soluk">
+              {PAZAR_ISTISNASI}
+            </p>
           </div>
         </div>
 

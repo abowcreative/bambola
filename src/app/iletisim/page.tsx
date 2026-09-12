@@ -3,6 +3,7 @@
   MARKA,
   napAdi,
   saatSatirlari,
+  PAZAR_ISTISNASI,
   whatsappBaglantisi,
   yolTarifiBaglantisi,
 } from "@/lib/site";
@@ -186,6 +187,9 @@ export default function IletisimSayfasi() {
                         </div>
                       ))}
                     </dl>
+                    <p className="mt-2 text-sm text-murekkep-soluk">
+                      {PAZAR_ISTISNASI}
+                    </p>
                     <p className="mt-3 text-sm text-murekkep-soluk">
                       Grup ve atölye saatleri bundan farklı;{" "}
                       <Link

@@ -21,7 +21,7 @@ import { MekanSeridi } from "@/components/site/mekan-seridi";
 
 export const metadata = sayfaMetadata({
   baslik: `${MARKA.ilce} Oyun Evi ve Oyun Grupları`,
-  aciklama: `Millî Eğitim Bakanlığı'na bağlı oyun merkezi. ${MARKA.ilce}, ${MARKA.sehir}. 6 aydan 5 yaşa oyun grupları, atölyeler ve okula hazırlık. Okula hazırlıkta 12, diğer gruplarda 8 çocuk. İlk bir saat serbest oyun.`,
+  aciklama: `Millî Eğitim Bakanlığı'na bağlı oyun merkezi. ${MARKA.ilce}, ${MARKA.sehir}. 6 aydan 5 yaşa oyun grupları, atölyeler ve okula hazırlık. Okula hazırlıkta 12, diğer gruplarda 8 çocuk. Her seansta serbest oyun saati.`,
   yol: "/oyun-evi",
 });
 
@@ -46,7 +46,8 @@ export default function OyunEviSayfasi() {
         aciklama={
           <>
             6 aylıktan 5 yaşa kadar, çocuğun yaşına göre kurulmuş gruplar. Her
-            grupta okula hazırlıkta 12, diğerlerinde 8 çocuk. Günün ilk saati serbest oyun.
+            grupta okula hazırlıkta 12, diğerlerinde 8 çocuk. Her seansta bir saat
+            serbest oyun.
           </>
         }
         cocuklar={

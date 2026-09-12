@@ -81,7 +81,11 @@ function esit<T>(a: T, b: T, ad: string) {
 
 // ------------------------------------------------------------ veri butunlugu
 
-dogru(SLOTLAR.length === 30, `slot sayisi 30 olmali, ${SLOTLAR.length} bulundu`);
+/*
+  31 = 9 Eylul listesinin 30 seansi + 12 Eylul 2026'da kurumun ekledigi
+  Cuma 13.30 Ingilizce seansi.
+*/
+dogru(SLOTLAR.length === 31, `slot sayisi 31 olmali, ${SLOTLAR.length} bulundu`);
 
 const idler = new Set<string>();
 for (const s of SLOTLAR) {
@@ -152,7 +156,8 @@ esit(PAKETLER.bebek[1].erkenKayit, 5600, "bebek ayda 4 indirimli");
   girilebilen tek program olarak Ingilizce Oyun Grubu kaldi: dort seans.
 */
 const tekSefer = tekSeferlikSlotlar();
-esit(tekSefer.length, 4, "tek seferlik slot sayisi");
+// 12 Eylul 2026: Cuma 13.30 Ingilizce seansiyla dortten bese cikti.
+esit(tekSefer.length, 5, "tek seferlik slot sayisi");
 dogru(
   tekSefer.every((s) => s.atolyeSlug === "ingilizce-oyun-grubu"),
   "tek seferlik seanslarin hepsi Ingilizce Oyun Grubu olmali",
@@ -489,7 +494,7 @@ const ogretmensiz = ATOLYELER.filter(
 
 esit(
   ogretmensiz.join(", "),
-  "ingilizce-oyun-grubu",
+  "gelisim-odakli-bebek-oyun-grubu, ingilizce-oyun-grubu",
   "ogretmensiz seansi olan atolyeler beklenenden farkli",
 );
 
@@ -909,7 +914,20 @@ for (const a of AILELER) {
     );
   }
 }
+/*
+  TEK ISTISNA: "gelisim-odakli-bebek-oyun-grubu". Grubun kurumdan gelen ADI
+  ayla anilıyor -- "12-16 Ay Gelisim Odakli Bebek Oyun Grubu" -- ve reklamdan
+  gelen veli sitede ayni basligi gormeli (kurum karari, 12 Eylul 2026).
+  Sayfada yas satiri basligin ustunde duruyor, yani ekranda okunan sey tam
+  olarak reklamdaki ad oluyor.
+
+  Bu istisna YAYILMASIN: kombinasyon etiketleri, aile etiketleri ve yas
+  sayfasi adlari yas yazmaya devam ediyor.
+*/
+const AY_ADLI_ATOLYELER = new Set(["gelisim-odakli-bebek-oyun-grubu"]);
+
 for (const a of ATOLYELER) {
+  if (AY_ADLI_ATOLYELER.has(a.slug)) continue;
   dogru(
     !AY_ARALIGI.test(a.yasEtiket),
     `${a.slug}: yas etiketinde ay araligi var: "${a.yasEtiket}"`,

@@ -30,7 +30,7 @@ export const SORULAR: Soru[] = [
   {
     soru: "Ebeveyn etkinliğe katılıyor mu?",
     cevap:
-      "Evet. Oyun gruplarında ve bebek gruplarında ebeveyn çocuğa eşlik eder; çocuk güvenli ayrılmayı sağlayana kadar bu böyle sürer. Okula Hazırlık Grupları ile Salı günkü Oyunlarla Matematik Atölyesi ebeveynsizdir; çocuk gruba tek başına katılır.",
+      "Evet. Oyun gruplarında ve bebek gruplarında ebeveyn çocuğa eşlik eder; çocuk güvenli ayrılmayı sağlayana kadar bu böyle sürer. Okula Hazırlık Gruplarında çocuk gruba tek başına katılır.",
     kategori: "program",
   },
   {
@@ -43,19 +43,19 @@ export const SORULAR: Soru[] = [
   {
     soru: "Tek seferlik katılabilir miyim?",
     cevap:
-      "Bazı atölyelere tek katılımla girilebilir: Oyunlarla Matematik, İngilizce Oyun Grubu, Şarkılı Masal ve Sanat Atölyesi, Minik Beyinler Laboratuvarı. Okula Hazırlık Gruplarında tek seferlik katılım yoktur.",
+      "İngilizce Oyun Grubuna tek katılımla girilebilir. Tarihli workshoplara da tek seferlik katılınır. Okula Hazırlık Gruplarında tek seferlik katılım yoktur.",
     kategori: "kayit",
   },
   {
     soru: "Günün akışı nasıl?",
     cevap:
-      "Her grup gününün ilk bir saati serbest oyundur. Öğle arası her gün 12.30 - 13.30 arasındadır. Ara öğün yalnızca Okula Hazırlık Gruplarında verilir.",
+      "İki saatlik oyun gruplarında bir saat atölye, bir saat serbest oyun yapılır; sıralama grubun programına ve o saatte alanı kullanan diğer gruba göre planlanır. Öğle arası her gün 12.30 - 13.30 arasındadır. Ara öğün yalnızca Okula Hazırlık Gruplarında verilir.",
     kategori: "program",
   },
   {
     soru: "Hafta sonu açık mısınız?",
     cevap:
-      "Cumartesi dolu bir program işliyor: şarkılı masal, matematik atölyesi, oyun grupları ve serbest oyun. Pazar günü grup programı yoktur.",
+      "Cumartesi dolu bir program işliyor: İngilizce oyun grupları, gelişim odaklı oyun grupları ve bebek grupları. Pazar günü grup programı yoktur; özel etkinlikler ve doğum günü partileri rezervasyonla yapılır.",
     kategori: "genel",
   },
   {
@@ -73,15 +73,20 @@ export const SORULAR: Soru[] = [
   {
     soru: "Serbest oyun ücretli mi?",
     cevap:
-      "Kayıtlı çocuklara hafta sonu belirlenen zaman diliminde 1 saat serbest oyun ücretsizdir; bu, kayıtlı olmayan çocuklar için geçerli değildir. Ayrıca her grup gününün ilk bir saati serbest oyun olarak geçer.",
+      "Kayıtlı çocuklara hafta sonu belirlenen zaman diliminde 1 saat serbest oyun ücretsizdir; bu, kayıtlı olmayan çocuklar için geçerli değildir. Ayrıca iki saatlik oyun gruplarının bir saati serbest oyun olarak geçer.",
     kategori: "ucret",
   },
-  {
-    soru: "Erken kayıt indirimi nasıl uygulanıyor?",
-    cevap:
-      "Erken kayıt döneminde, 10 Ağustos ile 1 Eylül arasında, paket ücretlerinde yüzde 20 indirim uygulanır. İndirimden peşin ödeme koşuluyla faydalanılır: kredi kartı, havale veya nakit. En fazla 3 ay faydalanılabilir ve her programın ödeme tarihinden itibaren 1 ay içinde tamamlanması gerekir. Tek seferlik katılım fiyatlarına indirim uygulanmaz.",
-    kategori: "ucret",
-  },
+  /*
+    "Erken kayit indirimi nasil uygulaniyor?" sorusu 12 Eylul 2026'da
+    KALDIRILDI. Kampanya penceresi 1 Eylul'de kapandi (bkz. ucretler.ts
+    KAMPANYA_PENCERESI) ve fiyat kartlari o gun kendiliginden indirimsiz
+    fiyata dondu; sorunun kendisi ise statik metindi ve bitmis bir indirimi
+    anlatmaya devam ediyordu.
+
+    YENI BIR KAMPANYA ACILIRSA: soru geri gelmeli ama TARIHI ELLE
+    YAZILMAMALI. Metin KAMPANYA_PENCERESI.metin'den uretilmeli, yoksa ayni
+    sey ikinci kez olur.
+  */
   {
     soru: "Kayıt nasıl yapılıyor?",
     cevap:

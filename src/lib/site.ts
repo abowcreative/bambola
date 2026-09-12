@@ -176,6 +176,8 @@ const GUNDUZ: SaatAraligi = { acilis: "09.00", kapanis: "18.00" };
  *
  * null = o gun kapali. Kapali gun schema'ya hic yazilmaz; "kapali" diye
  * yazmak Google yerel kartinda tek satirlik bir gun olarak gorunur.
+ *
+ * PAZAR KAPALI AMA BOS DEGIL, bkz. PAZAR_ISTISNASI.
  */
 export const SAATLER: Record<Gun, SaatAraligi | null> = {
   pazartesi: GUNDUZ,
@@ -186,6 +188,21 @@ export const SAATLER: Record<Gun, SaatAraligi | null> = {
   cumartesi: GUNDUZ,
   pazar: null,
 };
+
+/**
+ * Pazar kapali satirinin altina dusen istisna.
+ *
+ * Kurum pazar gunu GRUP PROGRAMI yurutmuyor; rezervasyonla ozel etkinlik ve
+ * dogum gunu partisi aliyor (kurum aciklamasi, 12 Eylul 2026). Bu satir
+ * olmadan pazara dusen bir etkinlik -- ornegin 27 Eylul Oyunlarla Matematik
+ * workshop'u -- calisma saatleriyle celisiyor gorunuyordu.
+ *
+ * SCHEMA'YA YAZILMAZ: openingHoursSpecification duzenli acilis saatlerini
+ * anlatir, rezervasyona bagli istisnalari degil. Google yerel kartinda
+ * "Pazar 00.00-00.00" gibi okunurdu.
+ */
+export const PAZAR_ISTISNASI =
+  "Pazar günü grup programı yoktur. Özel etkinlikler ve doğum günü partileri rezervasyonla yapılır.";
 
 /**
  * Saatleri ekranda gosterilecek satirlara cevirir. Ayni saate sahip ardisik

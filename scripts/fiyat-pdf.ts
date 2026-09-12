@@ -19,6 +19,7 @@ import { SLOTLAR } from "../src/lib/data/program";
 import { atolyeBul } from "../src/lib/data/atolyeler";
 import {
   KAMPANYA_KOSULLARI,
+  PAKET_KOSULLARI,
   KAMPANYA_PENCERESI,
   indirimVarMi,
   tekSeferUcreti,
@@ -403,9 +404,9 @@ ${satirlar}
 const KOSUL_BLOK = `  <section class="kosullar">
     <h2>Koşullar</h2>
     <ol>
-${KAMPANYA_KOSULLARI.map((k) => `      <li>${kacis(k)}</li>`).join("\n")}
+${[...KAMPANYA_KOSULLARI, ...PAKET_KOSULLARI].map((k) => `      <li>${kacis(k)}</li>`).join("\n")}
     </ol>
-    <p class="kosul-ek">Her grup gününün ilk bir saati serbest oyundur. Öğle arası
+    <p class="kosul-ek">İki saatlik oyun gruplarının bir saati serbest oyundur. Öğle arası
       her gün 12.30 - 13.30. Ara öğün verilir. Hafta sonu belirlenen zaman diliminde
       1 saat serbest oyun ücretsizdir. Pazar günü grup programı yoktur.</p>
   </section>`;

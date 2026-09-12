@@ -149,7 +149,7 @@ export default function AnaSayfa() {
               </li>
               <li className="flex items-center gap-2">
                 <Ikon.Saat boyut={18} className="text-yesil" />
-                İlk bir saat serbest oyun
+                Her seansta serbest oyun saati
               </li>
               <li className="flex items-center gap-2">
                 <Ikon.Kalp boyut={18} className="text-yesil" />
