@@ -10,7 +10,7 @@
  */
 
 import { writeFileSync, readFileSync, mkdirSync } from "node:fs";
-import { gunSlotlari } from "../src/lib/data/program";
+import { gunSlotlari, slotBul } from "../src/lib/data/program";
 import { atolyeBul } from "../src/lib/data/atolyeler";
 import { KAMPANYA_PENCERESI } from "../src/lib/data/ucretler";
 import { ILETISIM, MARKA, MEB_IFADESI } from "../src/lib/site";
@@ -80,6 +80,19 @@ type Post = {
 const cmt = gunSlotlari("cumartesi").filter(
   (s) => s.atolyeSlug !== "serbest-oyun",
 );
+
+/**
+ * Kayit cagrisi tasiyan postlarda kart rozeti kontenjandan uretiliyor.
+ * Elle yazilsaydi slot dolduktan sonra da "son kontenjan" diye kalirdi.
+ */
+const durumRozeti = (id: string) =>
+  slotBul(id)?.durum === "son1" ? "Son kontenjan" : undefined;
+
+/** "pzt-1500-bebek" -> "15.00 - 17.00". Saat tek yerden, programdan gelir. */
+const saatAraligi = (id: string) => {
+  const s = slotBul(id);
+  return s ? `${s.bas} - ${s.bit}` : "";
+};
 
 const POSTLAR: Post[] = [
   {
@@ -152,7 +165,7 @@ const POSTLAR: Post[] = [
     baslikAcik: "belli",
     spot: "Ne olacağını önceden bilirsiniz. Kapıda sürpriz çıkmaz.",
     akis: [
-      { no: "1", ust: "İlk bir saat serbest oyun", alt: "Çocuk kendi hızında ısınır, gruba öyle katılır" },
+      { no: "1", ust: "Bir saat serbest oyun", alt: "Çocuk kendi hızında ısınır, gruba öyle katılır" },
       { no: "2", ust: "Bütünleştirilmiş etkinlik", alt: "Yaş grubuna göre planlanmış program" },
       { no: "3", ust: "Ara öğün", alt: "Her katılımda ara öğün verilir" },
       { no: "4", ust: "Öğle arası 12.30 - 13.30", alt: "Her gün aynı saatte" },
@@ -172,6 +185,84 @@ const POSTLAR: Post[] = [
       // Dil, satir sonunda yalniz " ·" birakmasin diye ayri rozette.
       rozet: s.dil === "en" ? "İngilizce" : undefined,
     })),
+  },
+  {
+    /*
+      MUSTERI SES KAYDI, 10 Eylul 2026, 14.15 ve 14.17:
+      "Carsamba gunu saat 15.00-17.00 arasina 12-24 ay icin 'Gelisimsel oyun
+      grubu kayitlarimiz baslamistir' diye bir icerik cikalim. 12-24 ay
+      gelisimsel oyun grubunun uc grubu var: pazartesi 15.00-17.00, carsamba
+      15.00-17.00 ve cumartesi 15.00-17.00." "Carsamba gununu yeni acmis
+      oluyoruz."
+
+      AD UYUSMAZLIGI, TEYIT BEKLIYOR: Musteri bu uc seansa "Gelisimsel Oyun
+      Grubu" diyor. Sitede bu seanslar "Bebek Oyun Grubu" adiyla duruyor ve
+      AYRICA "Gelisim Odakli Oyun Grubu" adinda BASKA bir program var
+      (16-36 ay). Post musterinin agzindan cikan adi kullaniyor; site
+      degistirilmedi. Ad kesinlesince ikisi ayni anda degismeli.
+    */
+    dosya: "gelisimsel-oyun-12-24",
+    etiket: "12 - 24 ay",
+    baslikKoyu: "Gelişimsel oyun grubu",
+    baslikAcik: "kayıtları başladı",
+    baslikBoyu: "orta",
+    spot: "12-24 ay bebekler için haftanın üç günü. Çarşamba grubumuzu yeni açtık.",
+    izgara: true,
+    kartlar: [
+      {
+        ikon: "takvim",
+        ust: "Pazartesi",
+        alt: saatAraligi("pzt-1500-bebek"),
+        rozet: durumRozeti("pzt-1500-bebek"),
+      },
+      {
+        ikon: "yildiz",
+        ust: "Çarşamba",
+        alt: saatAraligi("crs-1500-bebek"),
+        rozet: "Yeni grup",
+        dolu: true,
+      },
+      {
+        ikon: "takvim",
+        ust: "Cumartesi",
+        alt: saatAraligi("cmt-1500-bebek"),
+        rozet: durumRozeti("cmt-1500-bebek"),
+      },
+    ],
+  },
+  {
+    /*
+      MUSTERI SES KAYDI, 10 Eylul 2026, 14.11 ve 14.17:
+      "Bu grup 8-16 ay olacak. '8-16 ay bebek grubu' seklinde cikmamiz
+      gerekiyor." "Cumartesi 13.30-15.30 arasi ek bir 8-16 ay grubumuz var."
+
+      Grubun ne yaptigini anlatan icerik Emine ogretmenden gelecek; bu post
+      yalniz grubun kesinlesmis cercevesini soyluyor.
+    */
+    dosya: "bebek-8-16",
+    etiket: "Hafta sonu",
+    baslikKoyu: "8-16 ay",
+    baslikAcik: "bebek grubu",
+    spot: "Cumartesi öğleden sonra, ebeveyn eşliğinde iki saat.",
+    kartlar: [
+      {
+        ikon: "takvim",
+        ust: `Cumartesi ${saatAraligi("cmt-1330-bebek")}`,
+        alt: "Haftanın tek günü",
+        rozet: durumRozeti("cmt-1330-bebek"),
+        dolu: true,
+      },
+      {
+        ikon: "kalp",
+        ust: "Ebeveyn eşlik eder",
+        alt: "Bebek gruplarına ebeveyn çocuğuyla birlikte katılır",
+      },
+      {
+        ikon: "grup",
+        ust: "En fazla 8 bebek",
+        alt: "Grubu küçük tutuyoruz, öğretmen her bebeği görüyor",
+      },
+    ],
   },
   {
     dosya: "erken-kayit",
@@ -237,7 +328,7 @@ ${p.akis
 }
 ${
   p.kartlar
-    ? `      <div class="kartlar${p.izgara ? " izgara" : ""}">
+    ? `      <div class="kartlar${p.izgara ? " izgara" : ""}${p.izgara && p.kartlar.length >= 3 ? " sik" : ""}">
 ${p.kartlar.map(kartHtml).join("\n")}
       </div>`
     : ""

@@ -367,3 +367,18 @@ h1 .acik { color: var(--yesil); display: block; }
 /* Adres 33cqw'ye sigmayip uc satira bolunuyordu. */
 .serit-sag { max-width: 39cqw; font-size: 2.2cqw; }
 .serit-sol p { font-size: 2.5cqw; }
+
+/* Uc ve uzeri kartli izgara: ikonsuz ve daha sik.
+   9 Eylul programi Cumartesi'ye besinci seansi ekleyince izgara uc satira
+   cikti ve son satir iletisim seridinin altina girdi (olcum: +224px).
+   Ikon bu dizilimde bilgi tasimiyor, yer aciyor. */
+.kartlar.izgara.sik { gap: 1.8cqw; }
+.kartlar.izgara.sik .k { padding: 2cqw 2.6cqw; gap: 0.8cqw; }
+.kartlar.izgara.sik .k-ikon { display: none; }
+.kartlar.izgara.sik .k-ust { font-size: 3.3cqw; }
+.kartlar.izgara.sik .k-alt { font-size: 2.5cqw; }
+.kartlar.izgara.sik .k-rozet { margin-top: 0.7cqw; }
+
+/* Koyu kartta rozet vurgu tasiyor ("Yeni grup"), beyaz saydamlik kartin
+   icinde kayboluyordu. Kehribar afislerdeki vurgu rengiyle ayni. */
+.k.dolu .k-rozet { background: var(--kehribar); color: var(--yesil-koyu); }
