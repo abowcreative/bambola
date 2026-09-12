@@ -19,6 +19,8 @@ import { SssAkordiyon } from "@/components/site/sss-akordiyon";
 import { SonCagri } from "@/components/site/son-cagri";
 import { MekanSeridi } from "@/components/site/mekan-seridi";
 import { HeroFotograf } from "@/components/site/hero-fotograf";
+import { HeroSlaytlari } from "@/components/site/hero-slaytlari";
+import { HERO_SLAYTLARI } from "@/lib/data/hero";
 import { HaftalikTakvim } from "@/components/takvim/haftalik-takvim";
 import {
   Ayi,
@@ -102,47 +104,39 @@ export default function AnaSayfa() {
               )}
             </div>
 
-            <h1 className="mt-5 font-baslik text-[2.5rem] font-bold leading-[1.05] text-murekkep sm:text-6xl">
-              Çocuğunuz burada{" "}
-              <span className="relative inline-block text-yesil-koyu">
-                oynayarak
-                <svg
-                  viewBox="0 0 200 12"
-                  className="absolute -bottom-1 left-0 w-full text-lime-rozet"
-                  aria-hidden="true"
-                  preserveAspectRatio="none"
-                >
-                  <path
-                    d="M2 8c40-5 90-7 196-4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="6"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>{" "}
-              büyüyor
-            </h1>
+            {/*
+              12 Eylul 2026, kurum karari: hero tek bir marka cumlesi yerine
+              uc grubu sirayla one cikariyor. Sayfanin H1'i artik burada ve
+              slaytla birlikte degisiyor; sunucu ilk slayti tam metniyle
+              basiyor, bkz. components/site/hero-slaytlari.tsx.
 
-            <p className="mt-6 max-w-lg text-lg leading-relaxed text-murekkep-soluk">
+              ONCEKI H1 "Cocugunuz burada oynayarak buyuyor" idi. Marka
+              cumlesi kaybolmasin diye konum ve yas araligi asagida, cagri
+              satirinin altinda sabit bir satir olarak duruyor: yerel arama
+              icin o cumledeki "Cankaya, Ankara" onemli.
+            */}
+            <div className="mt-5">
+              <HeroSlaytlari slaytlar={HERO_SLAYTLARI} />
+            </div>
+
+            <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
+              <BilgiCagrisi metin="Çocuğuma uygun grubu bul" olcu="lg" />
+              <Link
+                href="/oyun-evi/haftalik-program"
+                className="inline-flex items-center gap-2 font-baslik font-semibold text-yesil-koyu hover:underline"
+              >
+                <Ikon.Takvim boyut={19} />
+                Haftalık programı gör
+              </Link>
+            </div>
+
+            <p className="mt-6 max-w-lg leading-relaxed text-murekkep-soluk">
               {MARKA.ilce}, {MARKA.sehir}. 6 aydan 5 yaşa oyun grupları,
               atölyeler ve okula hazırlık. Gruplar küçük, böylece her çocuk
               görülüyor.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <BilgiCagrisi metin="Çocuğuma uygun grubu bul" olcu="lg" />
-              <ButonLink
-                href="/oyun-evi/haftalik-program"
-                gorunum="cizgili"
-                olcu="lg"
-              >
-                <Ikon.Takvim boyut={19} />
-                Haftalık programı gör
-              </ButonLink>
-            </div>
-
-            <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm text-murekkep-soluk">
+            <ul className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-sm text-murekkep-soluk">
               <li className="flex items-center gap-2">
                 <Ikon.Grup boyut={18} className="text-yesil" />
                 Küçük gruplar: 8, okula hazırlıkta 12
