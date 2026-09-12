@@ -83,7 +83,7 @@ export function BilgiCagrisi({
  * Kayit kapali oldugunu anlatan tek satir. Cagri bloklarinin altinda,
  * "bir sekilde kayit olmak isteyen" veliye gorunur.
  */
-export function KayitYakindaNotu({
+export function KayitKanaliNotu({
   className = "",
   ton = "koyu",
 }: {
@@ -98,7 +98,7 @@ export function KayitYakindaNotu({
         ton === "koyu" ? "text-white/90" : "text-murekkep-soluk"
       } ${className}`}
     >
-      Online kayıt formu çok yakında açılıyor.
+      Kayıtları WhatsApp ve telefonla alıyoruz.
     </p>
   );
 }

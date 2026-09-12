@@ -966,8 +966,12 @@ for (const y of YAS_SAYFALARI) {
 
 /*
   Musteri karari, 17 Agustos 2026: online kayit formu yayinda degil,
-  "kayit formunu doldur" dugmesi hicbir sayfada olmayacak, forma ulasan
-  kisi "cok yakinda" gormeli.
+  "kayit formunu doldur" dugmesi hicbir sayfada olmayacak.
+
+  12 Eylul 2026: "Online siteden kayit almayacagiz simdilik." Anahtar ayni
+  kaldi ama site artik form VAAT ETMIYOR; /kayit sayfasi "cok yakinda"
+  yerine kaydin hangi kanaldan alindigini soyluyor. Asagidaki kontrol de
+  vaadin geri sizmadigini bekliyor.
 
   Tek anahtar var (KAYIT_FORMU_ACIK). Testin isi anahtarla sayfalarin
   birbirinden ayrilmadigini garanti etmek: anahtar kapaliyken sitede
@@ -1002,13 +1006,32 @@ if (!KAYIT_FORMU_ACIK) {
     );
   }
 
-  // /kayit sayfasi formu degil "cok yakinda" gostermeli.
+  // /kayit sayfasi formu degil iletisim kanalini gostermeli.
   const kayitSayfasi = readFileSync("src/app/kayit/page.tsx", "utf8");
   dogru(
     kayitSayfasi.includes("KAYIT_FORMU_ACIK") &&
-      kayitSayfasi.includes("Kayıt çok yakında"),
-    "/kayit sayfasi kapali halde 'cok yakinda' gostermeli",
+      kayitSayfasi.includes("KAYIT_KANALI_METNI"),
+    "/kayit sayfasi kapali halde kayit kanalini gostermeli",
   );
+
+  /*
+    Form vaadi geri sizmasin. 17 Agustos - 12 Eylul 2026 arasinda site
+    bir ay boyunca "cok yakinda aciliyor" dedi ve acilmadi; karar
+    degistiginde bu cumleyi geri yazmak kolay, fark etmek zor.
+  */
+  const vaatArayanlar = [
+    "src/lib/site.ts",
+    "src/app/kayit/page.tsx",
+    "src/components/site/bilgi-cagrisi.tsx",
+    "src/lib/data/sss.ts",
+  ];
+  for (const yol of vaatArayanlar) {
+    const metin = readFileSync(yol, "utf8");
+    dogru(
+      !/(Online kayıt formu|kayıt formu) çok yakında/i.test(metin),
+      `kayit formu vaadi geri gelmis: ${yol}`,
+    );
+  }
 
   // Ucnokta da reddetmeli: eski bir sekme yine basvuru yazamasin.
   const api = readFileSync("src/app/api/kayit/route.ts", "utf8");

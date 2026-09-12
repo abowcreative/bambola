@@ -90,7 +90,7 @@ export const SORULAR: Soru[] = [
   {
     soru: "Kayıt nasıl yapılıyor?",
     cevap:
-      "Şu an kayıtları WhatsApp ve telefonla alıyoruz: yazın, çocuğunuzun yaşına uygun grupları, gün ve saatleri birlikte netleştirelim. Online kayıt formu çok yakında açılıyor.",
+      "Kayıtları WhatsApp ve telefonla alıyoruz: yazın ya da arayın, çocuğunuzun yaşına uygun grupları, gün ve saatleri birlikte netleştirelim. Site üzerinden doldurulacak bir form yok.",
     kategori: "kayit",
   },
   {

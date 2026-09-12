@@ -1,14 +1,14 @@
 import { Belir } from "./bolum";
-import { BilgiCagrisi, KayitYakindaNotu } from "./bilgi-cagrisi";
+import { BilgiCagrisi, KayitKanaliNotu } from "./bilgi-cagrisi";
 
 /**
  * Sayfa sonu cagri blogu. Kol rengine gore kendini boyar.
  *
- * Cagri WHATSAPP'a gidiyor, kayit formuna DEGIL: online form henuz yayinda
- * degil (bkz. lib/site.ts KAYIT_FORMU_ACIK). Altinda "cok yakinda" notu
- * duruyor -- musteri istegi, 17 Agustos 2026: "bir sekilde kayit olmak
- * isteyen olursa cok yakinda uyarisi ciksin tum sitede". Bu blok sitenin
- * hemen her sayfasinin altinda oldugu icin uyari da her yerde.
+ * Cagri WHATSAPP'a gidiyor, kayit formuna DEGIL: online form yayinda degil
+ * (bkz. lib/site.ts KAYIT_FORMU_ACIK). Altindaki not 12 Eylul 2026'ya kadar
+ * "online kayit formu cok yakinda aciliyor" diyordu; kurum "online siteden
+ * kayit almayacagiz simdilik" deyince not, vaat yerine kanali soyluyor.
+ * Bu blok sitenin hemen her sayfasinin altinda oldugu icin not da her yerde.
  */
 export function SonCagri({
   baslik = "Çocuğunuza uygun grubu birlikte bulalım",
@@ -45,7 +45,7 @@ export function SonCagri({
             gorunum="yumusak"
             olcu="lg"
           />
-          <KayitYakindaNotu />
+          <KayitKanaliNotu />
         </div>
       </Belir>
     </section>

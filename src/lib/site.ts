@@ -141,6 +141,12 @@ export const ILETISIM = {
  * sitede." Yani kayit su an WhatsApp ve telefonla aliniyor, form henuz
  * yayinda degil.
  *
+ * 12 EYLUL 2026 GUNCELLEMESI: "Online siteden kayit almayacagiz simdilik."
+ * Anahtar false kalmaya devam ediyor ama SITE ARTIK FORM VAAT ETMIYOR.
+ * "Cok yakinda aciliyor" ifadeleri kaldirildi; yerlerine kaydin hangi
+ * kanaldan alindigi yaziliyor. Bir vaadin uzerinden bir ay gectiginde
+ * veliye verdigi his "yakinda" degil "unutulmus" oluyor.
+ *
  * TEK ANAHTAR, uc sonuc:
  *   1. Sitedeki butun "kayit formunu doldur" cagrilari WhatsApp'a doner
  *   2. /kayit adresi formu degil "cok yakinda" bilgisini gosterir
@@ -152,9 +158,15 @@ export const ILETISIM = {
  */
 export const KAYIT_FORMU_ACIK = false;
 
-/** Kayit kapaliyken veliye gosterilen tek cumle. Tek yerden degisir. */
-export const KAYIT_YAKINDA_METNI =
-  "Online kayıt formu çok yakında açılıyor. O zamana kadar WhatsApp'tan yazabilir ya da telefonla ulaşabilirsiniz.";
+/**
+ * Kayit kapaliyken veliye gosterilen tek cumle. Tek yerden degisir.
+ *
+ * ADI ONCEDEN `KAYIT_YAKINDA_METNI` IDI ve metni bir form vaat ediyordu.
+ * Vaat kalkinca ad da degisti: sabitin adi hala "yakinda" deseydi bir
+ * sonraki okuyan metni geri yazmaya kalkardi.
+ */
+export const KAYIT_KANALI_METNI =
+  "Kayıtları WhatsApp ve telefonla alıyoruz. Yazın ya da arayın, çocuğunuzun yaşına uygun grupları, gün ve saatleri birlikte netleştirelim.";
 
 export type SaatAraligi = { acilis: string; kapanis: string };
 

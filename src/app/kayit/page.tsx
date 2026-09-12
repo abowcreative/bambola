@@ -3,17 +3,17 @@ import { KayitFormuYukleyici } from "@/components/form/kayit-formu-yukleyici";
 import {
   ILETISIM,
   KAYIT_FORMU_ACIK,
-  KAYIT_YAKINDA_METNI,
+  KAYIT_KANALI_METNI,
   MARKA,
 } from "@/lib/site";
 import { BilgiCagrisi } from "@/components/site/bilgi-cagrisi";
 import { Ikon } from "@/components/ui/ikon";
 
 export const metadata: Metadata = {
-  title: KAYIT_FORMU_ACIK ? "Kayıt formu" : "Kayıt çok yakında",
+  title: KAYIT_FORMU_ACIK ? "Kayıt formu" : "Kayıt ve iletişim",
   description: KAYIT_FORMU_ACIK
     ? "Çocuğunuzun doğum tarihini girin, yaşına uygun grupları görün, gün ve saati seçip talebinizi bırakın."
-    : "Online kayıt formu çok yakında açılıyor. O zamana kadar WhatsApp veya telefonla ulaşabilirsiniz.",
+    : "Kayıtları WhatsApp ve telefonla alıyoruz. Gruplar, gün ve saatler için yazın ya da arayın.",
   alternates: { canonical: "/kayit" },
   /*
     Form kapaliyken bu adres arama sonuclarinda gorunmesin: veliyi
@@ -31,10 +31,12 @@ export default async function KayitSayfasi({
   const q = await searchParams;
 
   /*
-    KAYIT KAPALI HALI. Musteri karari, 17 Agustos 2026: "bir sekilde kayit
-    olmak isteyen olursa cok yakinda uyarisi ciksin." Sitede forma giden
-    dugme kalmadi ama bu adres eski baglantidan, arama sonucundan veya elle
-    yazilarak yine acilabilir. O zaman bos bir form degil bu kart cikiyor.
+    KAYIT KAPALI HALI. Sitede forma giden dugme yok ama bu adres eski
+    baglantidan, arama sonucundan veya elle yazilarak yine acilabilir.
+    O zaman bos bir form degil bu kart cikiyor.
+
+    12 Eylul 2026: kart artik form VAAT ETMIYOR ("online siteden kayit
+    almayacagiz simdilik"), kaydin hangi kanaldan alindigini soyluyor.
 
     Form kodu SILINMEDI: KAYIT_FORMU_ACIK true olunca oldugu gibi geri
     geliyor (lib/site.ts).
@@ -48,10 +50,10 @@ export default async function KayitSayfasi({
           </span>
 
           <h1 className="mt-6 font-baslik text-3xl font-bold text-murekkep sm:text-4xl">
-            Kayıt çok yakında
+            Kayıt WhatsApp&apos;tan
           </h1>
           <p className="mx-auto mt-4 max-w-md text-lg leading-relaxed text-murekkep-soluk">
-            {KAYIT_YAKINDA_METNI}
+            {KAYIT_KANALI_METNI}
           </p>
 
           <div className="mt-8 flex flex-col items-center gap-3">

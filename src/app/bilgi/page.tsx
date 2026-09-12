@@ -21,7 +21,7 @@ import { SssAkordiyon } from "@/components/site/sss-akordiyon";
 import { Sirali, SiraliOge } from "@/components/site/bolum";
 import {
   BilgiCagrisi,
-  KayitYakindaNotu,
+  KayitKanaliNotu,
 } from "@/components/site/bilgi-cagrisi";
 import { DinamikIkon, Ikon } from "@/components/ui/ikon";
 import { FotoMozaik } from "@/components/site/foto-mozaik";
@@ -464,7 +464,7 @@ export default function BilgiSayfasi() {
           Çocuğunuzun yaşını yazın; uygun grupları, gün ve saatleri
           WhatsApp&apos;tan birlikte konuşalım.
         </p>
-        <KayitYakindaNotu ton="acik" className="mt-2" />
+        <KayitKanaliNotu ton="acik" className="mt-2" />
         {/*
           TEK cagri: ikisi de WhatsApp'a gittigi icin yan yana iki dugme
           gereksizdi. Bu dugme sayac rotasindan geciyor, digeri gecmiyordu.

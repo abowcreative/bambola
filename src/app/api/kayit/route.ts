@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { KAYIT_FORMU_ACIK, KAYIT_YAKINDA_METNI } from "@/lib/site";
+import { KAYIT_FORMU_ACIK, KAYIT_KANALI_METNI } from "@/lib/site";
 import { kayitSemasi } from "@/lib/schema";
 import {
   yoneticiIstemcisi,
@@ -43,7 +43,7 @@ export async function POST(istek: Request) {
   */
   if (!KAYIT_FORMU_ACIK) {
     return NextResponse.json(
-      { ok: false, hata: KAYIT_YAKINDA_METNI },
+      { ok: false, hata: KAYIT_KANALI_METNI },
       { status: 503 },
     );
   }
