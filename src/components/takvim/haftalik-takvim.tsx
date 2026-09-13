@@ -274,6 +274,7 @@ function ZamanIzgarasi({
  */
 function IzgaraKarti({ slot }: { slot: Slot }) {
   const atolye = atolyeBul(slot.atolyeSlug);
+  const grupAdi = atolye?.kisaAd ?? slot.atolyeSlug;
   const dolu = slotDoluMu(slot);
 
   /*
@@ -299,13 +300,13 @@ function IzgaraKarti({ slot }: { slot: Slot }) {
             <DinamikIkon ad={atolye?.ikon ?? "Grup"} boyut={13} />
           </span>
           <p className="min-w-0 text-[0.82rem] font-semibold leading-tight text-murekkep">
-            {atolye?.kisaAd ?? slot.atolyeSlug}
+            {grupAdi}
           </p>
         </div>
 
         <div className="mt-2 flex flex-wrap gap-1">
           <Rozet ton={slot.durum}>{DURUM_ETIKET[slot.durum]}</Rozet>
-          <Rozet>{slot.yas.etiket}</Rozet>
+          {yasRozetiGerekli(grupAdi, slot) && <Rozet>{slot.yas.etiket}</Rozet>}
           {slot.yas.ebeveynsiz && <Rozet ton="vurgu">Güvenli ayrılma</Rozet>}
           {slot.dil === "en" && <Rozet ton="vurgu">İngilizce</Rozet>}
           {slot.dil === "karma" && <Rozet ton="vurgu">1 sa. İngilizce</Rozet>}
@@ -412,8 +413,27 @@ function GunListesi({
   );
 }
 
+/**
+ * Yas rozeti basilsin mi?
+ *
+ * Kurum bazi bebek gruplarini ADIYLA yasla aniyor ("6-12 Ay Bebek Grubu").
+ * Rozet de basilsaydi kart "6-12 Ay Bebek Grubu" yazip yanina "6-12 ay"
+ * rozeti koyuyordu; ayni bilgi iki kere, kartin en dar yerinde.
+ *
+ * KARSILASTIRMA SLOTUN BANDIYLA, atolyenin etiketiyle DEGIL: bir atolyenin
+ * farkli yas bantli seanslari olabiliyor (Gelisim Odakli Oyun Grubu 16-24 ve
+ * 24-36 ayda ayri seanslar tasiyor), o yuzden kartta gorunen bant slottan
+ * geliyor. Turkce kucultme sart: "8-16 Ay" ile "8-16 ay" aksi halde tutmaz.
+ */
+function yasRozetiGerekli(ad: string, slot: Slot): boolean {
+  return !ad
+    .toLocaleLowerCase("tr")
+    .includes(slot.yas.etiket.toLocaleLowerCase("tr"));
+}
+
 export function SlotKarti({ slot }: { slot: Slot }) {
   const atolye = atolyeBul(slot.atolyeSlug);
+  const grupAdi = atolye?.kisaAd ?? slot.atolyeSlug;
   const dolu = slotDoluMu(slot);
 
   return (
@@ -435,14 +455,14 @@ export function SlotKarti({ slot }: { slot: Slot }) {
               {slot.bas} - {slot.bit}
             </p>
             <p className="mt-0.5 text-sm leading-snug text-murekkep">
-              {atolye?.kisaAd ?? slot.atolyeSlug}
+              {grupAdi}
             </p>
           </div>
         </div>
 
         <div className="mt-2.5 flex flex-wrap gap-1.5">
           <Rozet ton={slot.durum}>{DURUM_ETIKET[slot.durum]}</Rozet>
-          <Rozet>{slot.yas.etiket}</Rozet>
+          {yasRozetiGerekli(grupAdi, slot) && <Rozet>{slot.yas.etiket}</Rozet>}
           {slot.yas.ebeveynsiz && <Rozet ton="vurgu">Güvenli ayrılma</Rozet>}
           {slot.dil === "en" && <Rozet ton="vurgu">İngilizce</Rozet>}
           {slot.dil === "karma" && <Rozet ton="vurgu">1 saat İngilizce</Rozet>}

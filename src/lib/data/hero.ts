@@ -49,8 +49,13 @@ export const HERO_SLAYTLARI: HeroSlayti[] = [
     aciklama: `8-16 ay, ebeveyn eşliğinde iki saat. Cumartesi ${saatAraligi(
       "cmt-1330-bebek",
     )}, en fazla 8 bebek.`,
-    href: "/oyun-evi/programlar/bebek-oyun-grubu",
-    buton: "Bebek grubunu incele",
+    /*
+      13 Eylul 2026: "bebek-oyun-grubu" idi. Slayt "8-16 ay" diyor ama o
+      sayfa (artik 12-24 ay) bunu anlatmiyordu; seans kendi sayfasina
+      ayrilinca baglanti da oraya gecti.
+    */
+    href: "/oyun-evi/programlar/hafta-sonu-oyun-grubu",
+    buton: "Hafta sonu grubunu incele",
     ikon: "Bebek",
   },
   {

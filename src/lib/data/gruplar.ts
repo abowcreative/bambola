@@ -126,12 +126,19 @@ export const AILELER: ProgramAilesi[] = [
     maxAy: 24,
     maxKisi: 8,
     sure: "Haftada 1-2 gün · Günde 2 saat",
+    /*
+      AILE ICINDE DORT GRUP VAR, UCRET AILESI TEK. 13 Eylul 2026'da
+      Cumartesi 13.30 seansi da kendi sayfasina ayrildi; liste artik dordunu
+      de ayri ayri sayiyor, cunku veli formda tek bir "Bebek Oyun Grubu"
+      karti gorup hangi yas bandina yazildigini bilemiyordu.
+    */
     ozellikler: [
       "Etkinlik süresi 2 saat: 1 saat atölye, 1 saat serbest oyun",
-      "6-12 ay Bebek Grubu, haftanın tek günü",
+      "6-12 Ay Bebek Grubu, haftanın tek günü",
+      "Hafta Sonu Oyun Grubu, 8-16 ay, Cumartesi",
       "12-16 ay Gelişim Odaklı Bebek Oyun Grubu, Çarşamba",
+      "12-24 ay Bebek Oyun Grubu, Pazartesi ve Cumartesi",
       "12-24 ay: haftada 2 gün katılana haftada 1 İngilizce hediye",
-      "Hafta sonu seçeneği",
     ],
     paketler: PAKETLER.bebek,
     sabitKombinasyonlar: [

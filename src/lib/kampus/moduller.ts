@@ -120,7 +120,7 @@ export const MODUL_GRUPLARI: ModulGrubu[] = [
       {
         slug: "programlar",
         ad: "Programlar",
-        ozet: "Dokuz atölye ve program ailesi, yaş aralıkları ve içerikleri.",
+        ozet: "Atölye ve program aileleri, yaş aralıkları ve içerikleri.",
         yol: "/kampus/programlar",
         ikon: "Firca",
         roller: ["admin", "ogretmen"],

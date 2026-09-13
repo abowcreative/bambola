@@ -449,11 +449,21 @@ export const SLOTLAR: Slot[] = [
     durum: "acik",
   },
   {
+    /*
+      13 Eylul 2026: bu seans "Bebek Oyun Grubu" sayfasindan ayrilip
+      "Hafta Sonu Oyun Grubu"na (atolyeler.ts, "hafta-sonu-oyun-grubu")
+      gecti. Ad, kurumun 12 Eylul tarihli onayli postundan geliyor.
+      Yas bandi DEGISMEDI, sadece tabloda gorulen grup artik kendi
+      sayfasina gidiyor.
+
+      ID DEGISMEDI: kayit kayitlarinda, hero'da (lib/data/hero.ts) ve
+      sosyal post betiginde bu id gecmis veri olarak duruyor.
+    */
     id: "cmt-1330-bebek",
     gun: "cumartesi",
     bas: "13.30",
     bit: "15.30",
-    atolyeSlug: "bebek-oyun-grubu",
+    atolyeSlug: "hafta-sonu-oyun-grubu",
     yas: YAS.bebek8_16,
     dil: "tr",
     ogretmenler: [],

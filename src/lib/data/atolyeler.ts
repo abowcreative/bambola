@@ -181,19 +181,33 @@ export const ATOLYELER: Atolye[] = [
   },
   {
     /*
-      6-12 ay 12 Eylul 2026'da AYRILDI (yukaridaki "bebek-grubu-6-12").
-      Burada kalan seanslar: Cumartesi 13.30 (8-16 ay) ve 12-24 ay
-      gruplari. Yas etiketi bu yuzden 6 aydan 8 aya cekildi.
+      BU SAYFA ARTIK YALNIZ 12-24 AY.
+
+      Iki kez daraldi. 12 Eylul 2026'da 6-12 ay ayrildi
+      ("bebek-grubu-6-12") ve etiket 6 aydan 8 aya cekildi; 13 Eylul
+      2026'da Cumartesi 13.30 seansi da ayrildi
+      ("hafta-sonu-oyun-grubu"), cunku kurum o seansi kendi basina
+      duyuruyor. Iki grup tek sayfada dururken haftalik takvim "Bebek Oyun
+      Grubu · 8-16 ay" diyor, sayfa "8 aylik - 2 yas" diyordu: tabloda
+      gorulen grup sitede bulunamiyordu.
+
+      Kalan seanslar: Pazartesi 15.00 ve Cumartesi 15.00, ikisi de
+      12-24 ay. Etiket bu yuzden "1 - 2 yas".
+
+      SLUG DEGISMEDI. /bilgi kartlari (lib/data/donem.ts, "bebek-12-24" ve
+      "bebek-16-24") bu adrese bakiyor ve ikisi de 12 aydan buyuk bandi
+      anlatiyor; adres degisseydi yayindaki iki kart 404'e giderdi.
     */
     slug: "bebek-oyun-grubu",
     ad: "Bebek Oyun Grubu",
     kisaAd: "Bebek Oyun Grubu",
-    yasEtiket: "8 aylık - 2 yaş",
+    yasEtiket: "1 - 2 yaş",
     dil: "tr",
     ailesi: "bebek",
     aciklama: null,
     olgular: [
       "Etkinlik süresi 2 saat: 1 saat atölye, 1 saat serbest oyun",
+      "Haftada 1-2 gün: Pazartesi ve Cumartesi seansları",
       "Bebek gruplarına ebeveyn eşlik eder",
       "En fazla 8 bebek",
     ],
@@ -210,8 +224,22 @@ export const ATOLYELER: Atolye[] = [
       Tek seansi Sali 14.00 - 16.00. Ucret ailesi "bebek", fiyat degismedi.
     */
     slug: "bebek-grubu-6-12",
-    ad: "Bebek Grubu",
-    kisaAd: "Bebek Grubu",
+    /*
+      13 Eylul 2026: ad "Bebek Grubu" idi, "6-12 Ay Bebek Grubu" oldu.
+      Ayni gun Cumartesi seansi ayri bir sayfaya cikti ve iki sayfa birden
+      "Bebek Grubu" adini tasiyor hale geldi; ust cubuktaki "Gruplarimiz"
+      menusunde yan yana iki ayni ad duruyordu. Kurum bu grubu zaten ayla
+      aniyor (reklam basligi "6-12 Ay Bebek Grubu"), yani ad uydurulmadi,
+      kurumun kullandigi hale getirildi. Cumartesi grubu sonra kendi
+      onayli posta gore "Hafta Sonu Oyun Grubu" oldu, ama bu sayfanin adi
+      artik reklamla birebir oldugu icin geri alinmadi.
+
+      Program sayfasi bu yuzden yas rozetini basmiyor: ad zaten yasi
+      tasiyor, rozet "6-12 ay / 6-12 Ay Bebek Grubu" diye tekrar ederdi.
+      Bkz. app/oyun-evi/programlar/[slug]/page.tsx.
+    */
+    ad: "6-12 Ay Bebek Grubu",
+    kisaAd: "6-12 Ay Bebek Grubu",
     yasEtiket: "6-12 ay",
     dil: "tr",
     ailesi: "bebek",
@@ -293,6 +321,54 @@ export const ATOLYELER: Atolye[] = [
         maddeler: [],
       },
     ],
+    ikon: "Bebek",
+  },
+  {
+    /*
+      CUMARTESI 13.30 SEANSI BURAYA AYRILDI, 13 Eylul 2026.
+
+      ADI KURUMUN YAYIMLADIGI POSTTAN: 12 Eylul 2026 tarihli onayli sosyal
+      post basligi "Cumartesi · Hafta Sonu Oyun Grubu", yas satiri rozet
+      olarak "8-16 ay". Reklami gorup siteye gelen veli ayni basligi
+      bulmali.
+
+      "8-16 AY BEBEK GRUBU" DEGIL. 10 Eylul 2026 ses kaydi (14.11) oyle
+      demisti ve gun icinde sayfa once o adla acildi; ama post ses
+      kaydindan IKI GUN SONRA ve YAYIMLANMIS halde, uzerine "Bebek"
+      kelimesini hic kullanmiyor. Yayimlanan ad kazandi.
+
+      NEDEN AYRI SAYFA: seans "Bebek Oyun Grubu" (o zaman 8 aylik - 2 yas)
+      sayfasinin icindeydi. Haftalik takvim onu "Bebek Oyun Grubu · 8-16 ay"
+      diye gosterip 12-24 ay sayfasina baglıyordu; hero de "8-16 ay" diyip
+      ayni yere gidiyordu. Tabloda ayri gorunen, kurumun ayri anlattigi ve
+      ayri duyurdugu bir grup sitede kendi sayfasi olmadan duruyordu.
+
+      UCRET AILESI "bebek" KALDI: fiyat degismedi, yalniz ad ve yas bandi
+      ayrildi. Ayni sey 6-12 ve 12-16 ayrilirken de yapildi.
+
+      ANLATIM BOS: grubun ne yaptigini anlatan icerik Emine ogretmenden
+      gelecek (sosyal post notu, 10 Eylul 2026). Uydurma pedagojik metin
+      yazilmaz; sayfa o gelene kadar "hazirlaniyor" der.
+    */
+    slug: "hafta-sonu-oyun-grubu",
+    ad: "Hafta Sonu Oyun Grubu",
+    kisaAd: "Hafta Sonu Oyun",
+    /*
+      Ad yasi TASIMIYOR, o yuzden yas rozeti hem sayfada hem takvim
+      kartinda basiliyor -- tıpkı postun kendisindeki gibi. Bkz.
+      adYasiTasiyorMu.
+    */
+    yasEtiket: "8-16 ay",
+    dil: "tr",
+    ailesi: "bebek",
+    aciklama: null,
+    olgular: [
+      "Haftanın tek günü Cumartesi, günde 2 saat",
+      "1 saat atölye, 1 saat serbest oyun",
+      "Bebeğe ebeveyni eşlik eder",
+      "En fazla 8 bebek",
+    ],
+    anlatim: [],
     ikon: "Bebek",
   },
   {
@@ -510,6 +586,24 @@ export const ATOLYELER: Atolye[] = [
     ikon: "Balon",
   },
 ];
+
+/**
+ * Grubun ADI zaten yas bandini tasiyor mu?
+ *
+ * Kurum bazi gruplari yasiyla aniyor: "6-12 Ay Bebek Grubu",
+ * "12-16 Ay Gelisim Odakli Bebek Oyun Grubu". Bu gruplarda ad ile
+ * `yasEtiket` yan yana basilirsa sayfa ve sayfa basligi kendini tekrar eder:
+ * "6-12 Ay Bebek Grubu (6-12 ay)".
+ *
+ * SLUG LISTESI TUTULMUYOR, metne bakiliyor: yarin baska bir grup ayla
+ * anilirsa yuzeyler kendiliginden dogru davranir. Karsilastirma Turkce
+ * kuculterek yapiliyor, yoksa "8-16 Ay" ile "8-16 ay" farkli iki dize olur.
+ */
+export function adYasiTasiyorMu(a: Atolye): boolean {
+  return a.ad
+    .toLocaleLowerCase("tr")
+    .includes(a.yasEtiket.toLocaleLowerCase("tr"));
+}
 
 const indeks = new Map(ATOLYELER.map((a) => [a.slug, a]));
 

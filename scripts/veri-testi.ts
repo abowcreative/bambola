@@ -62,6 +62,7 @@ import {
   YAS_SAYFALARI,
   yasBandiAileleri,
 } from "../src/lib/yas";
+import { ANA_MENU } from "../src/lib/nav";
 import { YASAL_SAYFALAR } from "../src/lib/yasal";
 import { KAYNAKLAR } from "../src/lib/schema";
 import { acilisSaatleri } from "../src/lib/seo";
@@ -503,9 +504,58 @@ const ogretmensiz = ATOLYELER.filter(
 
 esit(
   ogretmensiz.join(", "),
-  "bebek-grubu-6-12, gelisim-odakli-bebek-oyun-grubu, ingilizce-oyun-grubu",
+  "bebek-grubu-6-12, hafta-sonu-oyun-grubu, gelisim-odakli-bebek-oyun-grubu, ingilizce-oyun-grubu",
   "ogretmensiz seansi olan atolyeler beklenenden farkli",
 );
+
+// ------------------------------------------- ust cubuk "Gruplarimiz" kapsami
+
+/*
+  KURAL, 13 Eylul 2026: haftalik programda seansi olan her grup ust cubuktaki
+  "Gruplarimiz" menusunde olmali, menudeki her grup baglantisi da takvimde
+  seansi olan bir gruba gitmeli.
+
+  NEDEN TEST: menunun sirasi lib/nav.ts icinde ELLE yaziliyor (yasa gore
+  diziliyor, ATOLYELER'in kendi sirasi bunu vermiyor). Eksik bir slug uretimi
+  patlatiyor ama FAZLA olan degil eksik olani kimse gormuyordu: "8-16 Ay
+  Bebek Grubu" tam bu yuzden takvimde gorunup menude yoktu. Ters yon de
+  onemli: bir grubun son seansi dustugunde menu sessizce bos bir sayfaya
+  baglanmasin.
+*/
+const GRUP_MENU_ONEKI = "/oyun-evi/programlar/";
+const grupMenusu = ANA_MENU.find((o) => o.ad === "Gruplarımız")?.alt ?? [];
+dogru(grupMenusu.length > 0, "ust cubukta Gruplarimiz menusu yok");
+
+const seansliAtolyeler = ATOLYELER.filter((a) =>
+  SLOTLAR.some((s) => s.atolyeSlug === a.slug),
+);
+for (const a of seansliAtolyeler) {
+  dogru(
+    grupMenusu.some((m) => m.href === `${GRUP_MENU_ONEKI}${a.slug}`),
+    `Gruplarimiz menusunde eksik grup: ${a.slug}`,
+  );
+}
+for (const m of grupMenusu) {
+  /* Son madde "Butun programlar", bir grup sayfasi degil. */
+  if (m.href === "/oyun-evi/programlar") continue;
+  const slug = m.href.startsWith(GRUP_MENU_ONEKI)
+    ? m.href.slice(GRUP_MENU_ONEKI.length)
+    : null;
+  dogru(
+    slug !== null && seansliAtolyeler.some((a) => a.slug === slug),
+    `Gruplarimiz menusunde seansi olmayan baglanti: ${m.href}`,
+  );
+  /* Menude gorunen ad ile yas etiketi atolye verisinden gelmeli. */
+  const atolye = slug ? atolyeBul(slug) : undefined;
+  if (atolye) {
+    esit(m.ad, atolye.ad, `menu adi atolye adiyla ayni degil: ${slug}`);
+    esit(
+      m.aciklama,
+      atolye.yasEtiket,
+      `menu yas etiketi atolye etiketiyle ayni degil: ${slug}`,
+    );
+  }
+}
 
 // Ailenin kadrosu, o aileye bagli atolyelerin kadrosunu kapsamali.
 for (const aile of AILELER) {
@@ -924,23 +974,33 @@ for (const a of AILELER) {
   }
 }
 /*
-  TEK ISTISNA: "gelisim-odakli-bebek-oyun-grubu". Grubun kurumdan gelen ADI
-  ayla anilıyor -- "12-16 Ay Gelisim Odakli Bebek Oyun Grubu" -- ve reklamdan
+  ISTISNA YALNIZ BEBEK GRUPLARINDA. Kurum bebekleri ayla aniyor ("12-16 Ay
+  Gelisim Odakli Bebek Oyun Grubu", "6-12 Ay Bebek Grubu") ve reklamdan
   gelen veli sitede ayni basligi gormeli (kurum karari, 12 Eylul 2026).
   Sayfada yas satiri basligin ustunde duruyor, yani ekranda okunan sey tam
   olarak reklamdaki ad oluyor.
 
+  CIZGI SURADA: bebegin ay bandinin duzgun bir yil karsiligi yok (16 ay ne
+  1 ne 1,5 yas). Yuruyen cocuk gruplarininki var ve onlar yil yaziyor.
+
   Bu istisna YAYILMASIN: kombinasyon etiketleri, aile etiketleri ve yas
   sayfasi adlari yas yazmaya devam ediyor.
 */
-const AY_ADLI_ATOLYELER = new Set([
+const AY_ETIKETLI_ATOLYELER = new Set([
   "gelisim-odakli-bebek-oyun-grubu",
   // "6-12 Ay Bebek Grubu" da reklamda ayla aniliyor, ayni gerekce.
   "bebek-grubu-6-12",
+  /*
+    "Hafta Sonu Oyun Grubu": adi ayla anilmiyor ama yas bandi ay kaliyor.
+    8-16 ayin YIL karsiligi yok -- 16 ay ne 1 ne 1,5 yas; "8 aylik - 1,5
+    yas" yazmak ust siniri iki ay buyutmek olurdu. Kurumun 12 Eylul
+    postundaki rozet de "8-16 ay" diyor.
+  */
+  "hafta-sonu-oyun-grubu",
 ]);
 
 for (const a of ATOLYELER) {
-  if (AY_ADLI_ATOLYELER.has(a.slug)) continue;
+  if (AY_ETIKETLI_ATOLYELER.has(a.slug)) continue;
   dogru(
     !AY_ARALIGI.test(a.yasEtiket),
     `${a.slug}: yas etiketinde ay araligi var: "${a.yasEtiket}"`,

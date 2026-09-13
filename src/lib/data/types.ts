@@ -129,6 +129,7 @@ export type AtolyeSlug =
   | "okula-hazirlik-grubu"
   | "gelisim-odakli-oyun-grubu"
   | "bebek-grubu-6-12"
+  | "hafta-sonu-oyun-grubu"
   | "bebek-oyun-grubu"
   | "gelisim-odakli-bebek-oyun-grubu"
   | "ingilizce-oyun-grubu"

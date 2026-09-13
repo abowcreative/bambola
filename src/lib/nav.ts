@@ -22,11 +22,23 @@ export type NavOge = {
  *
  * Listede olmayan bir slug yazilirsa uretim ANINDA patlar; sessizce eksik
  * bir menu cikmasindansa derleme durmali.
+ *
+ * KAPSAM KURALI, 13 Eylul 2026: haftalik programda seansi olan her grup bu
+ * listede olmali. Eksiksizligi scripts/veri-testi.ts kontrol ediyor; sira
+ * elle, kapsam otomatik. Ayni gun Cumartesi 13.30 seansi
+ * ("Hafta Sonu Oyun Grubu") bu kuralla eklendi: takvimde ayri bir grup olarak
+ * gorunuyordu ama kendi sayfasi ve dolayisiyla menude yeri yoktu.
+ *
+ * SIRA YASA GORE, ADA GORE DEGIL. Adlar birbirini tutmuyor: biri ayla
+ * basliyor ("6-12 Ay Bebek Grubu"), biri gunle ("Hafta Sonu Oyun Grubu"),
+ * biri sifatla ("Gelisim Odakli Bebek Oyun Grubu"). Alfabetik sira bu ucunu
+ * birbirinden ayirirdi; veli ise yasina gore ariyor.
  */
 const GRUP_SIRASI = [
   "bebek-grubu-6-12",
-  "bebek-oyun-grubu",
+  "hafta-sonu-oyun-grubu",
   "gelisim-odakli-bebek-oyun-grubu",
+  "bebek-oyun-grubu",
   "gelisim-odakli-oyun-grubu",
   "ingilizce-oyun-grubu",
   "okula-hazirlik-grubu",
@@ -103,8 +115,15 @@ export const FOOTER_MENU: { baslik: string; ogeler: NavOge[] }[] = [
       // Fotograflar 16 Agustos 2026'da geldi, /mekan acildi.
       // PLAN.md Bolum 14 madde 7.
       { ad: "Mekân", href: "/mekan" },
-      { ad: "Gruplarımız", href: "/oyun-evi/programlar", alt: GRUP_MENUSU },
-  { ad: "Anaokulu", href: "/anaokulu" },
+      /*
+        "Gruplarimiz" satiri 12 Eylul 2026'da yanlislikla BURAYA da dusmustu
+        (ust cubuk yamasi iki yere uygulandi). Footer'in "Oyun Evi"
+        sutunundaki "Programlar" ayni adrese gidiyor; ayni footer'da ayni
+        hedefe iki baglanti, veliye iki farkli yer vaat ediyor gibi
+        duruyordu. Alt menu de footer'da hic basilmiyor, yani GRUP_MENUSU
+        burada bir ise yaramiyordu.
+      */
+      { ad: "Anaokulu", href: "/anaokulu" },
     ],
   },
   {

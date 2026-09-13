@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { MARKA } from "@/lib/site";
-import { ATOLYELER, atolyeBul } from "@/lib/data/atolyeler";
+import { ATOLYELER, atolyeBul, adYasiTasiyorMu } from "@/lib/data/atolyeler";
 import { SLOTLAR } from "@/lib/data/program";
 import {
   atolyeEtkinlikleri,
@@ -40,7 +40,7 @@ import { SonCagri } from "@/components/site/son-cagri";
 import { MekanSeridi } from "@/components/site/mekan-seridi";
 import { SlotKarti } from "@/components/takvim/haftalik-takvim";
 
-/** Dokuz program sayfasi tek sablondan uretiliyor. PLAN.md Bolum 5. */
+/** Program sayfalarinin hepsi tek sablondan uretiliyor. PLAN.md Bolum 5. */
 /** Kampanya penceresi takvime bagli; bkz. ucretler sayfasindaki not. */
 export const revalidate = 3600;
 
@@ -57,9 +57,13 @@ export async function generateMetadata({
   const a = atolyeBul(slug);
   if (!a) return {};
 
+  /* "6-12 Ay Bebek Grubu (6-12 ay)" olmasin; bkz. adYasiTasiyorMu. */
+  const yasEki = adYasiTasiyorMu(a) ? "" : ` (${a.yasEtiket})`;
+  const yasCumlesi = adYasiTasiyorMu(a) ? a.ad : `${a.ad}, ${a.yasEtiket}`;
+
   return sayfaMetadata({
-    baslik: `${a.ad} (${a.yasEtiket})`,
-    aciklama: `${a.ad}, ${a.yasEtiket}. ${MARKA.ilce}, ${MARKA.sehir}. Gün ve saatler, grup büyüklüğü, ücret ve kayıt.`,
+    baslik: `${a.ad}${yasEki}`,
+    aciklama: `${yasCumlesi}. ${MARKA.ilce}, ${MARKA.sehir}. Gün ve saatler, grup büyüklüğü, ücret ve kayıt.`,
     yol: `/oyun-evi/programlar/${a.slug}`,
   });
 }
@@ -145,7 +149,9 @@ export default async function ProgramDetaySayfasi({
       <EkmekKirintisi ogeler={kirinti} />
 
       <SayfaBasligi
-        ustBaslik={atolye.yasEtiket}
+        /* Adi zaten yasi tasiyan gruplarda rozet basilmaz, yoksa sayfa
+           "6-12 ay" ve "6-12 Ay Bebek Grubu" diye tekrar eder. */
+        ustBaslik={adYasiTasiyorMu(atolye) ? undefined : atolye.yasEtiket}
         baslik={atolye.ad}
         aciklama={
           <div className="flex flex-wrap gap-2">
