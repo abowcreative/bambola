@@ -7,7 +7,7 @@ import {
   type YoklamaDurumu,
   type YoklamaKaydi,
 } from "@/lib/kampus/yoklama-tipleri";
-import { ogrenciAdi, type Ogrenci } from "@/lib/kampus/ogrenci-tipleri";
+import { ogrenciAdi, yasEtiketi, type Ogrenci } from "@/lib/kampus/ogrenci-tipleri";
 import { yasMetni, ayHesapla } from "@/lib/yas";
 import { Ikon } from "@/components/ui/ikon";
 import { Dugme, Rozet } from "./ui";
@@ -103,7 +103,7 @@ export function YoklamaListesi({
                     {ogrenciAdi(ogrenci)}
                   </span>
                   <span className="mt-0.5 block text-xs text-panel-soluk">
-                    {yasMetni(ayHesapla(ogrenci.dogum_tarihi))}
+                    {yasEtiketi(ogrenci, (d) => yasMetni(ayHesapla(d)))}
                     {ogrenci.alerji && (
                       <>
                         {" · "}

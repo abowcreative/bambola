@@ -2434,3 +2434,46 @@ Kurumun tek amblemi var: resmi yeşil amblem (`src/assets/bambola-logo.svg`). Mo
 Mor ve kum renk simgeleri (`--color-mor`, `--color-kum`) sitede yalnız karakterler ve konfeti gibi süs öğelerinde geçiyor; logoya bağlı değiller, oldukları gibi duruyor.
 
 Aynı temizlik kurumsal kimlik deposunda (`bambola-kurumsal`) ve claude.ai projesinde de yapıldı.
+
+---
+
+## 42. Kayıtlı çocuk listesi Excel'inin panele taşınması
+
+*(15 Eylül 2026. Müşteri: "kampüs yönetimi için buradaki tüm verileri eksiksiz şekilde gireceğiz… Excel'de nasıl dolduruluyorsa onun daha pratik hâlini yapmamız lazım… asla ama asla verilerin hepsini koyacaksın, birebir çekeceksin".)*
+
+Dosya: `Kopya KAYITLI ÇOCUK LİSTESİ-2025 ve 2026.xlsx`, 26 sayfa, 11.109 dolu hücre. Kurumun asıl kayıt sistemi buydu: GENEL LİSTE (267 çocuk, 19 sütun), Ocak 2025 – Eylül 2026 arası 21 aylık ödeme sayfası, DOĞUM GÜNÜ (gizli), ELDEN VERDİĞİMİZ ÖDEMELER (gizli), SU YÜKLEME, DEVAMSIZLIK ÇİZELGESİ.
+
+### Excel'deki her şeyin panelde nereye gittiği
+
+| Excel | Panel | Göç 0007 |
+|---|---|---|
+| GENEL LİSTE, 19 sütun | Öğrenciler → "Genel liste" görünümü (yönetici için varsayılan) ve öğrenci kartındaki "Kayıt bilgileri" kutusu | `ogrenciler` üstüne 19 sütun: `excel_no`, `ilk_kayit_yas`, `dogum_gunu`, `katilim_durumu`, `paket`, `program_metni`, `son_odeme_*`, `ikametgah`, `kalan_hak_saat`, `gelis_hakki`, `toplam_odenen(_formul)`, `guncellenme_tarihi`, `excel_notu`, `ilk_ders_tarihi` |
+| VELİ AD SOYAD / TELEFON | Veliler (telefonla tekil) | `veliler.telefon` artık boş olabilir; `telefon_ham`, `alternatif_telefon`, `excel_adi` |
+| Aylık sayfalar (732 satır) | **Ödeme defteri** modülü: ay sekmeleri, satırlar, TOPLAM CİRO; öğrenci kartında "Ödeme defteri" kutusu | `paket_satislari` |
+| DOĞUM GÜNÜ (50 satır) | **Doğum günleri** modülü | `dogum_gunu_partileri` |
+| ELDEN VERDİĞİMİZ ÖDEMELER (264 satır, 944.235 TL) | **Giderler** modülü | `giderler` |
+| SU YÜKLEME | Giderler sayfasının üstündeki su kartı sayaçları | `su_karti` |
+| DEVAMSIZLIK ÇİZELGESİ (76 çocuk) | **Devamsızlık çizelgesi** modülü | `devamsizlik_cizelgesi` |
+| 26 sayfanın tamamı, hücre hücre | **Excel arşivi** modülü (salt okunur; değer, formül, yorum, tarih) | `excel_sayfalari` |
+
+Aktarım: `npm run excel:ice-aktar -- "<dosya.xlsx>" [yaz]`. `yaz` verilmezse yalnız ne olacağını gösterir ve `_gecici-excel-aktarim-raporu.md` yazar. Tekrar çalıştırmak güvenli: öğrenciler `excel_kaynak` ("GENEL LİSTE!7") ile, veliler telefonla bulunup güncellenir; Excel kaynaklı defter/gider/parti/çizelge satırları silinip yeniden yazılır, panelden girilenler durur.
+
+### Kararlar
+
+| Karar | Neden |
+|---|---|
+| **Aylık sayfalar `odemeler` (cari) tablosuna değil, ayrı `paket_satislari` tablosuna gitti** | Cari tablo borç–tahsilat muhasebesi ve tutar sıfırdan büyük olmak zorunda. Excel'de "İADE YAPILDI", "7000 NAKİT ÖDEYECEK", "2500kk 2500 nakit" gibi satırlar var ve onlar da kayıt. Defter Excel'in birebir karşılığı; cari olduğu gibi duruyor |
+| **Defter satırı öğrenciye önce formülle bağlandı** | GENEL LİSTE'nin TOPLAM ÖDENEN formülleri (`=EYLÜL!F2+KASIM!F33…`) hangi satırın hangi çocuğa ait olduğunu kesin söylüyor: 599 satır böyle bağlandı. Kalanlar telefonla (31), önceki sayfada öğrenilen yazımla (43) ve ad + veli benzerliğiyle (27). Eşit puanlı iki aday farklı veliyse bağlanmıyor |
+| **Eşleşmeyen çocuk için öğrenci kaydı açıldı (21 çocuk, 32 satır)** | Excel'in bildiği bir çocuğu panel de bilmeli; bir ödeme kaydı "kime ait olduğu bilinmiyor" diye düşmez. Bu kayıtların notunda "GENEL LİSTE'de kaydı yok; yalnız … ödeme kaydında geçiyor" yazıyor |
+| **Doğum tarihi uydurulmadı** | Excel'in "DOĞUM GÜNÜ" hücresi çoğu satırda yıl yer tutuculu (çocuk 2024 doğumlu, hücre 2025-01-02). Tek ölçüt: hücredeki tarihten ilk kayıt tarihine geçen ay, "İLK KAYIT YAŞ" ile ±5 ay tutuyor mu. 77 tarih kabul, 151 red; 14 tanesi 2025 sayfalarındaki doğum tarihinden geldi. Reddedilenlerde alan boş, hücre `dogum_gunu` sütununda duruyor, yaş yerine "38 AY · ilk kayıtta" gösteriliyor. Bunun için `dogum_tarihi` zorunlu olmaktan çıktı |
+| **Toplam ödenen iki ayrı sayı** | `toplam_odenen` Excel formülünün son değeri; canlı toplam defterden hesaplanıyor. 48 çocukta farklı: Excel'in formülü Haziran 2025'ten başlıyor, defter Şubat–Mayıs 2025 ödemelerini de içeriyor. Panel canlı toplamı gösterip altına "Excel: …" yazıyor; hiçbiri silinmedi |
+| **"Dondurdu" etiketi "Pasif" oldu** | Kurumun dili AKTİF / PASİF / AYRILDI. Kod (`dondurdu`) değişmedi, veritabanı kısıtı ve eski kayıtlar bozulmadı. TEK SEFER → ayrıldı; ham durum `katilim_durumu` alanında |
+| **Aynı çocuğun iki GENEL LİSTE satırı iki öğrenci kaydı** | MELİS (PINAR BALDEMİR) 5. ve 143. satırda iki dönem ayrı yazılmış. Birleştirmek verinin kendisini değiştirmek olurdu; ikisi de aynı veliye bağlı, birleştirme yöneticinin kararı |
+| **Ödeme eklemek tek işlem** | Excel'de bir ödeme iki sayfada sekiz hücreydi. `paketSatisiEkle` satırı yazıp öğrencinin son ödeme tarihi/tutarı/türü ve güncellenme tarihini kendisi tazeliyor; kalan hak ve geliş hakkı aynı formdan güncellenebiliyor |
+| **xlsx bağımlılığı yine yok** | Zip merkez dizini elle okunup girdiler `zlib` ile açılıyor (Bölüm 36'daki `unzip` bağımlılığı da kalktı); stiller okunarak tarih hücreleri ayırt ediliyor, hücre yorumları ve formüller de alınıyor |
+
+### Sonuç
+
+288 öğrenci (267 GENEL LİSTE + 21 yalnız defterde geçen; önceki 10 kayıt telefon/adla eşleşip güncellendi, ikilenmedi), 277 veli, 732 defter satırı (4.477.965 TL), 50 doğum günü, 264 gider, 2 su kartı satırı, 76 çizelge satırı, 26 arşiv sayfası. Bir velinin 9 haneli telefonu (Bölüm 36) Excel'deki 10 haneli numarayla düzeltildi. Öğrenciye bağlanmamış defter satırı: 0. Derleme, tip kontrolü, lint ve 601 veri kontrolü geçiyor.
+
+⏳ **Bekleyen:** (1) 186 çocuğun doğum tarihi boş — Excel'de yıl yok; (2) MELİS gibi çift satırlar ve yalnız defterde geçen 21 çocuk yönetici gözüyle bir kez taranmalı; (3) Excel'in "İLK KAYIT YAŞ"ı bazı satırlarda hatalı olabilir, o zaman doğum tarihi yanlış reddedilmiş olur — kayıt bilgileri kutusunda hücre görünüyor; (4) yeni modüller tarayıcıda tıklanmadı, yalnız derlemeden geçti; (5) `kayitlar` hâlâ boş, sınıf ataması Bölüm 36'daki gibi bekliyor.

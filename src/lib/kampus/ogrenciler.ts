@@ -41,12 +41,57 @@ export async function ogrencileriGetir(suzgec?: {
     q = q.eq("durum", suzgec.durum);
   }
   // Enjeksiyona karsi temizlenmis kalip, bkz. lib/kampus/arama.ts.
-  const kalip = aramaKalibi(suzgec?.ara, ["ad", "soyad"]);
+  const kalip = aramaKalibi(suzgec?.ara, ["ad", "soyad", "excel_adi"]);
   if (kalip) q = q.or(kalip);
 
   const { data, error } = await q;
   if (error) throw new Error(`Öğrenciler okunamadı: ${error.message}`);
   return (data ?? []) as Ogrenci[];
+}
+
+export type GenelListeSatiri = Ogrenci & {
+  veli: { id: string; ad_soyad: string; telefon: string | null } | null;
+};
+
+/**
+ * Excel'in GENEL LISTE gorunumu: ogrenci + birincil velisi tek sorguda.
+ * Siralama Excel'deki sira numarasina gore degil, ada gore: numaralar
+ * eski listeden kalmis (161, TC:..., *) ve tutarli degil.
+ */
+export async function ogrenciGenelListesi(suzgec?: {
+  durum?: OgrenciDurumu | "hepsi";
+  ara?: string;
+}): Promise<GenelListeSatiri[]> {
+  await adminZorunlu();
+  const db = await sunucuIstemcisi();
+
+  let q = db
+    .from("ogrenciler")
+    .select("*, ogrenci_veli(birincil, veliler(id, ad_soyad, telefon))")
+    .order("ad")
+    .limit(1000);
+
+  if (suzgec?.durum && suzgec.durum !== "hepsi") {
+    q = q.eq("durum", suzgec.durum);
+  }
+  const kalip = aramaKalibi(suzgec?.ara, ["ad", "soyad", "excel_adi"]);
+  if (kalip) q = q.or(kalip);
+
+  const { data, error } = await q;
+  if (error) throw new Error(`Öğrenciler okunamadı: ${error.message}`);
+
+  return (data ?? []).map((o) => {
+    const { ogrenci_veli, ...ogrenci } = o as unknown as Ogrenci & {
+      ogrenci_veli: {
+        birincil: boolean;
+        veliler: { id: string; ad_soyad: string; telefon: string | null } | null;
+      }[];
+    };
+    const bag = (ogrenci_veli ?? [])
+      .filter((b) => b.veliler)
+      .sort((a, b) => Number(b.birincil) - Number(a.birincil))[0];
+    return { ...ogrenci, veli: bag?.veliler ?? null };
+  });
 }
 
 export async function ogrenciGetir(id: string): Promise<Ogrenci | null> {

@@ -19,6 +19,7 @@ import { atolyeBul, ATOLYELER } from "@/lib/data/atolyeler";
 import { GUN_ADI } from "@/lib/data/types";
 import type { Gun } from "@/lib/data/types";
 import { yasMetni, ayHesapla } from "@/lib/yas";
+import { yasEtiketi } from "@/lib/kampus/ogrenci-tipleri";
 import { dersleriGetir, DERS_DURUM_ETIKET } from "@/lib/kampus/yoklama";
 import { DERS_TONU } from "@/lib/kampus/tonlar";
 import { bugununTarihi } from "@/lib/tarih";
@@ -137,7 +138,7 @@ export default async function SinifDetaySayfasi({
                     {k.ogrenci ? ogrenciAdi(k.ogrenci) : "—"}
                   </Link>
                   <span className="shrink-0 text-xs text-panel-soluk">
-                    {k.ogrenci && yasMetni(ayHesapla(k.ogrenci.dogum_tarihi))}
+                    {k.ogrenci && yasEtiketi(k.ogrenci, (d) => yasMetni(ayHesapla(d)))}
                   </span>
                   {k.ogrenci?.alerji && (
                     <Rozet ton="uyari" ikon={<Ikon.Kalp boyut={11} />}>
@@ -209,7 +210,7 @@ export default async function SinifDetaySayfasi({
                   sinifId={sinif.id}
                   adaylar={eklenebilir.map((o) => ({
                     id: o.id,
-                    ad: `${ogrenciAdi(o)} (${yasMetni(ayHesapla(o.dogum_tarihi))})`,
+                    ad: `${ogrenciAdi(o)} (${yasEtiketi(o, (d) => yasMetni(ayHesapla(d)))})`,
                   }))}
                   dolu={aktif.length >= sinif.kontenjan}
                 />

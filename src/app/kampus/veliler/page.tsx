@@ -111,12 +111,21 @@ export default async function VelilerSayfasi({
                         )}
                       </Td>
                       <Td>
-                        <a
-                          href={`tel:0${v.telefon}`}
-                          className="font-medium text-yesil-derin hover:underline"
-                        >
-                          {telefonYaz(v.telefon)}
-                        </a>
+                        {v.telefon ? (
+                          <a
+                            href={`tel:0${v.telefon}`}
+                            className="font-medium text-yesil-derin hover:underline"
+                          >
+                            {telefonYaz(v.telefon)}
+                          </a>
+                        ) : (
+                          <span className="text-panel-silik">—</span>
+                        )}
+                        {v.alternatif_telefon && (
+                          <span className="mt-0.5 block text-xs text-panel-silik">
+                            {v.alternatif_telefon}
+                          </span>
+                        )}
                       </Td>
                       <Td sayi className="text-panel-soluk">
                         {v.cocukSayisi}

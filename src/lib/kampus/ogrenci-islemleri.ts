@@ -582,21 +582,40 @@ export async function sinifKaydiniBitir(
 
 // ------------------------------------------------------ ogrenci duzenleme
 
+const tarihVeyaBos = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Tarih geçersiz.")
+  .optional()
+  .or(z.literal(""));
+const sayiVeyaBos = z.coerce.number().int().min(-9999).max(99_999_999).optional().or(z.literal(""));
+
 const ogrenciGuncelSemasi = z.object({
   id: z.uuid("Geçersiz öğrenci."),
   ad: z.string().trim().min(2, "Çocuğun adı gerekli.").max(60),
   soyad: z.string().trim().max(60).optional(),
-  dogumTarihi: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Doğum tarihi gerekli."),
+  /*
+    Dogum tarihi BOS OLABILIR: Excel'den gelen cocuklarin cogunda yalniz
+    dogum gunu var. Bos gelirse alan temizleniyor; uydurma tarih zorlanmiyor.
+  */
+  dogumTarihi: tarihVeyaBos,
   kurum: z.enum(["oyun-evi", "anaokulu", "parti"]),
   durum: z.enum(["aday", "aktif", "dondurdu", "ayrildi"]),
-  kayitTarihi: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Kayıt tarihi geçersiz.")
-    .optional()
-    .or(z.literal("")),
+  kayitTarihi: tarihVeyaBos,
   alerji: z.string().trim().max(300).optional(),
   saglikNotu: z.string().trim().max(500).optional(),
   notlar: z.string().trim().max(1000).optional(),
+
+  /* --- Excel GENEL LISTE alanlari; hepsi istege bagli --- */
+  excelNo: z.string().trim().max(40).optional(),
+  ilkKayitYas: z.string().trim().max(20).optional(),
+  dogumGunu: tarihVeyaBos,
+  paket: z.string().trim().max(60).optional(),
+  programMetni: z.string().trim().max(80).optional(),
+  ikametgah: z.string().trim().max(200).optional(),
+  kalanHakSaat: sayiVeyaBos,
+  gelisHakki: sayiVeyaBos,
+  ilkDersTarihi: tarihVeyaBos,
+  excelNotu: z.string().trim().max(1000).optional(),
 });
 
 export type OgrenciGuncelGirdisi = z.input<typeof ogrenciGuncelSemasi>;
@@ -617,27 +636,41 @@ export async function ogrenciGuncelle(
   if (!g.success) return { ok: false, hata: g.error.issues[0].message };
   const v = g.data;
 
+  const sayi = (x: number | "" | undefined) => (x === "" || x === undefined ? null : x);
+
   const db = await sunucuIstemcisi();
   const { error } = await db
     .from("ogrenciler")
     .update({
       ad: v.ad,
       soyad: v.soyad || null,
-      dogum_tarihi: v.dogumTarihi,
+      dogum_tarihi: v.dogumTarihi || null,
       kurum: v.kurum,
       durum: v.durum,
       ...(v.kayitTarihi ? { kayit_tarihi: v.kayitTarihi } : {}),
       alerji: v.alerji || null,
       saglik_notu: v.saglikNotu || null,
       notlar: v.notlar || null,
+      excel_no: v.excelNo || null,
+      ilk_kayit_yas: v.ilkKayitYas || null,
+      dogum_gunu: v.dogumGunu || null,
+      paket: v.paket || null,
+      program_metni: v.programMetni || null,
+      ikametgah: v.ikametgah || null,
+      kalan_hak_saat: sayi(v.kalanHakSaat),
+      gelis_hakki: sayi(v.gelisHakki),
+      ilk_ders_tarihi: v.ilkDersTarihi || null,
+      excel_notu: v.excelNotu || null,
+      guncellenme_tarihi: new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Istanbul" }),
     })
     .eq("id", v.id);
 
-  if (error) return { ok: false, hata: "Öğrenci kaydedilemedi." };
+  if (error) return { ok: false, hata: `Öğrenci kaydedilemedi: ${error.message}` };
 
   revalidatePath("/kampus/ogrenciler");
   revalidatePath(`/kampus/ogrenciler/${v.id}`);
   revalidatePath("/kampus/yemek");
+  revalidatePath("/kampus/odeme-defteri");
   return { ok: true, id: v.id };
 }
 
@@ -732,7 +765,13 @@ export async function ogrenciSil(id: string): Promise<IslemSonucu> {
 
 const veliSemasi = z.object({
   adSoyad: z.string().trim().min(2, "Veli adı gerekli.").max(80),
-  telefon: z.string().trim().min(10, "Telefon gerekli.").max(20),
+  /*
+    Yeni kayitta telefon zorunlu (asagida ayrica kontrol ediliyor);
+    duzenlemede bos birakilabilir: Excel'den gelen uc velinin numarasi yok
+    ve o kayitlari acip kaydedebilmek gerekiyor.
+  */
+  telefon: z.string().trim().max(30).optional().or(z.literal("")),
+  alternatifTelefon: z.string().trim().max(120).optional(),
   eposta: z
     .string()
     .trim()
@@ -758,7 +797,7 @@ export async function veliEkle(girdi: VeliGirdisi): Promise<IslemSonucu> {
   const g = veliSemasi.safeParse(girdi);
   if (!g.success) return { ok: false, hata: g.error.issues[0].message };
 
-  const telefon = telefonNormalle(g.data.telefon);
+  const telefon = telefonNormalle(g.data.telefon ?? "");
   if (telefon.length !== 10) {
     return { ok: false, hata: "Telefon 10 haneli olmalı." };
   }
@@ -781,6 +820,7 @@ export async function veliEkle(girdi: VeliGirdisi): Promise<IslemSonucu> {
     .insert({
       ad_soyad: g.data.adSoyad,
       telefon,
+      alternatif_telefon: g.data.alternatifTelefon || null,
       eposta: g.data.eposta || null,
       adres: g.data.adres || null,
       notlar: g.data.notlar || null,
@@ -806,8 +846,8 @@ export async function veliGuncelle(
   const g = veliSemasi.safeParse(girdi);
   if (!g.success) return { ok: false, hata: g.error.issues[0].message };
 
-  const telefon = telefonNormalle(g.data.telefon);
-  if (telefon.length !== 10) {
+  const telefon = telefonNormalle(g.data.telefon ?? "");
+  if (telefon && telefon.length !== 10) {
     return { ok: false, hata: "Telefon 10 haneli olmalı." };
   }
 
@@ -816,21 +856,24 @@ export async function veliGuncelle(
   /* Telefon baska bir veliye aitse durduruluyor: iki kayit ayni numaraya
      dusunce "hangisini arayacagim" sorusu cikiyor ve veli birlestirme
      mantigi (telefonla eslestirme) bozuluyor. */
-  const { data: cakisan } = await db
-    .from("veliler")
-    .select("id")
-    .eq("telefon", telefon)
-    .neq("id", k.data)
-    .maybeSingle();
-  if (cakisan) {
-    return { ok: false, hata: "Bu telefon başka bir veli kaydında kayıtlı." };
+  if (telefon) {
+    const { data: cakisan } = await db
+      .from("veliler")
+      .select("id")
+      .eq("telefon", telefon)
+      .neq("id", k.data)
+      .maybeSingle();
+    if (cakisan) {
+      return { ok: false, hata: "Bu telefon başka bir veli kaydında kayıtlı." };
+    }
   }
 
   const { error } = await db
     .from("veliler")
     .update({
       ad_soyad: g.data.adSoyad,
-      telefon,
+      telefon: telefon || null,
+      alternatif_telefon: g.data.alternatifTelefon || null,
       eposta: g.data.eposta || null,
       adres: g.data.adres || null,
       notlar: g.data.notlar || null,

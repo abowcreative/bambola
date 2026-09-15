@@ -377,13 +377,23 @@ export type OgrenciKunyesi = {
   id: string;
   ad: string;
   soyad: string | null;
-  dogum_tarihi: string;
+  dogum_tarihi: string | null;
   kurum: string;
   durum: OgrenciDurumu;
   kayit_tarihi: string;
   alerji: string | null;
   saglik_notu: string | null;
   notlar: string | null;
+  excel_no: string | null;
+  ilk_kayit_yas: string | null;
+  dogum_gunu: string | null;
+  paket: string | null;
+  program_metni: string | null;
+  ikametgah: string | null;
+  kalan_hak_saat: number | null;
+  gelis_hakki: number | null;
+  ilk_ders_tarihi: string | null;
+  excel_notu: string | null;
 };
 
 /**
@@ -401,13 +411,23 @@ export function OgrenciDuzenle({ ogrenci }: { ogrenci: OgrenciKunyesi }) {
   const [d, setD] = useState({
     ad: ogrenci.ad,
     soyad: ogrenci.soyad ?? "",
-    dogumTarihi: ogrenci.dogum_tarihi,
+    dogumTarihi: ogrenci.dogum_tarihi ?? "",
     kurum: ogrenci.kurum,
     durum: ogrenci.durum as string,
     kayitTarihi: ogrenci.kayit_tarihi,
     alerji: ogrenci.alerji ?? "",
     saglikNotu: ogrenci.saglik_notu ?? "",
     notlar: ogrenci.notlar ?? "",
+    excelNo: ogrenci.excel_no ?? "",
+    ilkKayitYas: ogrenci.ilk_kayit_yas ?? "",
+    dogumGunu: ogrenci.dogum_gunu ?? "",
+    paket: ogrenci.paket ?? "",
+    programMetni: ogrenci.program_metni ?? "",
+    ikametgah: ogrenci.ikametgah ?? "",
+    kalanHakSaat: ogrenci.kalan_hak_saat === null ? "" : String(ogrenci.kalan_hak_saat),
+    gelisHakki: ogrenci.gelis_hakki === null ? "" : String(ogrenci.gelis_hakki),
+    ilkDersTarihi: ogrenci.ilk_ders_tarihi ?? "",
+    excelNotu: ogrenci.excel_notu ?? "",
   });
 
   const yaz = (alan: keyof typeof d) => (e: { target: { value: string } }) =>
@@ -468,11 +488,14 @@ export function OgrenciDuzenle({ ogrenci }: { ogrenci: OgrenciKunyesi }) {
                 className={ALAN}
               />
             </AlanKutusu>
-            <AlanKutusu etiket="Doğum tarihi" htmlFor="od-dogum" gerekli>
+            <AlanKutusu
+              etiket="Doğum tarihi"
+              htmlFor="od-dogum"
+              ipucu="Bilinmiyorsa boş kalabilir; yaş için “ilk kayıt yaşı” gösterilir."
+            >
               <input
                 id="od-dogum"
                 type="date"
-                required
                 value={d.dogumTarihi}
                 onChange={yaz("dogumTarihi")}
                 disabled={bekliyor}
@@ -560,6 +583,52 @@ export function OgrenciDuzenle({ ogrenci }: { ogrenci: OgrenciKunyesi }) {
               />
             </AlanKutusu>
           </div>
+
+          {/*
+            Excel GENEL LISTE'nin sutunlari. Kurum yillardir bu alanlarla
+            calisiyor; panel ayni kelimeleri kullaniyor ki "kalan hak" ne
+            demek diye sormak gerekmesin.
+          */}
+          <fieldset className="border-t border-panel-cizgi pt-4">
+            <legend className="font-baslik text-sm font-bold text-murekkep">
+              Kayıt bilgileri
+              <span className="ml-2 text-xs font-normal text-panel-silik">
+                Excel genel listesindeki sütunlar
+              </span>
+            </legend>
+            <div className="mt-2 grid gap-3 sm:grid-cols-3">
+              <AlanKutusu etiket="Sıra / No" htmlFor="od-no">
+                <input id="od-no" value={d.excelNo} onChange={yaz("excelNo")} disabled={bekliyor} className={ALAN} />
+              </AlanKutusu>
+              <AlanKutusu etiket="İlk kayıt yaşı" htmlFor="od-yas" ipucu="38 AY, 4.5 YAŞ">
+                <input id="od-yas" value={d.ilkKayitYas} onChange={yaz("ilkKayitYas")} disabled={bekliyor} className={ALAN} />
+              </AlanKutusu>
+              <AlanKutusu etiket="Doğum günü" htmlFor="od-dogumgunu" ipucu="Excel'deki gün; yılı belirsiz olabilir">
+                <input id="od-dogumgunu" type="date" value={d.dogumGunu} onChange={yaz("dogumGunu")} disabled={bekliyor} className={ALAN} />
+              </AlanKutusu>
+              <AlanKutusu etiket="Paket" htmlFor="od-paket">
+                <input id="od-paket" value={d.paket} onChange={yaz("paket")} disabled={bekliyor} className={ALAN} placeholder="16 SAAT" />
+              </AlanKutusu>
+              <AlanKutusu etiket="Program" htmlFor="od-program" className="sm:col-span-2">
+                <input id="od-program" value={d.programMetni} onChange={yaz("programMetni")} disabled={bekliyor} className={ALAN} placeholder="SALI-PERŞEMBE" />
+              </AlanKutusu>
+              <AlanKutusu etiket="Kalan hak (saat)" htmlFor="od-kalan">
+                <input id="od-kalan" type="number" step={1} value={d.kalanHakSaat} onChange={yaz("kalanHakSaat")} disabled={bekliyor} className={`${ALAN} tabular-nums`} />
+              </AlanKutusu>
+              <AlanKutusu etiket="Geliş hakkı" htmlFor="od-gelis">
+                <input id="od-gelis" type="number" step={1} value={d.gelisHakki} onChange={yaz("gelisHakki")} disabled={bekliyor} className={`${ALAN} tabular-nums`} />
+              </AlanKutusu>
+              <AlanKutusu etiket="İlk derse katılım" htmlFor="od-ilkders">
+                <input id="od-ilkders" type="date" value={d.ilkDersTarihi} onChange={yaz("ilkDersTarihi")} disabled={bekliyor} className={ALAN} />
+              </AlanKutusu>
+              <AlanKutusu etiket="İkametgâh" htmlFor="od-ikametgah" className="sm:col-span-3">
+                <input id="od-ikametgah" value={d.ikametgah} onChange={yaz("ikametgah")} disabled={bekliyor} className={ALAN} placeholder="Keklikpınarı Mah. / Dikmen" />
+              </AlanKutusu>
+              <AlanKutusu etiket="Excel notu" htmlFor="od-excelnot" className="sm:col-span-3" ipucu="Genel listedeki not sütunu; hak düşümleri, kampanya, borç notları.">
+                <textarea id="od-excelnot" rows={2} value={d.excelNotu} onChange={yaz("excelNotu")} disabled={bekliyor} className={`${ALAN} resize-y`} />
+              </AlanKutusu>
+            </div>
+          </fieldset>
 
           {hata && <Bildirim ton="tehlike">{hata}</Bildirim>}
 

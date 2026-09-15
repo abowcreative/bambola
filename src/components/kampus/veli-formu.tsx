@@ -30,7 +30,8 @@ const YAKINLIKLAR = ["anne", "baba", "vasi", "veli"] as const;
 export type VeliKunyesi = {
   id: string;
   ad_soyad: string;
-  telefon: string;
+  telefon: string | null;
+  alternatif_telefon?: string | null;
   eposta: string | null;
   adres: string | null;
   notlar: string | null;
@@ -56,6 +57,7 @@ export function VeliFormu({
   const [d, setD] = useState({
     adSoyad: veli?.ad_soyad ?? "",
     telefon: veli?.telefon ?? "",
+    alternatifTelefon: veli?.alternatif_telefon ?? "",
     eposta: veli?.eposta ?? "",
     adres: veli?.adres ?? "",
     notlar: veli?.notlar ?? "",
@@ -75,7 +77,7 @@ export function VeliFormu({
       if (sonuc.ok) {
         setAcik(false);
         if (!veli) {
-          setD({ adSoyad: "", telefon: "", eposta: "", adres: "", notlar: "" });
+          setD({ adSoyad: "", telefon: "", alternatifTelefon: "", eposta: "", adres: "", notlar: "" });
           if (sonuc.id) yonlendirici.push(`/kampus/veliler/${sonuc.id}`);
         }
         yonlendirici.refresh();
@@ -119,14 +121,28 @@ export function VeliFormu({
             <AlanKutusu
               etiket="Telefon"
               htmlFor="v-tel"
-              gerekli
+              gerekli={!veli}
               ipucu="0532 111 22 33 · aramada kullanılan numara"
             >
               <input
                 id="v-tel"
-                required
+                required={!veli}
                 value={d.telefon}
                 onChange={yaz("telefon")}
+                disabled={bekliyor}
+                className={ALAN}
+              />
+            </AlanKutusu>
+            <AlanKutusu
+              etiket="İkinci telefon"
+              htmlFor="v-tel2"
+              className="sm:col-span-2"
+              ipucu="Baba, babaanne ya da Excel'deki ikinci numara."
+            >
+              <input
+                id="v-tel2"
+                value={d.alternatifTelefon}
+                onChange={yaz("alternatifTelefon")}
                 disabled={bekliyor}
                 className={ALAN}
               />
@@ -227,7 +243,7 @@ export function VeliBagla({
   bagliOlanlar,
 }: {
   ogrenciId: string;
-  veliler: { id: string; ad_soyad: string; telefon: string }[];
+  veliler: { id: string; ad_soyad: string; telefon: string | null }[];
   bagliOlanlar: string[];
 }) {
   const yonlendirici = useRouter();
@@ -338,7 +354,8 @@ export function VeliBagla({
                 <option value="">Seçin…</option>
                 {secilebilir.map((v) => (
                   <option key={v.id} value={v.id}>
-                    {v.ad_soyad} · 0{v.telefon}
+                    {v.ad_soyad}
+                    {v.telefon ? ` · 0${v.telefon}` : ""}
                   </option>
                 ))}
               </select>

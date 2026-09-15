@@ -7,13 +7,26 @@ import {
   ogrencininKayitlari,
   velileriGetir,
   ogrenciAdi,
+  yasEtiketi,
+  kisaTarih,
   OGRENCI_DURUM_ETIKET,
   YAKINLIK_ETIKET,
 } from "@/lib/kampus/ogrenciler";
+import {
+  ogrencininDefteri,
+  ogrenciSecenekleri,
+  defterSozlugu,
+  tl,
+  tutarMetni,
+  DEFTER_YONTEM_ETIKET,
+  type PaketSatisi,
+  type OgrenciSecenegi,
+} from "@/lib/kampus/defter";
 import { Kabuk, Kutu, GeriBaglantisi } from "@/components/kampus/kabuk";
 import { Bildirim, BosDurum, Rozet, Satir } from "@/components/kampus/ui";
 import { OgrenciDuzenle } from "@/components/kampus/ogrenci-formu";
 import { VeliBagla, VeliBagiKaldir } from "@/components/kampus/veli-formu";
+import { PaketSatisiFormu, PaketSatisiDuzelt } from "@/components/kampus/defter-formu";
 import { OGRENCI_TONU, YOKLAMA_TONU } from "@/lib/kampus/tonlar";
 import { atolyeBul } from "@/lib/data/atolyeler";
 import { GUN_ADI } from "@/lib/data/types";
@@ -47,19 +60,25 @@ export default async function OgrenciDetaySayfasi({
 
   const yonetici = oturum.rol === "admin";
 
-  const [veliler, kayitlar, yoklama, odemeler, tumVeliler] = await Promise.all([
-    ogrencininVelileri(id),
-    ogrencininKayitlari(id),
-    ogrencininYoklamasi(id),
-    // Odemeleri ve veli listesini yalniz admin goruyor.
-    yonetici ? ogrencininOdemeleri(id) : Promise.resolve([]),
-    yonetici ? velileriGetir() : Promise.resolve([]),
-  ]);
+  const [veliler, kayitlar, yoklama, odemeler, tumVeliler, defter, secenekler, sozluk] =
+    await Promise.all([
+      ogrencininVelileri(id),
+      ogrencininKayitlari(id),
+      ogrencininYoklamasi(id),
+      // Para ve veli listesi yalniz yonetici.
+      yonetici ? ogrencininOdemeleri(id) : Promise.resolve([]),
+      yonetici ? velileriGetir() : Promise.resolve([]),
+      yonetici ? ogrencininDefteri(id) : Promise.resolve([] as PaketSatisi[]),
+      yonetici ? ogrenciSecenekleri() : Promise.resolve([] as OgrenciSecenegi[]),
+      yonetici ? defterSozlugu() : Promise.resolve({ paketler: [], programlar: [] }),
+    ]);
 
   const aktifKayitlar = kayitlar.filter((k) => k.durum === "aktif");
   const katilim = yoklama.filter(
     (y) => y.durum === "geldi" || y.durum === "telafi",
   ).length;
+  const defterToplami = defter.reduce((t, s) => t + (s.tutar ?? 0), 0);
+  const excelFarkli = ogrenci.toplam_odenen !== null && ogrenci.toplam_odenen !== defterToplami;
 
   return (
     <Kabuk oturum={oturum} aktifYol="/kampus/ogrenciler">
@@ -74,20 +93,29 @@ export default async function OgrenciDetaySayfasi({
             <Rozet ton={OGRENCI_TONU[ogrenci.durum] ?? "notr"}>
               {OGRENCI_DURUM_ETIKET[ogrenci.durum]}
             </Rozet>
+            {ogrenci.excel_no && <Rozet ton="sessiz">No {ogrenci.excel_no}</Rozet>}
           </div>
           <p className="mt-1 text-sm text-panel-soluk">
-            {yasMetni(ayHesapla(ogrenci.dogum_tarihi))} ·{" "}
+            {yasEtiketi(ogrenci, (d) => yasMetni(ayHesapla(d)))} ·{" "}
             {KURUM_ETIKET[ogrenci.kurum as Kurum] ?? ogrenci.kurum}
+            {ogrenci.paket && ` · ${ogrenci.paket}`}
+            {ogrenci.program_metni && ` · ${ogrenci.program_metni}`}
           </p>
         </div>
 
-        {yonetici && <OgrenciDuzenle ogrenci={ogrenci} />}
+        <div className="flex flex-wrap items-center gap-2">
+          {yonetici && (
+            <PaketSatisiFormu
+              ogrenciler={secenekler}
+              sozluk={sozluk}
+              sabitOgrenciId={ogrenci.id}
+              gorunum="ikincil"
+            />
+          )}
+          {yonetici && <OgrenciDuzenle ogrenci={ogrenci} />}
+        </div>
       </div>
 
-      {/*
-        Saglik bilgisi EN USTTE ve vurgulu: alerjisi olan bir cocuk icin bu
-        bilginin sayfanin altinda kalmasi kabul edilemez.
-      */}
       {(ogrenci.alerji || ogrenci.saglik_notu) && (
         <Bildirim
           ton="uyari"
@@ -108,12 +136,90 @@ export default async function OgrenciDetaySayfasi({
         </Bildirim>
       )}
 
+      {/* Hak sayaclari EN USTTE: kurumun her gun baktigi iki sayi. */}
+      {yonetici && (ogrenci.kalan_hak_saat !== null || ogrenci.gelis_hakki !== null || defter.length > 0) && (
+        <dl className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {(
+            [
+              ["Kalan hak (saat)", ogrenci.kalan_hak_saat ?? "—", ogrenci.kalan_hak_saat !== null && ogrenci.kalan_hak_saat < 0 ? "text-tehlike" : "text-murekkep"],
+              ["Geliş hakkı", ogrenci.gelis_hakki ?? "—", ogrenci.gelis_hakki !== null && ogrenci.gelis_hakki < 0 ? "text-tehlike" : "text-murekkep"],
+              ["Son ödeme", defter[0] ? `${tutarMetni(defter[0])} · ${kisaTarih(defter[0].tarih) || defter[0].tarih_ham || ""}` : (ogrenci.son_odenen ? `${ogrenci.son_odenen} · ${kisaTarih(ogrenci.son_odeme_tarihi)}` : "—"), "text-murekkep"],
+              ["Defter toplamı", tl(defterToplami), "text-basari"],
+            ] as const
+          ).map(([etiket, deger, renk]) => (
+            <div key={etiket} className="rounded-panel border border-panel-cizgi bg-panel-yuzey p-4 shadow-panel">
+              <dt className="text-xs font-semibold text-panel-soluk">{etiket}</dt>
+              <dd className={`mt-1.5 font-baslik text-xl font-bold tabular-nums leading-none ${renk}`}>{deger}</dd>
+              {etiket === "Defter toplamı" && excelFarkli && (
+                <p className="mt-1.5 text-xs text-panel-silik" title={ogrenci.toplam_odenen_formul ?? undefined}>
+                  Excel toplamı {tl(ogrenci.toplam_odenen)}
+                </p>
+              )}
+            </div>
+          ))}
+        </dl>
+      )}
+
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         <div className="space-y-4">
+          {/* --- odeme defteri --- */}
+          {yonetici && (
+            <Kutu
+              baslik="Ödeme defteri"
+              aciklama="Excel'deki aylık sayfalardan gelen ve panelden girilen paket ödemeleri."
+              yanCocuk={
+                <PaketSatisiFormu
+                  ogrenciler={secenekler}
+                  sozluk={sozluk}
+                  sabitOgrenciId={ogrenci.id}
+                  gorunum="ikincil"
+                  olcu="sm"
+                />
+              }
+              dolgusuz
+            >
+              {defter.length === 0 ? (
+                <p className="px-4 py-6 text-center text-sm text-panel-soluk">
+                  Henüz ödeme kaydı yok.
+                </p>
+              ) : (
+                <ul className="divide-y divide-panel-cizgi">
+                  {defter.map((s) => (
+                    <li key={s.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2">
+                      <span className="w-20 shrink-0 text-xs tabular-nums text-panel-silik">
+                        {kisaTarih(s.tarih) || s.tarih_ham || "—"}
+                      </span>
+                      <span className="min-w-0 flex-1 text-sm text-murekkep">
+                        <span className="font-medium">{s.paket ?? "—"}</span>
+                        {s.program && <span className="text-panel-soluk"> · {s.program}</span>}
+                        {(s.odeme_turu || s.yontem) && (
+                          <span className="text-panel-soluk"> · {s.odeme_turu ?? DEFTER_YONTEM_ETIKET[s.yontem!]}</span>
+                        )}
+                        {s.aciklama && (
+                          <span className="mt-0.5 block truncate text-xs text-panel-silik" title={s.aciklama}>
+                            {s.aciklama}
+                          </span>
+                        )}
+                      </span>
+                      <span className="shrink-0 text-xs text-panel-silik">
+                        {s.kaynak === "excel" ? `${s.sayfa} · ${s.kaynak_satir}` : "panel"}
+                      </span>
+                      <span className={`shrink-0 text-sm font-semibold tabular-nums ${s.tutar === null ? "text-uyari" : "text-murekkep"}`}>
+                        {tutarMetni(s)}
+                      </span>
+                      <PaketSatisiDuzelt satis={s} ogrenciler={secenekler} sozluk={sozluk} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Kutu>
+          )}
+
           <Kutu baslik="Sınıflar" dolgusuz>
             {aktifKayitlar.length === 0 ? (
               <p className="px-4 py-6 text-center text-sm text-panel-soluk">
                 Henüz bir sınıfa kayıtlı değil.
+                {ogrenci.program_metni && ` Excel'deki program: ${ogrenci.program_metni}.`}
               </p>
             ) : (
               <ul className="divide-y divide-panel-cizgi">
@@ -125,9 +231,7 @@ export default async function OgrenciDetaySayfasi({
                     >
                       {k.sinif?.atolye_slug
                         ? (atolyeBul(
-                            k.sinif.atolye_slug as Parameters<
-                              typeof atolyeBul
-                            >[0],
+                            k.sinif.atolye_slug as Parameters<typeof atolyeBul>[0],
                           )?.ad ?? k.sinif.ad)
                         : (k.sinif?.ad ?? "—")}
                     </Link>
@@ -137,8 +241,7 @@ export default async function OgrenciDetaySayfasi({
                       {k.sinif?.ogretmen_ad && ` · ${k.sinif.ogretmen_ad}`}
                     </p>
                     <p className="mt-0.5 text-xs text-panel-silik">
-                      {new Date(k.baslangic).toLocaleDateString("tr-TR")}
-                      &apos;den beri
+                      {kisaTarih(k.baslangic)}&apos;den beri
                     </p>
                   </li>
                 ))}
@@ -172,7 +275,6 @@ export default async function OgrenciDetaySayfasi({
                   >
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-2">
-                        {/* Veli sayfasi yalniz yoneticide var. */}
                         {yonetici ? (
                           <Link
                             href={`/kampus/veliler/${v.id}`}
@@ -189,14 +291,19 @@ export default async function OgrenciDetaySayfasi({
                       </span>
                       <span className="mt-0.5 block text-xs text-panel-soluk">
                         {YAKINLIK_ETIKET[v.yakinlik] ?? v.yakinlik}
+                        {v.alternatif_telefon && ` · ${v.alternatif_telefon}`}
                       </span>
                     </span>
-                    <a
-                      href={`tel:0${v.telefon}`}
-                      className="shrink-0 text-sm font-medium text-yesil-derin hover:underline"
-                    >
-                      {telefonYaz(v.telefon)}
-                    </a>
+                    {v.telefon ? (
+                      <a
+                        href={`tel:0${v.telefon}`}
+                        className="shrink-0 text-sm font-medium text-yesil-derin hover:underline"
+                      >
+                        {telefonYaz(v.telefon)}
+                      </a>
+                    ) : (
+                      <span className="shrink-0 text-sm text-panel-silik">telefon yok</span>
+                    )}
                     {yonetici && veliler.length > 1 && (
                       <VeliBagiKaldir ogrenciId={ogrenci.id} veliId={v.id} />
                     )}
@@ -206,7 +313,6 @@ export default async function OgrenciDetaySayfasi({
             )}
           </Kutu>
 
-          {/* --- devam gecmisi --- */}
           <Kutu
             baslik="Devam"
             yanCocuk={
@@ -231,10 +337,10 @@ export default async function OgrenciDetaySayfasi({
                   >
                     <span className="w-14 shrink-0 text-xs tabular-nums text-panel-silik">
                       {y.dersler?.tarih
-                        ? new Date(y.dersler.tarih).toLocaleDateString(
-                            "tr-TR",
-                            { day: "2-digit", month: "2-digit" },
-                          )
+                        ? new Date(y.dersler.tarih).toLocaleDateString("tr-TR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                          })
                         : "—"}
                     </span>
                     <span className="min-w-0 flex-1 truncate text-sm text-murekkep">
@@ -249,9 +355,11 @@ export default async function OgrenciDetaySayfasi({
             )}
           </Kutu>
 
-          {/* Cari yalniz yoneticiye. Ogretmen para bilgisi gormuyor. */}
           {yonetici && (
-            <Kutu baslik="Cari hesap">
+            <Kutu
+              baslik="Cari hesap"
+              aciklama="Borç / tahsilat muhasebesi. Paket ödemeleri yukarıdaki defterde."
+            >
               <OdemeKutusu ogrenciId={ogrenci.id} hareketler={odemeler} />
             </Kutu>
           )}
@@ -269,26 +377,60 @@ export default async function OgrenciDetaySayfasi({
           <Kutu baslik="Künye">
             <dl>
               <Satir etiket="Doğum tarihi">
-                {new Date(ogrenci.dogum_tarihi).toLocaleDateString("tr-TR", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                })}
+                {ogrenci.dogum_tarihi
+                  ? new Date(ogrenci.dogum_tarihi).toLocaleDateString("tr-TR", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    })
+                  : ""}
               </Satir>
-              <Satir etiket="Yaş">
-                {yasMetni(ayHesapla(ogrenci.dogum_tarihi))}
-              </Satir>
-              <Satir etiket="Kayıt tarihi">
-                {new Date(ogrenci.kayit_tarihi).toLocaleDateString("tr-TR")}
-              </Satir>
+              <Satir etiket="Yaş">{yasEtiketi(ogrenci, (d) => yasMetni(ayHesapla(d)))}</Satir>
+              <Satir etiket="Kayıt tarihi">{kisaTarih(ogrenci.kayit_tarihi)}</Satir>
               <Satir etiket="Kurum">
                 {KURUM_ETIKET[ogrenci.kurum as Kurum] ?? ogrenci.kurum}
               </Satir>
-              <Satir etiket="Durum">
-                {OGRENCI_DURUM_ETIKET[ogrenci.durum]}
-              </Satir>
+              <Satir etiket="Durum">{OGRENCI_DURUM_ETIKET[ogrenci.durum]}</Satir>
             </dl>
           </Kutu>
+
+          {/* Excel GENEL LISTE'nin geri kalani; sutun adlari Excel'deki gibi. */}
+          {yonetici && (
+            <Kutu
+              baslik="Kayıt bilgileri"
+              aciklama={ogrenci.excel_kaynak ? `Excel ${ogrenci.excel_kaynak.replace("!", " · satır ")}` : "Excel genel listesindeki sütunlar."}
+            >
+              <dl>
+                <Satir etiket="Excel'deki ad">{ogrenci.excel_adi ?? ""}</Satir>
+                <Satir etiket="İlk kayıt yaş">{ogrenci.ilk_kayit_yas ?? ""}</Satir>
+                <Satir etiket="Doğum günü (Excel)">{kisaTarih(ogrenci.dogum_gunu)}</Satir>
+                <Satir etiket="Katılım durumu">{ogrenci.katilim_durumu ?? ""}</Satir>
+                <Satir etiket="Paket">{ogrenci.paket ?? ""}</Satir>
+                <Satir etiket="Program">{ogrenci.program_metni ?? ""}</Satir>
+                <Satir etiket="İkametgâh">{ogrenci.ikametgah ?? ""}</Satir>
+                <Satir etiket="Son ödeme (Excel)">
+                  {ogrenci.son_odenen
+                    ? `${ogrenci.son_odenen} · ${kisaTarih(ogrenci.son_odeme_tarihi)}${ogrenci.son_odeme_turu ? ` · ${ogrenci.son_odeme_turu}` : ""}`
+                    : ""}
+                </Satir>
+                <Satir etiket="Toplam ödenen (Excel)">
+                  {ogrenci.toplam_odenen !== null ? tl(ogrenci.toplam_odenen) : ""}
+                </Satir>
+                <Satir etiket="Güncellenme">{kisaTarih(ogrenci.guncellenme_tarihi)}</Satir>
+                <Satir etiket="İlk derse katılım">{kisaTarih(ogrenci.ilk_ders_tarihi)}</Satir>
+              </dl>
+              {ogrenci.toplam_odenen_formul && (
+                <p className="mt-2 break-all font-mono text-[0.7rem] leading-relaxed text-panel-silik">
+                  {ogrenci.toplam_odenen_formul}
+                </p>
+              )}
+              {ogrenci.excel_notu && (
+                <p className="mt-3 rounded-panel-sm border border-uyari/25 bg-uyari-zemin px-3 py-2 text-sm leading-relaxed text-murekkep">
+                  {ogrenci.excel_notu}
+                </p>
+              )}
+            </Kutu>
+          )}
 
           {ogrenci.basvuru_id && yonetici && (
             <Kutu baslik="Nereden geldi">

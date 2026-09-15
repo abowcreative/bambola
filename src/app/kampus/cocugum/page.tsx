@@ -7,7 +7,7 @@ import {
 } from "@/lib/kampus/yoklama-tipleri";
 import { YOKLAMA_TONU } from "@/lib/kampus/tonlar";
 import { ogrencininKayitlari } from "@/lib/kampus/ogrenciler";
-import { ogrenciAdi } from "@/lib/kampus/ogrenci-tipleri";
+import { ogrenciAdi, yasEtiketi } from "@/lib/kampus/ogrenci-tipleri";
 import { Kabuk, SayfaBasi, Kutu } from "@/components/kampus/kabuk";
 import { Bildirim, BosDurum, Rozet, Sayac } from "@/components/kampus/ui";
 import { atolyeBul } from "@/lib/data/atolyeler";
@@ -76,7 +76,7 @@ export default async function CocugumSayfasi() {
                   {ogrenciAdi(cocuk)}
                 </h2>
                 <span className="text-sm text-panel-soluk">
-                  {yasMetni(ayHesapla(cocuk.dogum_tarihi))}
+                  {yasEtiketi(cocuk, (d) => yasMetni(ayHesapla(d)))}
                 </span>
               </div>
 

@@ -8,6 +8,7 @@ import {
   ogrenciAdi,
   OGRENCI_DURUM_ETIKET,
   YAKINLIK_ETIKET,
+  yasEtiketi,
 } from "@/lib/kampus/ogrenciler";
 import { Kabuk, Kutu, GeriBaglantisi } from "@/components/kampus/kabuk";
 import { Rozet, Sayac, Satir } from "@/components/kampus/ui";
@@ -85,6 +86,7 @@ export default async function VeliDetaySayfasi({
             id: veli.id,
             ad_soyad: veli.ad_soyad,
             telefon: veli.telefon,
+            alternatif_telefon: veli.alternatif_telefon,
             eposta: veli.eposta,
             adres: veli.adres,
             notlar: veli.notlar,
@@ -140,7 +142,7 @@ export default async function VeliDetaySayfasi({
                   </div>
 
                   <p className="mt-1 text-xs text-panel-soluk">
-                    {yasMetni(ayHesapla(c.ogrenci.dogum_tarihi))}
+                    {yasEtiketi(c.ogrenci, (d) => yasMetni(ayHesapla(d)))}
                     {c.bakiye !== 0 && ` · bakiye ${tlYaz(c.bakiye)}`}
                   </p>
 
@@ -185,22 +187,43 @@ export default async function VeliDetaySayfasi({
         <aside className="space-y-4">
           <Kutu baslik="İletişim">
             <div className="space-y-2">
-              <a
-                href={`tel:0${veli.telefon}`}
-                className="flex items-center gap-2.5 text-sm font-medium text-yesil-derin hover:underline"
-              >
-                <Ikon.Telefon boyut={15} />
-                {telefonYaz(veli.telefon)}
-              </a>
-              <a
-                href={`https://wa.me/90${veli.telefon}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-2.5 text-sm font-medium text-yesil-derin hover:underline"
-              >
-                <Ikon.Whatsapp boyut={15} />
-                WhatsApp&apos;tan yaz
-              </a>
+              {veli.telefon ? (
+                <>
+                  <a
+                    href={`tel:0${veli.telefon}`}
+                    className="flex items-center gap-2.5 text-sm font-medium text-yesil-derin hover:underline"
+                  >
+                    <Ikon.Telefon boyut={15} />
+                    {telefonYaz(veli.telefon)}
+                  </a>
+                  <a
+                    href={`https://wa.me/90${veli.telefon}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2.5 text-sm font-medium text-yesil-derin hover:underline"
+                  >
+                    <Ikon.Whatsapp boyut={15} />
+                    WhatsApp&apos;tan yaz
+                  </a>
+                </>
+              ) : (
+                <p className="flex items-center gap-2.5 text-sm text-panel-silik">
+                  <Ikon.Telefon boyut={15} />
+                  Telefon kayıtlı değil
+                  {veli.telefon_ham && ` (Excel: ${veli.telefon_ham})`}
+                </p>
+              )}
+              {veli.alternatif_telefon && (
+                <p className="flex items-start gap-2.5 text-sm text-panel-soluk">
+                  <span className="mt-0.5 shrink-0">
+                    <Ikon.Telefon boyut={15} />
+                  </span>
+                  <span>
+                    {veli.alternatif_telefon}
+                    <span className="block text-xs text-panel-silik">ikinci numara</span>
+                  </span>
+                </p>
+              )}
               {veli.eposta && (
                 <a
                   href={`mailto:${veli.eposta}`}

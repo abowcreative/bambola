@@ -21,6 +21,7 @@
     "bas": "tsx scripts/bas.ts",
     "belge": "npm run belge:pdf && npm run belge:sosyal && npm run bas",
     "ogrenci:ice-aktar": "tsx scripts/ogrenci-ice-aktar.ts",
+    "excel:ice-aktar": "tsx scripts/excel-ice-aktar.ts",
     "logo": "tsx scripts/logo-uret.ts"
   },
   "dependencies": {
